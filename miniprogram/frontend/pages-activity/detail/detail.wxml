@@ -1,0 +1,106 @@
+<view class="page">
+  <block wx:if="{{detail}}">
+    <!-- 海报轮播 -->
+    <swiper wx:if="{{images.length}}" class="gallery" indicator-dots circular>
+      <swiper-item wx:for="{{images}}" wx:key="*this">
+        <image src="{{item}}" mode="aspectFill" class="gallery-img"
+               bindtap="previewImage" data-index="{{index}}" />
+      </swiper-item>
+    </swiper>
+
+    <view class="card">
+      <view class="title">
+        <text wx:if="{{statusText}}" class="tag tag-{{statusType}}">{{statusText}}</text>
+        {{detail.title}}
+      </view>
+      <view class="info-row">🕐 开始：{{startTimeText}}</view>
+      <view class="info-row">🏁 结束：{{endTimeText}}</view>
+      <view class="info-row">⏰ 报名截止：{{deadlineText}}</view>
+      <view class="info-row">📍 地点：{{detail.location || '待定'}}</view>
+      <view class="info-row">
+        👥 已报名：{{detail.memberCount || 0}}{{detail.maxMembers ? ' / ' + detail.maxMembers : ''}} 人
+      </view>
+      <view wx:if="{{mySignupText}}" class="my-status">我的报名状态：{{mySignupText}}</view>
+      <view wx:if="{{detail.signedIn}}" class="my-status success">✅ 你已完成签到</view>
+    </view>
+
+    <!-- 发起人 -->
+    <view class="card publisher">
+      <image wx:if="{{detail.publisherAvatar}}" class="avatar" src="{{detail.publisherAvatar}}" mode="aspectFill" />
+      <view wx:else class="avatar placeholder">{{detail.publisherNickname ? detail.publisherNickname[0] : '同'}}</view>
+      <view class="pub-info">
+        <view class="pub-name">{{detail.publisherNickname || '校园用户'}}</view>
+        <view class="text-muted">活动发起人</view>
+      </view>
+    </view>
+
+    <!-- 活动详情 -->
+    <view class="card">
+      <view class="sec-title">活动详情</view>
+      <text class="desc" selectable>{{detail.description || '发起人未填写详情'}}</text>
+    </view>
+
+    <view class="bottom-space"></view>
+
+    <!-- 底部操作栏 -->
+    <view class="action-bar">
+      <block wx:if="{{detail.isOwner}}">
+        <button class="btn-plain" bindtap="loadMembers">报名名单</button>
+        <button class="btn-primary" bindtap="showSigninQr">生成签到码</button>
+      </block>
+      <block wx:else>
+        <button class="btn-plain" bindtap="contactPublisher">联系发起人</button>
+        <button class="btn-plain" bindtap="goSignin">扫码签到</button>
+        <button class="btn-primary" bindtap="goSignup"
+                disabled="{{detail.status !== 0 || mySignupText !== ''}}">
+          {{mySignupText ? '已报名（' + mySignupText + '）' : (detail.status === 0 ? '立即报名' : '停止报名')}}
+        </button>
+      </block>
+    </view>
+  </block>
+
+  <view wx:elif="{{loading}}" class="empty">加载中…</view>
+  <view wx:else class="empty">活动不存在或已下架</view>
+
+  <!-- 报名名单弹窗 -->
+  <view wx:if="{{showMembers}}" class="mask" bindtap="closeMembers">
+    <view class="dialog" catchtap="stopPropagation">
+      <view class="dialog-title">报名名单（{{members.length}}）</view>
+      <scroll-view class="member-list" scroll-y>
+        <view wx:if="{{membersLoading}}" class="empty">加载中…</view>
+        <view wx:elif="{{members.length === 0}}" class="empty">还没有人报名</view>
+        <view wx:for="{{members}}" wx:key="id" class="member">
+          <view class="m-main">
+            <view class="m-name">
+              {{item.nickname || '同学'}}
+              <text wx:if="{{item.studentNo}}" class="text-muted">（{{item.studentNo}}）</text>
+            </view>
+            <view class="text-muted">备注：{{item.remark || '无'}} · {{item.timeText}}</view>
+          </view>
+          <view class="m-ops">
+            <text class="m-status">{{item.statusText}}</text>
+            <block wx:if="{{item.status === 0}}">
+              <text class="op pass" bindtap="handleMember" data-id="{{item.id}}" data-approve="true">通过</text>
+              <text class="op reject" bindtap="handleMember" data-id="{{item.id}}" data-approve="false">拒绝</text>
+            </block>
+            <text wx:elif="{{item.signedIn}}" class="signed">已签到</text>
+          </view>
+        </view>
+      </scroll-view>
+      <button class="btn-primary" bindtap="closeMembers">关闭</button>
+    </view>
+  </view>
+
+  <!-- 签到码弹窗 -->
+  <view wx:if="{{showQr}}" class="mask" bindtap="closeQr">
+    <view class="dialog" catchtap="stopPropagation">
+      <view class="dialog-title">现场签到码</view>
+      <view class="qr-tip">让参与同学在「扫码签到」页扫描下方内容生成的二维码，或直接复制签到串手动录入。</view>
+      <view class="qr-content" selectable>{{qrContent}}</view>
+      <view class="dialog-btns">
+        <button class="btn-plain" bindtap="copyQr">复制签到串</button>
+        <button class="btn-primary" bindtap="closeQr">关闭</button>
+      </view>
+    </view>
+  </view>
+</view>

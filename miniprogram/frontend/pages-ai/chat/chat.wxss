@@ -1,0 +1,79 @@
+/* AI 答疑页样式 */
+.chat-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #f3f0ea;
+}
+
+.msg-list {
+  flex: 1;
+  padding: 20rpx 0;
+  box-sizing: border-box;
+}
+
+.welcome {
+  padding: 60rpx 40rpx;
+  text-align: center;
+}
+
+.welcome-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #303133;
+}
+
+.welcome-sub {
+  font-size: 26rpx;
+  color: #909399;
+  margin: 16rpx 0 40rpx;
+}
+
+.quick {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  font-size: 26rpx;
+  color: #2f9e8a;
+  text-align: left;
+  line-height: 40rpx;
+}
+
+.bubble-wrap {
+  padding: 0 16rpx;
+}
+
+.bottom-space {
+  height: 40rpx;
+}
+
+.input-bar {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 20rpx;
+  background: #fff;
+  border-top: 1rpx solid #e7e3d9;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+}
+
+.input {
+  flex: 1;
+  height: 72rpx;
+  background: #f3f0ea;
+  border-radius: 36rpx;
+  padding: 0 28rpx;
+  font-size: 28rpx;
+}
+
+.send {
+  margin-left: 16rpx;
+  flex-shrink: 0;
+}
+
+.clear {
+  margin-left: 16rpx;
+  font-size: 24rpx;
+  color: #909399;
+  flex-shrink: 0;
+}

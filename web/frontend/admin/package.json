@@ -1,0 +1,28 @@
+{
+  "name": "web-admin",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI校园综合服务平台 - Web管理后台",
+  "scripts": {
+    "dev": "vite --port 5174",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@wangeditor/editor-for-vue": "^5.1.12",
+    "@wangeditor/editor": "^5.1.23",
+    "axios": "^1.7.2",
+    "dayjs": "^1.11.11",
+    "echarts": "^5.5.0",
+    "element-plus": "^2.7.5",
+    "@element-plus/icons-vue": "^2.3.1",
+    "markdown-it": "^14.1.0",
+    "pinia": "^2.1.7",
+    "vue": "^3.4.27",
+    "vue-router": "^4.3.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.4",
+    "vite": "^5.2.11"
+  }
+}

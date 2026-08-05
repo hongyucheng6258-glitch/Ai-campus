@@ -1,0 +1,54 @@
+# IDE and operating system
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Local assistant/workspace state
+.workbuddy/
+.trae-html-share-packages/
+
+# Build outputs and dependencies
+**/target/
+**/dist/
+**/node_modules/
+**/__pycache__/
+*.pyc
+*.class
+*.jar
+
+# Environment files and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Runtime logs and temporary files
+*.log
+*.tmp
+*.temp
+.enc_check.txt
+
+# Local backups and generated reverse-engineering artifacts
+_backup_*/
+database-backups/
+javap_output/
+
+# QA runtime outputs and reports may contain JWTs, account data or API responses
+docs/qa/tokens.json
+docs/qa/ctx*.json
+docs/qa/r*.json
+docs/qa/*报告*.md
+docs/冒烟验收报告.md
+
+# Local documents containing environment-specific credentials or runtime evidence
+overview.md
+deploy/部署说明.md
+docs/测试报告.md
+
+# Local generated/shareable reports
+*.html.zip

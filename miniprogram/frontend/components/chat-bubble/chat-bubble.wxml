@@ -1,0 +1,9 @@
+<view class="row {{role === 'user' ? 'mine' : ''}}">
+  <view wx:if="{{role !== 'user'}}" class="avatar ai">AI</view>
+  <view class="bubble {{role}}">
+    <!-- AI 回复：纯文本降级展示；接入 towxml 后可替换为富文本渲染 -->
+    <text selectable>{{content}}</text>
+  </view>
+  <image wx:if="{{role === 'user' && avatar}}" class="avatar" src="{{avatar}}" />
+  <view wx:elif="{{role === 'user'}}" class="avatar">{{nickname[0]}}</view>
+</view>

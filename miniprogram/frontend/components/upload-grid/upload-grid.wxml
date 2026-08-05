@@ -1,0 +1,7 @@
+<view class="grid">
+  <view wx:for="{{value}}" wx:key="*this" class="cell">
+    <image src="{{item}}" mode="aspectFill" class="img" bindtap="preview" data-index="{{index}}" />
+    <view class="del" catchtap="remove" data-index="{{index}}">×</view>
+  </view>
+  <view wx:if="{{value.length < max}}" class="cell add" bindtap="choose">＋</view>
+</view>

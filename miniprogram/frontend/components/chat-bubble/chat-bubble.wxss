@@ -1,0 +1,42 @@
+.row {
+  display: flex;
+  align-items: flex-start;
+  margin: 20rpx 0;
+}
+.row.mine {
+  flex-direction: row-reverse;
+}
+.avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: #e6f4f0;
+  color: #2f9e8a;
+  font-size: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.avatar.ai {
+  background: #2f9e8a;
+  color: #fff;
+}
+.bubble {
+  max-width: 70%;
+  margin: 0 16rpx;
+  padding: 18rpx 22rpx;
+  border-radius: 16rpx;
+  font-size: 28rpx;
+  line-height: 1.7;
+  word-break: break-all;
+}
+.bubble.user {
+  background: #2f9e8a;
+  color: #fff;
+}
+.bubble.assistant {
+  background: #fff;
+  color: #303133;
+  border: 1rpx solid #e7e3d9;
+}

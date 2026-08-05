@@ -1,0 +1,84 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/login/login",
+    "pages/notice/list/list",
+    "pages/notice/detail/detail",
+    "pages/message/message",
+    "pages/my/my"
+  ],
+  "subPackages": [
+    {
+      "root": "pages-ai",
+      "name": "AI学习中心",
+      "pages": [
+        "chat/chat",
+        "code-fix/code-fix",
+        "pdf/pdf",
+        "wrong/wrong",
+        "outline/outline"
+      ]
+    },
+    {
+      "root": "pages-idle",
+      "name": "闲置互换",
+      "pages": [
+        "list/list",
+        "publish/publish",
+        "detail/detail",
+        "appoint/appoint",
+        "review/review"
+      ]
+    },
+    {
+      "root": "pages-activity",
+      "name": "活动组队",
+      "pages": [
+        "list/list",
+        "publish/publish",
+        "detail/detail",
+        "signup/signup",
+        "signin/signin"
+      ]
+    },
+    {
+      "root": "pages-lostfound",
+      "name": "失物招领",
+      "pages": [
+        "list/list",
+        "publish/publish",
+        "detail/detail"
+      ]
+    },
+    {
+      "root": "pages-chat",
+      "name": "私信",
+      "pages": [
+        "conversations/conversations",
+        "room/room"
+      ]
+    }
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#236b5d",
+    "navigationBarTitleText": "AI校园服务平台",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#faf7f1"
+  },
+  "tabBar": {
+    "color": "#9a9ea4",
+    "selectedColor": "#236b5d",
+    "list": [
+      { "pagePath": "pages/index/index", "text": "首页" },
+      { "pagePath": "pages/message/message", "text": "消息" },
+      { "pagePath": "pages/my/my", "text": "我的" }
+    ]
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于展示附近活动信息"
+    }
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "AI 智能答疑",
+  "usingComponents": {
+    "chat-bubble": "../../components/chat-bubble/chat-bubble"
+  }
+}

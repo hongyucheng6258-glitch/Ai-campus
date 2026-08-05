@@ -1,0 +1,61 @@
+/* 预约页样式 */
+.target-title {
+  margin-top: 12rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #303133;
+}
+
+.label {
+  font-size: 26rpx;
+  color: #606266;
+  margin-bottom: 12rpx;
+}
+
+.req {
+  color: #d9543f;
+}
+
+.textarea {
+  width: 100%;
+  height: 220rpx;
+  background: #f3f0ea;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.counter {
+  text-align: right;
+  font-size: 22rpx;
+  color: #909399;
+  margin: 8rpx 0 24rpx;
+}
+
+.tpl-label {
+  font-size: 24rpx;
+  color: #909399;
+  margin-bottom: 12rpx;
+}
+
+.tpl {
+  background: #e6f4f0;
+  color: #2f9e8a;
+  font-size: 25rpx;
+  line-height: 38rpx;
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  margin-bottom: 12rpx;
+}
+
+.notice {
+  margin: 0 32rpx 24rpx;
+  font-size: 24rpx;
+  color: #e0a93f;
+  line-height: 36rpx;
+}
+
+.btns {
+  padding: 0 32rpx 60rpx;
+}

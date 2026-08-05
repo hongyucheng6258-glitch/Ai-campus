@@ -1,0 +1,27 @@
+<view class="page">
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <input class="search-input" value="{{keyword}}" bindinput="onKeywordInput"
+           placeholder="搜索物品名称 / 地点" confirm-type="search" bindconfirm="doSearch" />
+    <view class="search-btn" bindtap="doSearch">搜索</view>
+  </view>
+
+  <!-- 类型筛选 -->
+  <view class="tabs">
+    <view wx:for="{{typeTabs}}" wx:key="name"
+          class="tab {{activeType === item.key ? 'active' : ''}}"
+          bindtap="switchType" data-key="{{item.key}}">{{item.name}}</view>
+  </view>
+
+  <!-- 列表 -->
+  <view wx:for="{{list}}" wx:key="id" class="list-item" bindtap="goDetail" data-id="{{item.id}}">
+    <item-card cover="{{item.cover}}" title="{{item.title}}" desc="{{item.desc}}"
+               extra="{{item.extra}}" tagText="{{item.tagText}}" tagType="{{item.tagType}}" />
+  </view>
+
+  <view wx:if="{{inited && list.length === 0}}" class="empty">暂无信息，丢了或捡到东西可点右下角发布</view>
+  <view wx:if="{{loading}}" class="loading-tip">加载中…</view>
+  <view wx:elif="{{!hasMore && list.length > 0}}" class="loading-tip">共 {{total}} 条信息</view>
+
+  <view class="fab" bindtap="goPublish">＋</view>
+</view>

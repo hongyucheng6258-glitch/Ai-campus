@@ -1,0 +1,462 @@
+-- ============================================================
+-- AI校园综合服务平台 数据库初始化脚本（MySQL 8，23张表）
+-- 通用约定：主键 id BIGINT AUTO_INCREMENT；时间 DATETIME 默认 CURRENT_TIMESTAMP；
+-- 用户发布内容统一 audit_status（0待审核/1通过/2驳回）+ audit_reason
+-- 执行方式：mysql -uroot -p < schema.sql
+-- ============================================================
+
+CREATE DATABASE IF NOT EXISTS ai_campus_platform DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE ai_campus_platform;
+
+SET NAMES utf8mb4;
+
+-- ---------------- 3.1 账号与基础 ----------------
+
+-- 用户表（Web账号密码 + 小程序openid 双登录体系）
+CREATE TABLE IF NOT EXISTS `user` (
+  `id`              BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `student_no`      VARCHAR(20)  DEFAULT NULL COMMENT '学号（注册必填，仅格式校验）',
+  `nickname`        VARCHAR(32)  NOT NULL DEFAULT '' COMMENT '昵称',
+  `password`        VARCHAR(100) DEFAULT NULL COMMENT 'BCrypt密码，小程序自动建号可为空',
+  `phone`           VARCHAR(11)  DEFAULT NULL COMMENT '手机号，账号合并绑定用',
+  `openid`          VARCHAR(64)  DEFAULT NULL COMMENT '微信openid',
+  `avatar`          VARCHAR(255) DEFAULT NULL COMMENT '头像URL',
+  `gender`          TINYINT      NOT NULL DEFAULT 0 COMMENT '0未知 1男 2女',
+  `bio`             VARCHAR(255) DEFAULT NULL COMMENT '个人简介',
+  `status`          TINYINT      NOT NULL DEFAULT 0 COMMENT '0正常 1禁用',
+  `last_login_time` DATETIME     DEFAULT NULL COMMENT '最近登录时间（今日活跃口径）',
+  `create_time`     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time`     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_student_no` (`student_no`),
+  UNIQUE KEY `uk_openid` (`openid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
+
+-- 管理员表
+CREATE TABLE IF NOT EXISTS `admin` (
+  `id`          BIGINT      NOT NULL AUTO_INCREMENT,
+  `username`    VARCHAR(32) NOT NULL COMMENT '登录名',
+  `password`    VARCHAR(100) NOT NULL COMMENT 'BCrypt密码',
+  `nickname`    VARCHAR(32) DEFAULT NULL,
+  `avatar`      VARCHAR(255) DEFAULT NULL,
+  `role`        VARCHAR(20) NOT NULL DEFAULT 'audit' COMMENT 'super/audit',
+  `status`      TINYINT     NOT NULL DEFAULT 0 COMMENT '0正常 1禁用',
+  `create_time` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='管理员表';
+
+-- 初始管理员：admin / admin123（BCrypt），首次登录请改密
+INSERT INTO `admin` (`username`, `password`, `nickname`, `role`)
+SELECT 'admin', '$2a$10$mhhWC1d1vn0htoHLVFgbquJUvefFeCMJAdFLNJb1j4/lXXfnd.lPe', '超级管理员', 'super'
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `admin` WHERE `username` = 'admin');
+
+-- ---------------- 3.2 AI 子系统（6张表） ----------------
+
+-- AI会话
+CREATE TABLE IF NOT EXISTS `ai_session` (
+  `id`          BIGINT      NOT NULL AUTO_INCREMENT,
+  `user_id`     BIGINT      NOT NULL COMMENT '所属用户',
+  `scene`       VARCHAR(16) NOT NULL DEFAULT 'chat' COMMENT '场景 chat/pdf/code/outline',
+  `title`       VARCHAR(64) NOT NULL DEFAULT '新会话',
+  `doc_id`      BIGINT      DEFAULT NULL COMMENT '关联PDF文档（pdf场景）',
+  `create_time` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_user_scene` (`user_id`, `scene`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI会话表';
+
+-- AI消息
+CREATE TABLE IF NOT EXISTS `ai_message` (
+  `id`          BIGINT      NOT NULL AUTO_INCREMENT,
+  `session_id`  BIGINT      NOT NULL COMMENT '所属会话',
+  `role`        VARCHAR(10) NOT NULL COMMENT 'user/assistant/system',
+  `content`     TEXT        NOT NULL COMMENT '消息内容',
+  `tokens`      INT         NOT NULL DEFAULT 0 COMMENT '消耗token数',
+  `create_time` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_session` (`session_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI消息表';
+
+-- AI调用日志
+CREATE TABLE IF NOT EXISTS `ai_call_log` (
+  `id`                BIGINT      NOT NULL AUTO_INCREMENT,
+  `user_id`           BIGINT      NOT NULL,
+  `scene`             VARCHAR(16) NOT NULL COMMENT 'chat/pdf/code_fix/outline/quiz',
+  `model`             VARCHAR(32) DEFAULT NULL,
+  `prompt_tokens`     INT NOT NULL DEFAULT 0,
+  `completion_tokens` INT NOT NULL DEFAULT 0,
+  `cost_ms`           INT NOT NULL DEFAULT 0 COMMENT '耗时毫秒',
+  `status`            TINYINT NOT NULL DEFAULT 0 COMMENT '0成功 1失败',
+  `error_msg`         VARCHAR(255) DEFAULT NULL,
+  `create_time`       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_user` (`user_id`),
+  KEY `idx_create_time` (`create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI调用日志表';
+
+-- AI配置键值表（改后即时生效，免重启）
+CREATE TABLE IF NOT EXISTS `ai_config` (
+  `id`           BIGINT      NOT NULL AUTO_INCREMENT,
+  `config_key`   VARCHAR(64) NOT NULL COMMENT '配置键',
+  `config_value` VARCHAR(512) NOT NULL DEFAULT '' COMMENT '配置值',
+  `description`  VARCHAR(255) DEFAULT NULL,
+  `update_time`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_config_key` (`config_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI配置表';
+
+-- 预置AI配置（api_key 为空时回退 application.yml 的 ai.api-key）
+INSERT INTO `ai_config` (`config_key`, `config_value`, `description`) VALUES
+('base_url', 'https://api.deepseek.com', '模型服务地址（OpenAI兼容）'),
+('api_key', '', 'DeepSeek API Key，为空则用application.yml占位'),
+('model_name', 'deepseek-chat', '模型名称'),
+('temperature', '0.7', '采样温度'),
+('max_tokens', '2048', '最大输出token'),
+('timeout_ms', '60000', '调用超时毫秒'),
+('retry_times', '2', '失败重试次数'),
+('rate_limit_per_day', '50', '每用户每日AI调用上限')
+ON DUPLICATE KEY UPDATE `config_key` = VALUES(`config_key`);
+
+-- 提示词模板
+CREATE TABLE IF NOT EXISTS `prompt_template` (
+  `id`          BIGINT      NOT NULL AUTO_INCREMENT,
+  `scene`       VARCHAR(16) NOT NULL COMMENT 'chat/code_fix/pdf/outline/quiz',
+  `name`        VARCHAR(64) NOT NULL COMMENT '模板名',
+  `content`     TEXT        NOT NULL COMMENT '模板内容，含 {question} 等占位符',
+  `enabled`     TINYINT     NOT NULL DEFAULT 1 COMMENT '1启用 0停用',
+  `update_time` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_scene` (`scene`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='提示词模板表';
+
+-- 预置提示词模板
+INSERT INTO `prompt_template` (`scene`, `name`, `content`) VALUES
+('chat', '默认答疑模板', '你是一名耐心的大学课程辅导老师，请用清晰、分步骤的方式解答学生的问题，必要时给出示例。\n\n学生问题：{question}'),
+('code_fix', '代码纠错模板', '你是一名资深程序员，请检查以下{language}代码中的错误，输出Markdown格式：\n1. 【错误定位】指出行号与错误原因\n2. 【修复建议】给出修改方法\n3. 【修复后代码】用代码块给出完整修正代码\n\n待检查代码：\n```{language}\n{code}\n```'),
+('pdf', 'PDF问答模板', '你正在基于一份课件文档回答学生问题。以下是文档相关内容片段：\n\n{context}\n\n请严格基于上述文档内容回答问题，文档未涉及的内容请说明"文档中未提及"。\n\n问题：{question}'),
+('outline', '复习提纲模板', '请为「{subject}」学科中「{topic}」这一主题生成一份结构化复习提纲，要求：层级化要点（最多三级）、每个要点附一句话说明、结尾给出3个自测问题。输出Markdown格式。'),
+('quiz', '智能习题模板', '基于以下这道错题，请生成3道同类型、同难度的新习题，每道题给出标准答案与详细解析。输出Markdown格式。\n\n学科：{subject}\n错题：{question}\n正确答案：{answer}')
+ON DUPLICATE KEY UPDATE `id` = `id`;
+
+-- PDF文档
+CREATE TABLE IF NOT EXISTS `pdf_document` (
+  `id`           BIGINT       NOT NULL AUTO_INCREMENT,
+  `user_id`      BIGINT       NOT NULL,
+  `file_name`    VARCHAR(255) NOT NULL,
+  `file_url`     VARCHAR(255) NOT NULL COMMENT 'MinIO地址',
+  `page_count`   INT          NOT NULL DEFAULT 0,
+  `text_content` LONGTEXT     COMMENT 'PDFBox提取全文',
+  `status`       TINYINT      NOT NULL DEFAULT 0 COMMENT '0解析中 1成功 2失败-扫描件',
+  `create_time`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_user` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='PDF文档表';
+
+-- ---------------- 3.3 学习辅助 ----------------
+
+-- 错题本
+CREATE TABLE IF NOT EXISTS `wrong_question` (
+  `id`          BIGINT      NOT NULL AUTO_INCREMENT,
+  `user_id`     BIGINT      NOT NULL,
+  `subject`     VARCHAR(32) NOT NULL DEFAULT '' COMMENT '学科',
+  `tag`         VARCHAR(32) DEFAULT NULL COMMENT '标签',
+  `question`    TEXT        NOT NULL COMMENT '题目',
+  `answer`      TEXT        COMMENT '正确答案',
+  `analysis`    TEXT        COMMENT '解析',
+  `source`      VARCHAR(16) NOT NULL DEFAULT 'manual' COMMENT 'manual手动/ai自动',
+  `create_time` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_user_subject` (`user_id`, `subject`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='错题本';
+
+-- ---------------- 3.4 校园生活 ----------------
+
+-- 闲置物品
+CREATE TABLE IF NOT EXISTS `idle_item` (
+  `id`            BIGINT       NOT NULL AUTO_INCREMENT,
+  `user_id`       BIGINT       NOT NULL COMMENT '发布者',
+  `title`         VARCHAR(64)  NOT NULL,
+  `description`   TEXT         COMMENT '物品描述',
+  `images`        VARCHAR(1000) DEFAULT NULL COMMENT '图片URL JSON数组',
+  `expect_item`   VARCHAR(128) DEFAULT NULL COMMENT '期望换物',
+  `category`      VARCHAR(32)  DEFAULT NULL COMMENT '分类',
+  `audit_status`  TINYINT      NOT NULL DEFAULT 0 COMMENT '0待审核 1通过 2驳回',
+  `audit_reason`  VARCHAR(255) DEFAULT NULL,
+  `status`        TINYINT      NOT NULL DEFAULT 0 COMMENT '0在架 1已预约 2已完成 3已下架',
+  `view_count`    INT          NOT NULL DEFAULT 0,
+  `create_time`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_audit_status` (`audit_status`, `status`),
+  KEY `idx_user` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='闲置物品表';
+
+-- 闲置预约
+CREATE TABLE IF NOT EXISTS `idle_appointment` (
+  `id`          BIGINT      NOT NULL AUTO_INCREMENT,
+  `item_id`     BIGINT      NOT NULL,
+  `buyer_id`    BIGINT      NOT NULL COMMENT '预约方',
+  `seller_id`   BIGINT      NOT NULL COMMENT '物品所属方',
+  `message`     VARCHAR(255) DEFAULT NULL COMMENT '预约留言',
+  `status`      TINYINT     NOT NULL DEFAULT 0 COMMENT '0待确认 1已接受 2已拒绝 3已完成 4已取消',
+  `create_time` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_item` (`item_id`),
+  KEY `idx_buyer` (`buyer_id`),
+  KEY `idx_seller` (`seller_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='闲置预约表';
+
+-- 闲置互评
+CREATE TABLE IF NOT EXISTS `idle_review` (
+  `id`             BIGINT      NOT NULL AUTO_INCREMENT,
+  `appointment_id` BIGINT      NOT NULL,
+  `from_user_id`   BIGINT      NOT NULL COMMENT '评价方',
+  `to_user_id`     BIGINT      NOT NULL COMMENT '被评价方',
+  `score`          TINYINT     NOT NULL COMMENT '1-5分',
+  `content`        VARCHAR(255) DEFAULT NULL,
+  `create_time`    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_appoint_from` (`appointment_id`, `from_user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='闲置互评表';
+
+-- 活动
+CREATE TABLE IF NOT EXISTS `activity` (
+  `id`              BIGINT       NOT NULL AUTO_INCREMENT,
+  `user_id`         BIGINT       NOT NULL COMMENT '发布者',
+  `title`           VARCHAR(64)  NOT NULL,
+  `description`     TEXT,
+  `images`          VARCHAR(1000) DEFAULT NULL COMMENT '图片URL JSON数组',
+  `category`        VARCHAR(32)  DEFAULT NULL,
+  `location`        VARCHAR(128) DEFAULT NULL,
+  `start_time`      DATETIME     DEFAULT NULL,
+  `end_time`        DATETIME     DEFAULT NULL,
+  `signup_deadline` DATETIME     DEFAULT NULL COMMENT '报名截止',
+  `max_members`     INT          NOT NULL DEFAULT 0 COMMENT '人数上限，0不限',
+  `audit_status`    TINYINT      NOT NULL DEFAULT 0,
+  `audit_reason`    VARCHAR(255) DEFAULT NULL,
+  `status`          TINYINT      NOT NULL DEFAULT 0 COMMENT '0报名中 1已满 2已结束 3已下架',
+  `create_time`     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_audit_status` (`audit_status`, `status`),
+  KEY `idx_user` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='活动表';
+
+-- 活动报名（审批制）
+CREATE TABLE IF NOT EXISTS `activity_member` (
+  `id`          BIGINT      NOT NULL AUTO_INCREMENT,
+  `activity_id` BIGINT      NOT NULL,
+  `user_id`     BIGINT      NOT NULL,
+  `remark`      VARCHAR(255) DEFAULT NULL COMMENT '报名说明/组队信息',
+  `status`      TINYINT     NOT NULL DEFAULT 0 COMMENT '0待审批 1已通过 2已拒绝',
+  `create_time` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_activity_user` (`activity_id`, `user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='活动报名表';
+
+-- 活动签到
+CREATE TABLE IF NOT EXISTS `activity_signin` (
+  `id`          BIGINT   NOT NULL AUTO_INCREMENT,
+  `activity_id` BIGINT   NOT NULL,
+  `user_id`     BIGINT   NOT NULL,
+  `sign_time`   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_activity_user` (`activity_id`, `user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='活动签到表';
+
+-- 失物招领
+CREATE TABLE IF NOT EXISTS `lost_found` (
+  `id`           BIGINT       NOT NULL AUTO_INCREMENT,
+  `user_id`      BIGINT       NOT NULL,
+  `type`         TINYINT      NOT NULL DEFAULT 0 COMMENT '0失物 1招领',
+  `title`        VARCHAR(64)  NOT NULL,
+  `description`  TEXT,
+  `images`       VARCHAR(1000) DEFAULT NULL,
+  `location`     VARCHAR(128) DEFAULT NULL COMMENT '丢失/拾获地点',
+  `happen_time`  DATETIME     DEFAULT NULL COMMENT '发生时间',
+  `contact`      VARCHAR(64)  DEFAULT NULL COMMENT '联系方式',
+  `audit_status` TINYINT      NOT NULL DEFAULT 0,
+  `audit_reason` VARCHAR(255) DEFAULT NULL,
+  `status`       TINYINT      NOT NULL DEFAULT 0 COMMENT '0进行中 1已完成 2已下架',
+  `create_time`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_audit_status` (`audit_status`, `type`),
+  KEY `idx_user` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='失物招领表';
+
+-- 公告
+CREATE TABLE IF NOT EXISTS `notice` (
+  `id`           BIGINT      NOT NULL AUTO_INCREMENT,
+  `admin_id`     BIGINT      NOT NULL COMMENT '发布管理员',
+  `title`        VARCHAR(64) NOT NULL,
+  `content`      TEXT        COMMENT 'Markdown内容',
+  `cover`        VARCHAR(255) DEFAULT NULL COMMENT '封面图',
+  `status`       TINYINT     NOT NULL DEFAULT 0 COMMENT '0草稿 1已发布 2已下线',
+  `publish_time` DATETIME    DEFAULT NULL,
+  `create_time`  DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='公告表';
+
+-- 动态
+CREATE TABLE IF NOT EXISTS `post` (
+  `id`            BIGINT       NOT NULL AUTO_INCREMENT,
+  `user_id`       BIGINT       NOT NULL,
+  `content`       TEXT         NOT NULL,
+  `images`        VARCHAR(1000) DEFAULT NULL,
+  `like_count`    INT          NOT NULL DEFAULT 0,
+  `comment_count` INT          NOT NULL DEFAULT 0,
+  `audit_status`  TINYINT      NOT NULL DEFAULT 0,
+  `audit_reason`  VARCHAR(255) DEFAULT NULL,
+  `create_time`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_audit_status` (`audit_status`),
+  KEY `idx_user` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='动态表';
+
+-- 动态评论（DFA机审，命中敏感词即隐藏）
+CREATE TABLE IF NOT EXISTS `post_comment` (
+  `id`          BIGINT       NOT NULL AUTO_INCREMENT,
+  `post_id`     BIGINT       NOT NULL,
+  `user_id`     BIGINT       NOT NULL,
+  `content`     VARCHAR(500) NOT NULL,
+  `status`      TINYINT      NOT NULL DEFAULT 0 COMMENT '0正常 1命中敏感词隐藏',
+  `create_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_post` (`post_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='动态评论表';
+
+-- 点赞
+CREATE TABLE IF NOT EXISTS `post_like` (
+  `id`          BIGINT   NOT NULL AUTO_INCREMENT,
+  `post_id`     BIGINT   NOT NULL,
+  `user_id`     BIGINT   NOT NULL,
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_post_user` (`post_id`, `user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='动态点赞表';
+
+-- 举报
+CREATE TABLE IF NOT EXISTS `report` (
+  `id`            BIGINT       NOT NULL AUTO_INCREMENT,
+  `reporter_id`   BIGINT       NOT NULL COMMENT '举报人',
+  `target_type`   VARCHAR(16)  NOT NULL COMMENT 'idle/activity/lostfound/post/comment',
+  `target_id`     BIGINT       NOT NULL,
+  `reason_type`   VARCHAR(32)  NOT NULL COMMENT '举报类型',
+  `reason`        VARCHAR(500) DEFAULT NULL,
+  `status`        TINYINT      NOT NULL DEFAULT 0 COMMENT '0待处理 1已处理',
+  `handle_result` VARCHAR(255) DEFAULT NULL,
+  `handler_id`    BIGINT       DEFAULT NULL COMMENT '处理管理员',
+  `handle_time`   DATETIME     DEFAULT NULL,
+  `create_time`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_status` (`status`),
+  KEY `idx_target` (`target_type`, `target_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='举报表';
+
+-- 消息通知
+CREATE TABLE IF NOT EXISTS `message` (
+  `id`          BIGINT       NOT NULL AUTO_INCREMENT,
+  `user_id`     BIGINT       NOT NULL COMMENT '接收人',
+  `type`        VARCHAR(32)  NOT NULL DEFAULT 'system' COMMENT 'system/interact/audit/private_message',
+  `title`       VARCHAR(64)  NOT NULL,
+  `content`     VARCHAR(500) DEFAULT NULL,
+  `biz_type`    VARCHAR(16)  DEFAULT NULL COMMENT '业务类型 idle/activity/...',
+  `biz_id`      BIGINT       DEFAULT NULL COMMENT '业务ID',
+  `is_read`     TINYINT      NOT NULL DEFAULT 0 COMMENT '0未读 1已读',
+  `create_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `private_unread_key` VARCHAR(96) GENERATED ALWAYS AS (
+    CASE WHEN `type` = 'private_message' AND `is_read` = 0
+      THEN CONCAT(`user_id`, ':', `biz_type`, ':', `biz_id`) ELSE NULL END
+  ) STORED,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_private_unread_aggregate` (`private_unread_key`),
+  KEY `idx_user_read` (`user_id`, `is_read`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='消息通知表';
+
+-- 上传资源归属：所有上传先登记所有者，聊天/业务消费时按真实记录校验并绑定
+CREATE TABLE IF NOT EXISTS `upload_resource` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `owner_user_id` BIGINT NOT NULL,
+  `resource_url` VARCHAR(500) NOT NULL,
+  `resource_type` VARCHAR(16) NOT NULL COMMENT 'image/file',
+  `content_type` VARCHAR(128) DEFAULT NULL,
+  `file_size` BIGINT NOT NULL DEFAULT 0,
+  `biz_type` VARCHAR(32) DEFAULT NULL,
+  `biz_id` BIGINT DEFAULT NULL,
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_upload_resource_url` (`resource_url`),
+  KEY `idx_upload_owner` (`owner_user_id`, `resource_type`),
+  KEY `idx_upload_biz` (`biz_type`, `biz_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='上传资源归属与消费记录';
+
+-- ---------------- 3.7 一对一私信 ----------------
+CREATE TABLE IF NOT EXISTS `chat_conversation` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `user1_id` BIGINT NOT NULL,
+  `user2_id` BIGINT NOT NULL,
+  `last_message_id` BIGINT DEFAULT NULL,
+  `last_message_summary` VARCHAR(255) DEFAULT NULL,
+  `last_message_time` DATETIME DEFAULT NULL,
+  `context_type` VARCHAR(32) DEFAULT NULL,
+  `context_id` BIGINT DEFAULT NULL,
+  `context_title` VARCHAR(128) DEFAULT NULL,
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_chat_user_pair` (`user1_id`, `user2_id`),
+  KEY `idx_chat_last_time` (`last_message_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='一对一私信会话';
+
+CREATE TABLE IF NOT EXISTS `chat_conversation_member` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `conversation_id` BIGINT NOT NULL,
+  `user_id` BIGINT NOT NULL,
+  `unread_count` INT NOT NULL DEFAULT 0,
+  `last_read_message_id` BIGINT DEFAULT NULL,
+  `read_time` DATETIME DEFAULT NULL,
+  `muted` TINYINT NOT NULL DEFAULT 0,
+  `hidden` TINYINT NOT NULL DEFAULT 0,
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_chat_member` (`conversation_id`, `user_id`),
+  KEY `idx_chat_member_unread` (`user_id`, `unread_count`, `hidden`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='私信会话成员状态';
+
+CREATE TABLE IF NOT EXISTS `chat_message` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `conversation_id` BIGINT NOT NULL,
+  `sender_id` BIGINT NOT NULL,
+  `receiver_id` BIGINT NOT NULL,
+  `client_message_id` VARCHAR(64) NOT NULL,
+  `message_type` VARCHAR(16) NOT NULL COMMENT 'text/image',
+  `content` VARCHAR(2000) NOT NULL,
+  `status` TINYINT NOT NULL DEFAULT 0 COMMENT '0已发送 1已读',
+  `read_time` DATETIME DEFAULT NULL,
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_chat_idempotent` (`sender_id`, `client_message_id`),
+  KEY `idx_chat_history` (`conversation_id`, `id`),
+  KEY `idx_chat_receiver_unread` (`receiver_id`, `status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='私信消息';
+
+CREATE TABLE IF NOT EXISTS `user_block` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT NOT NULL,
+  `blocked_user_id` BIGINT NOT NULL,
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_block` (`user_id`, `blocked_user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户拉黑关系';
+
+-- 敏感词库（启动时与 sensitive-words.txt 合并加载进DFA树）
+CREATE TABLE IF NOT EXISTS `sensitive_word` (
+  `id`          BIGINT      NOT NULL AUTO_INCREMENT,
+  `word`        VARCHAR(32) NOT NULL,
+  `create_time` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_word` (`word`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='敏感词库';

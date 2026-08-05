@@ -1,0 +1,85 @@
+<view class="page">
+  <!-- 学科筛选条 -->
+  <scroll-view class="tabs" scroll-x enable-flex>
+    <view class="tab {{activeSubject === '' ? 'active' : ''}}"
+          bindtap="switchSubject" data-subject="">全部</view>
+    <view wx:for="{{subjects}}" wx:key="*this"
+          class="tab {{activeSubject === item ? 'active' : ''}}"
+          bindtap="switchSubject" data-subject="{{item}}">{{item}}</view>
+  </scroll-view>
+
+  <!-- 错题列表 -->
+  <view wx:for="{{list}}" wx:key="id" class="card wq">
+    <view class="head">
+      <text class="tag">{{item.subject}}</text>
+      <text wx:if="{{item.tag}}" class="tag tag-warning">{{item.tag}}</text>
+      <text class="time">{{item.timeText}}</text>
+    </view>
+
+    <view class="question" bindtap="toggleExpand" data-id="{{item.id}}">{{item.question}}</view>
+
+    <!-- 展开后显示答案与解析 -->
+    <block wx:if="{{expandId === item.id}}">
+      <view class="ans-block">
+        <view class="ans-label">参考答案</view>
+        <text class="ans-text" selectable>{{item.answer || '（未填写）'}}</text>
+      </view>
+      <view class="ans-block">
+        <view class="ans-label">解析</view>
+        <text class="ans-text" selectable>{{item.analysis || '（未填写）'}}</text>
+      </view>
+      <view wx:if="{{item.source}}" class="source">来源：{{item.source}}</view>
+    </block>
+
+    <view class="ops">
+      <view class="op" bindtap="toggleExpand" data-id="{{item.id}}">
+        {{expandId === item.id ? '收起' : '看答案'}}
+      </view>
+      <view class="op primary" bindtap="generateQuiz" data-id="{{item.id}}">生成同类题</view>
+      <view class="op danger" bindtap="removeItem" data-id="{{item.id}}">删除</view>
+    </view>
+  </view>
+
+  <view wx:if="{{inited && list.length === 0}}" class="empty">错题本还是空的，点右下角 ＋ 收录一道</view>
+  <view wx:if="{{loading}}" class="loading-tip">加载中…</view>
+  <view wx:elif="{{!hasMore && list.length > 0}}" class="loading-tip">共 {{total}} 道错题</view>
+
+  <!-- 悬浮新增按钮 -->
+  <view class="fab" bindtap="openAdd">＋</view>
+
+  <!-- 新增错题弹窗 -->
+  <view wx:if="{{showAdd}}" class="mask" bindtap="closeAdd">
+    <view class="dialog" catchtap="stopPropagation">
+      <view class="dialog-title">收录错题</view>
+      <input class="field" placeholder="学科（必填，如：数据结构）" value="{{form.subject}}"
+             bindinput="onFormInput" data-field="subject" />
+      <input class="field" placeholder="知识点标签（选填，如：二叉树）" value="{{form.tag}}"
+             bindinput="onFormInput" data-field="tag" />
+      <textarea class="field area" placeholder="题目（必填）" value="{{form.question}}"
+                bindinput="onFormInput" data-field="question" show-confirm-bar="{{false}}" />
+      <textarea class="field area" placeholder="正确答案（选填）" value="{{form.answer}}"
+                bindinput="onFormInput" data-field="answer" show-confirm-bar="{{false}}" />
+      <textarea class="field area" placeholder="错因解析（选填）" value="{{form.analysis}}"
+                bindinput="onFormInput" data-field="analysis" show-confirm-bar="{{false}}" />
+      <view class="dialog-btns">
+        <button class="btn-plain" bindtap="closeAdd">取消</button>
+        <button class="btn-primary" bindtap="submitAdd" loading="{{submitting}}"
+                disabled="{{submitting}}">保存</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 同类题结果弹窗 -->
+  <view wx:if="{{showQuiz}}" class="mask" bindtap="closeQuiz">
+    <view class="dialog" catchtap="stopPropagation">
+      <view class="dialog-title">AI 生成的同类题</view>
+      <scroll-view class="quiz-body" scroll-y>
+        <text selectable>{{quizContent}}</text>
+      </scroll-view>
+      <view class="dialog-btns">
+        <button class="btn-plain" bindtap="copyQuiz">复制</button>
+        <button class="btn-primary" bindtap="closeQuiz">关闭</button>
+      </view>
+    </view>
+  </view>
+</view>

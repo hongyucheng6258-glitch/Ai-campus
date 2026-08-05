@@ -1,0 +1,29 @@
+<view class="page">
+  <view wx:if="{{itemTitle}}" class="card target">
+    <text class="tag">本次交易</text>
+    <view class="target-title">{{itemTitle}}</view>
+  </view>
+
+  <view class="card">
+    <view class="label">本次交换体验如何？</view>
+    <view class="stars">
+      <text wx:for="{{stars}}" wx:key="*this"
+            class="star {{item <= score ? 'on' : ''}}"
+            bindtap="chooseScore" data-score="{{item}}">★</text>
+      <text class="score-text">{{scoreText}}</text>
+    </view>
+
+    <view class="label">评价内容</view>
+    <textarea class="textarea" value="{{content}}" bindinput="onInput" maxlength="255"
+              placeholder="说说物品成色、对方守时程度等（选填）" show-confirm-bar="{{false}}" />
+    <view class="counter">{{content.length}} / 255</view>
+  </view>
+
+  <view class="notice">评价提交后不可修改，将计入对方的信用评分。</view>
+
+  <view class="btns">
+    <button class="btn-primary" bindtap="submit" loading="{{submitting}}" disabled="{{submitting}}">
+      提交评价
+    </button>
+  </view>
+</view>

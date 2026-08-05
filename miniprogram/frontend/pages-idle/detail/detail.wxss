@@ -1,0 +1,104 @@
+/* 闲置详情样式 */
+.gallery {
+  width: 100%;
+  height: 500rpx;
+  background: #e7e3d9;
+}
+
+.gallery-img {
+  width: 100%;
+  height: 500rpx;
+}
+
+.title {
+  font-size: 34rpx;
+  font-weight: 700;
+  line-height: 50rpx;
+  color: #303133;
+}
+
+.expect {
+  margin-top: 16rpx;
+  font-size: 28rpx;
+  color: #2f9e8a;
+  font-weight: 600;
+}
+
+.meta {
+  margin-top: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.publisher {
+  display: flex;
+  align-items: center;
+}
+
+.publisher .avatar {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  background: #e6f4f0;
+  flex-shrink: 0;
+}
+
+.publisher .avatar.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2f9e8a;
+  font-size: 36rpx;
+}
+
+.pub-info {
+  margin-left: 20rpx;
+}
+
+.pub-name {
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.sec-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+}
+
+.desc {
+  display: block;
+  font-size: 27rpx;
+  line-height: 46rpx;
+  color: #606266;
+  white-space: pre-wrap;
+}
+
+.bottom-space {
+  height: 140rpx;
+}
+
+.action-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  padding: 16rpx 24rpx;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  background: #fff;
+  border-top: 1rpx solid #e7e3d9;
+}
+
+.action-bar button {
+  flex: 1;
+  margin: 0 8rpx;
+}
+
+.btn-plain {
+  background: #f3f0ea;
+  color: #606266;
+  border-radius: 44rpx;
+  font-size: 30rpx;
+}

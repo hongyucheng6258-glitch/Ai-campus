@@ -1,0 +1,17 @@
+<view class="page">
+  <view class="logo">🎓</view>
+  <view class="title">AI校园综合服务平台</view>
+  <view class="sub">微信一键登录，与Web端账号互通</view>
+  <button class="btn-primary login-btn" bindtap="oneTapLogin">微信一键登录</button>
+
+  <!-- 绑定学号（账号合并） -->
+  <view wx:if="{{showBind}}" class="bind-panel card">
+    <view class="bind-title">绑定学号（可选）</view>
+    <view class="bind-tip">若已在Web端注册，输入学号和密码即可合并账号，两端数据同步</view>
+    <input class="input" placeholder="学号" value="{{studentNo}}" bindinput="onInput" data-key="studentNo" />
+    <input class="input" placeholder="Web端密码（老账号合并时必填）" password value="{{password}}" bindinput="onInput" data-key="password" />
+    <input class="input" placeholder="手机号（可选）" value="{{phone}}" bindinput="onInput" data-key="phone" />
+    <button class="btn-primary" bindtap="bind">立即绑定</button>
+    <view class="skip" bindtap="skipBind">暂不绑定，直接进入 ›</view>
+  </view>
+</view>

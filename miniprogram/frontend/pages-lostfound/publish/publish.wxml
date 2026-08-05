@@ -1,0 +1,64 @@
+<view class="page">
+  <!-- 类型切换 -->
+  <view class="card type-switch">
+    <view class="type {{type === 0 ? 'active' : ''}}" bindtap="switchType" data-type="0">
+      😢 我丢了东西
+    </view>
+    <view class="type {{type === 1 ? 'active' : ''}}" bindtap="switchType" data-type="1">
+      🙌 我捡到东西
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="form-item">
+      <text class="label">物品名称 <text class="req">*</text></text>
+      <input class="input" value="{{title}}" bindinput="onInput" data-field="title"
+             placeholder="{{type === 0 ? '如：黑色钱包（内有校园卡）' : '如：捡到一串钥匙'}}"
+             maxlength="64" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">{{type === 0 ? '丢失地点' : '拾取地点'}}</text>
+      <input class="input" value="{{location}}" bindinput="onInput" data-field="location"
+             placeholder="如：图书馆 3 楼自习区" maxlength="128" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">{{type === 0 ? '丢失时间' : '拾取时间'}}</text>
+      <view class="dt-row">
+        <picker mode="date" value="{{happenDate}}" bindchange="onDateTimeChange" data-field="happenDate">
+          <view class="picker">{{happenDate || '选择日期'}} ▾</view>
+        </picker>
+        <picker mode="time" value="{{happenTime}}" bindchange="onDateTimeChange" data-field="happenTime">
+          <view class="picker">{{happenTime || '选择时间'}} ▾</view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <text class="label">联系方式 <text class="req">*</text></text>
+      <input class="input" value="{{contact}}" bindinput="onInput" data-field="contact"
+             placeholder="微信号 / 手机号 / QQ" maxlength="64" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">详细描述</text>
+      <textarea class="textarea" value="{{description}}" bindinput="onInput" data-field="description"
+                placeholder="{{type === 0 ? '物品特征、颜色、内含物品等，便于他人辨认' : '请勿描述过于具体的特征，留作失主核对'}}"
+                maxlength="500" show-confirm-bar="{{false}}" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">物品照片</text>
+      <upload-grid value="{{images}}" max="{{6}}" bind:change="onImagesChange" />
+    </view>
+  </view>
+
+  <view class="notice">信息需经管理员审核后公开展示。为保护隐私，请勿填写身份证号等敏感信息。</view>
+
+  <view class="btns">
+    <button class="btn-primary" bindtap="submit" loading="{{submitting}}" disabled="{{submitting}}">
+      提交发布
+    </button>
+  </view>
+</view>

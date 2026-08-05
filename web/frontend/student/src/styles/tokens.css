@@ -1,0 +1,99 @@
+/* ============================================================
+   梧桐校园 · 设计 Token
+   暖色编辑风 · 梧桐绿(品牌) + 暖珊瑚(强调) · 中性带暖意
+   色彩用 OKLCH，避免死灰与纯黑；明/暗双主题。
+   引用方：所有组件与 element-theme.css 均消费这里的变量。
+   ============================================================ */
+:root {
+  /* —— 中性 / 表面（暖奶油调） —— */
+  --paper:        oklch(98% 0.012 95);
+  --surface:      oklch(100% 0 0);
+  --surface-2:    oklch(97% 0.01 95);
+  --surface-3:    oklch(94% 0.012 95);
+  --ink:          oklch(26% 0.02 95);
+  --ink-2:        oklch(45% 0.02 95);
+  --ink-3:        oklch(62% 0.015 95);
+  --line:         oklch(90% 0.012 95);
+  --line-strong:  oklch(83% 0.014 95);
+
+  /* —— 品牌：梧桐绿（智慧 / 成长） —— */
+  --brand:        oklch(53% 0.12 168);
+  --brand-strong: oklch(45% 0.12 168);
+  --brand-ink:    oklch(99% 0.02 168);
+  --brand-soft:   oklch(95% 0.045 168);
+  --brand-line:   oklch(86% 0.07 168);
+
+  /* —— 强调：暖珊瑚（能量 / AI 高亮） —— */
+  --accent:        oklch(68% 0.17 48);
+  --accent-strong: oklch(60% 0.17 48);
+  --accent-ink:    oklch(99% 0.02 48);
+  --accent-soft:   oklch(95% 0.06 48);
+  --accent-line:   oklch(87% 0.09 48);
+
+  /* —— 语义色 —— */
+  --success:    oklch(58% 0.13 150);
+  --success-soft: oklch(95% 0.05 150);
+  --warning:    oklch(72% 0.15 75);
+  --warning-soft: oklch(96% 0.06 75);
+  --error:      oklch(58% 0.18 25);
+  --error-soft: oklch(95% 0.05 25);
+
+  /* —— 间距（4pt 基准） —— */
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:24px;
+  --s-6:32px; --s-7:48px; --s-8:64px; --s-9:96px;
+
+  /* —— 圆角 —— */
+  --r-xs:6px; --r-sm:10px; --r-md:14px; --r-lg:20px; --r-xl:28px; --r-pill:999px;
+
+  /* —— 字体 —— */
+  --font-sans: "Plus Jakarta Sans","PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
+  --font-display: "Fraunces","Songti SC",Georgia,serif;
+
+  /* —— 字阶（产品 UI 固定值） —— */
+  --fs-display:2.5rem; --fs-h1:1.75rem; --fs-h2:1.375rem; --fs-h3:1.125rem;
+  --fs-body:1rem; --fs-sm:0.875rem; --fs-xs:0.75rem; --fs-cap:0.6875rem;
+
+  /* —— 阴影（克制） —— */
+  --shadow-sm: 0 1px 2px oklch(26% 0.02 95 / .06), 0 1px 3px oklch(26% 0.02 95 / .05);
+  --shadow-md: 0 6px 16px oklch(26% 0.02 95 / .08);
+  --shadow-lg: 0 18px 40px oklch(26% 0.02 95 / .12);
+
+  /* —— 缓动 —— */
+  --ease-out: cubic-bezier(0.16,1,0.3,1);
+  --ease-quart: cubic-bezier(0.25,1,0.5,1);
+}
+
+:root[data-theme="dark"] {
+  --paper:        oklch(15% 0.012 95);
+  --surface:      oklch(20% 0.012 95);
+  --surface-2:    oklch(24% 0.012 95);
+  --surface-3:    oklch(28% 0.012 95);
+  --ink:          oklch(93% 0.01 95);
+  --ink-2:        oklch(76% 0.012 95);
+  --ink-3:        oklch(60% 0.012 95);
+  --line:         oklch(33% 0.014 95);
+  --line-strong:  oklch(40% 0.014 95);
+
+  --brand:        oklch(72% 0.12 168);
+  --brand-strong: oklch(64% 0.12 168);
+  --brand-ink:    oklch(18% 0.04 168);
+  --brand-soft:   oklch(26% 0.06 168);
+  --brand-line:   oklch(38% 0.08 168);
+
+  --accent:        oklch(74% 0.16 48);
+  --accent-strong: oklch(66% 0.16 48);
+  --accent-ink:    oklch(20% 0.05 48);
+  --accent-soft:   oklch(28% 0.07 48);
+  --accent-line:   oklch(40% 0.09 48);
+
+  --success:    oklch(70% 0.13 150);
+  --success-soft: oklch(26% 0.06 150);
+  --warning:    oklch(78% 0.14 75);
+  --warning-soft: oklch(27% 0.07 75);
+  --error:      oklch(68% 0.17 25);
+  --error-soft: oklch(27% 0.07 25);
+
+  --shadow-sm: 0 1px 2px oklch(0% 0 0 / .3), 0 1px 3px oklch(0% 0 0 / .25);
+  --shadow-md: 0 6px 16px oklch(0% 0 0 / .4);
+  --shadow-lg: 0 18px 40px oklch(0% 0 0 / .5);
+}

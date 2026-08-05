@@ -1,0 +1,53 @@
+/* 活动报名样式 */
+.target-title {
+  margin-top: 12rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #303133;
+}
+
+.sec-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+}
+
+.info-row {
+  font-size: 27rpx;
+  color: #606266;
+  line-height: 46rpx;
+}
+
+.label {
+  font-size: 26rpx;
+  color: #606266;
+  margin-bottom: 12rpx;
+}
+
+.textarea {
+  width: 100%;
+  height: 220rpx;
+  background: #f3f0ea;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.counter {
+  text-align: right;
+  font-size: 22rpx;
+  color: #909399;
+  margin-top: 8rpx;
+}
+
+.notice {
+  margin: 0 32rpx 24rpx;
+  font-size: 24rpx;
+  color: #e0a93f;
+  line-height: 36rpx;
+}
+
+.btns {
+  padding: 0 32rpx 60rpx;
+}

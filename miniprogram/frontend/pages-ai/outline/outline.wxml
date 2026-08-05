@@ -1,0 +1,41 @@
+<view class="page">
+  <view class="card">
+    <view class="form-item">
+      <text class="label">学科 <text class="req">*</text></text>
+      <input class="input" value="{{subject}}" bindinput="onInput" data-field="subject"
+             placeholder="如：数据结构" />
+    </view>
+    <view class="form-item">
+      <text class="label">章节</text>
+      <input class="input" value="{{chapter}}" bindinput="onInput" data-field="chapter"
+             placeholder="选填，如：第6章 树与二叉树" />
+    </view>
+    <view class="form-item">
+      <text class="label">复习主题 <text class="req">*</text></text>
+      <input class="input" value="{{topic}}" bindinput="onInput" data-field="topic"
+             placeholder="如：二叉树的遍历与线索化" />
+    </view>
+
+    <!-- 示例快填 -->
+    <view class="samples">
+      <text class="sample-label">试试示例：</text>
+      <text wx:for="{{samples}}" wx:key="topic" class="tag sample"
+            bindtap="fillSample" data-index="{{index}}">{{item.subject}}</text>
+    </view>
+  </view>
+
+  <view class="btns">
+    <button class="btn-primary" bindtap="submit" loading="{{loading}}" disabled="{{loading}}">
+      生成复习提纲
+    </button>
+    <button class="btn-plain" bindtap="reset">清空</button>
+  </view>
+
+  <view wx:if="{{answer}}" class="card">
+    <view class="sec-title">📝 复习提纲</view>
+    <text class="answer" selectable>{{answer}}</text>
+    <button class="btn-plain copy" size="mini" bindtap="copyAnswer">复制提纲</button>
+  </view>
+
+  <view wx:elif="{{!loading}}" class="empty">填写学科与主题，AI 会生成分层级的复习要点清单</view>
+</view>

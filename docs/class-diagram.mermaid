@@ -1,0 +1,149 @@
+classDiagram
+    class User {
+        +Long id
+        +String studentNo
+        +String nickname
+        +String password
+        +String openid
+        +String phone
+        +Integer status
+    }
+    class Admin {
+        +Long id
+        +String username
+        +String role
+    }
+    class AiSession {
+        +Long id
+        +Long userId
+        +String scene
+        +String title
+        +Long docId
+    }
+    class AiMessage {
+        +Long id
+        +Long sessionId
+        +String role
+        +String content
+        +Integer tokens
+    }
+    class PdfDocument {
+        +Long id
+        +Long userId
+        +String fileUrl
+        +String textContent
+        +Integer status
+    }
+    class WrongQuestion {
+        +Long id
+        +Long userId
+        +String subject
+        +String question
+        +String answer
+    }
+    class IdleItem {
+        +Long id
+        +Long userId
+        +String title
+        +String expectItem
+        +Integer auditStatus
+        +Integer status
+    }
+    class IdleAppointment {
+        +Long id
+        +Long itemId
+        +Long buyerId
+        +Long sellerId
+        +Integer status
+    }
+    class Activity {
+        +Long id
+        +Long userId
+        +String title
+        +Date startTime
+        +Integer maxMembers
+        +Integer auditStatus
+    }
+    class ActivityMember {
+        +Long id
+        +Long activityId
+        +Long userId
+        +Integer status
+    }
+    class LostFound {
+        +Long id
+        +Long userId
+        +Integer type
+        +Integer auditStatus
+    }
+    class Post {
+        +Long id
+        +Long userId
+        +String content
+        +Integer likeCount
+        +Integer auditStatus
+    }
+    class Message {
+        +Long id
+        +Long userId
+        +String type
+        +Boolean isRead
+    }
+    class Report {
+        +Long id
+        +Long reporterId
+        +String targetType
+        +Long targetId
+        +Integer status
+    }
+    class AiGatewayService {
+        +chat(userId, scene, question, sessionId) String
+        +streamChat(userId, scene, question, sessionId) SseEmitter
+        -buildPrompt(scene, question, context)
+    }
+    class DeepSeekClient {
+        +stream(messages, config, callback)
+        +sync(messages, config) String
+    }
+    class RateLimitService {
+        +tryAcquire(userId) boolean
+    }
+    class SensitiveWordService {
+        +contains(text) boolean
+        +filter(text) String
+    }
+    class PromptTemplateService {
+        +render(scene, params) String
+    }
+    class ChatMemoryService {
+        +loadContext(sessionId) List~AiMessage~
+        +save(sessionId, role, content)
+    }
+    class AiChatService {
+        +createSession(userId, scene)
+        +ask(dto) SseEmitter
+    }
+    class AuditService {
+        +pass(bizType, id)
+        +reject(bizType, id, reason)
+    }
+    class MessageService {
+        +send(userId, type, title, content, bizType, bizId)
+    }
+
+    User "1" --> "*" AiSession
+    AiSession "1" --> "*" AiMessage
+    User "1" --> "*" PdfDocument
+    User "1" --> "*" IdleItem
+    IdleItem "1" --> "*" IdleAppointment
+    User "1" --> "*" Activity
+    Activity "1" --> "*" ActivityMember
+    User "1" --> "*" Post
+    User "1" --> "*" Message
+    AiChatService --> AiGatewayService
+    AiGatewayService --> DeepSeekClient
+    AiGatewayService --> RateLimitService
+    AiGatewayService --> SensitiveWordService
+    AiGatewayService --> PromptTemplateService
+    AiGatewayService --> ChatMemoryService
+    AuditService --> MessageService : 审核结果通知

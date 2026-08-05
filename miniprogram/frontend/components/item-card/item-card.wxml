@@ -1,0 +1,12 @@
+<view class="item-card" bindtap="onTap">
+  <image wx:if="{{cover}}" class="cover" src="{{cover}}" mode="aspectFill" lazy-load />
+  <view wx:else class="cover placeholder">暂无图片</view>
+  <view class="body">
+    <view class="title">
+      <text wx:if="{{tagText}}" class="tag tag-{{tagType}}">{{tagText}}</text>
+      {{title}}
+    </view>
+    <view class="desc">{{desc}}</view>
+    <view class="extra">{{extra}}</view>
+  </view>
+</view>

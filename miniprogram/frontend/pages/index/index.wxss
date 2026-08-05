@@ -1,0 +1,60 @@
+.banner {
+  height: 300rpx;
+}
+.banner-item {
+  height: 100%;
+  background: linear-gradient(135deg, #2f9e8a, #8fcfc0);
+  display: flex;
+  align-items: center;
+  padding: 0 40rpx;
+}
+.banner-title {
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: bold;
+}
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+.cell {
+  width: 25%;
+  text-align: center;
+  padding: 24rpx 0;
+}
+.icon {
+  font-size: 48rpx;
+}
+.name {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #606266;
+}
+.sec-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+}
+.mini {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 14rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+.mini-img {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 8rpx;
+}
+.mini-title {
+  flex: 1;
+  font-size: 26rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mini-extra {
+  font-size: 22rpx;
+  color: #909399;
+}

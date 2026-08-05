@@ -1,0 +1,215 @@
+/* 活动详情样式 */
+.gallery {
+  width: 100%;
+  height: 420rpx;
+  background: #e7e3d9;
+}
+
+.gallery-img {
+  width: 100%;
+  height: 420rpx;
+}
+
+.title {
+  font-size: 34rpx;
+  font-weight: 700;
+  line-height: 50rpx;
+  color: #303133;
+  margin-bottom: 20rpx;
+}
+
+.info-row {
+  font-size: 27rpx;
+  color: #606266;
+  line-height: 48rpx;
+}
+
+.my-status {
+  margin-top: 16rpx;
+  font-size: 26rpx;
+  color: #e0a93f;
+}
+
+.my-status.success {
+  color: #4ca46a;
+}
+
+.publisher {
+  display: flex;
+  align-items: center;
+}
+
+.publisher .avatar {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  background: #e6f4f0;
+  flex-shrink: 0;
+}
+
+.publisher .avatar.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2f9e8a;
+  font-size: 36rpx;
+}
+
+.pub-info {
+  margin-left: 20rpx;
+}
+
+.pub-name {
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.sec-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+}
+
+.desc {
+  display: block;
+  font-size: 27rpx;
+  line-height: 46rpx;
+  color: #606266;
+  white-space: pre-wrap;
+}
+
+.bottom-space {
+  height: 140rpx;
+}
+
+.action-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  padding: 16rpx 24rpx;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  background: #fff;
+  border-top: 1rpx solid #e7e3d9;
+}
+
+.action-bar button {
+  flex: 1;
+  margin: 0 8rpx;
+}
+
+.btn-plain {
+  background: #f3f0ea;
+  color: #606266;
+  border-radius: 44rpx;
+  font-size: 30rpx;
+}
+
+.mask {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.dialog {
+  width: 640rpx;
+  max-height: 80vh;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 32rpx;
+  box-sizing: border-box;
+}
+
+.dialog-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 24rpx;
+}
+
+.member-list {
+  max-height: 56vh;
+  margin-bottom: 24rpx;
+}
+
+.member {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f3f0ea;
+}
+
+.m-main {
+  flex: 1;
+  overflow: hidden;
+}
+
+.m-name {
+  font-size: 28rpx;
+  color: #303133;
+}
+
+.m-ops {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.m-status {
+  font-size: 24rpx;
+  color: #909399;
+  margin-right: 16rpx;
+}
+
+.m-ops .op {
+  font-size: 26rpx;
+  margin-left: 16rpx;
+}
+
+.m-ops .op.pass {
+  color: #4ca46a;
+}
+
+.m-ops .op.reject {
+  color: #d9543f;
+}
+
+.signed {
+  font-size: 24rpx;
+  color: #4ca46a;
+}
+
+.qr-tip {
+  font-size: 24rpx;
+  color: #909399;
+  line-height: 38rpx;
+  margin-bottom: 20rpx;
+}
+
+.qr-content {
+  background: #f3f0ea;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  font-size: 26rpx;
+  color: #2f9e8a;
+  word-break: break-all;
+  line-height: 40rpx;
+}
+
+.dialog-btns {
+  display: flex;
+  margin-top: 24rpx;
+}
+
+.dialog-btns button {
+  flex: 1;
+  margin: 0 8rpx;
+}

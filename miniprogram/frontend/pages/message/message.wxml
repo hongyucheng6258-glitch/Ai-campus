@@ -1,0 +1,53 @@
+<view class="page">
+  <block wx:if="{{logged}}">
+    <view class="chat-entry" bindtap="goChat">
+      <view>
+        <view class="chat-title">私信</view>
+        <view class="text-muted">查看与同学的一对一会话</view>
+      </view>
+      <text class="chat-arrow">›</text>
+    </view>
+
+    <!-- 类型筛选 + 全部已读 -->
+    <view class="toolbar">
+      <view class="tabs">
+        <view wx:for="{{typeTabs}}" wx:key="key"
+              class="tab {{activeType === item.key ? 'active' : ''}}"
+              bindtap="switchType" data-key="{{item.key}}">{{item.name}}</view>
+      </view>
+      <view class="read-all" bindtap="markAllRead">全部已读</view>
+    </view>
+
+    <!-- 未读汇总 -->
+    <view wx:if="{{unread > 0}}" class="unread-bar">你有 {{unread}} 条未读消息</view>
+
+    <!-- 消息列表 -->
+    <view wx:for="{{list}}" wx:key="id" class="card msg {{item.isRead === 0 ? 'unread' : ''}}"
+          bindtap="tapItem" data-index="{{index}}">
+      <view class="head">
+        <view class="title">
+          <text wx:if="{{item.isRead === 0}}" class="dot"></text>
+          {{item.title}}
+        </view>
+        <text class="time">{{item.timeText}}</text>
+      </view>
+      <view class="content">{{item.content}}</view>
+      <view class="foot">
+        <text class="tag {{item.type === 'audit' ? 'tag-warning' : (item.type === 'interact' ? 'tag-success' : '')}}">
+          {{item.type === 'system' ? '系统' : (item.type === 'interact' ? '互动' : '审核')}}
+        </text>
+        <text wx:if="{{item.bizType && item.bizId}}" class="text-muted">点击查看详情 ›</text>
+      </view>
+    </view>
+
+    <view wx:if="{{inited && list.length === 0}}" class="empty">暂无消息</view>
+    <view wx:if="{{loading}}" class="loading-tip">加载中…</view>
+    <view wx:elif="{{!hasMore && list.length > 0}}" class="loading-tip">没有更多了</view>
+  </block>
+
+  <!-- 未登录引导 -->
+  <view wx:else class="login-tip">
+    <view class="empty">登录后查看你的消息通知</view>
+    <button class="btn-primary" bindtap="goLogin">立即登录</button>
+  </view>
+</view>

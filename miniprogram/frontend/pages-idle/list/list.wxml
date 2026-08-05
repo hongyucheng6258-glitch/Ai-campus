@@ -1,0 +1,28 @@
+<view class="page">
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <input class="search-input" value="{{keyword}}" bindinput="onKeywordInput"
+           placeholder="搜索闲置物品" confirm-type="search" bindconfirm="doSearch" />
+    <view class="search-btn" bindtap="doSearch">搜索</view>
+  </view>
+
+  <!-- 分类筛选 -->
+  <scroll-view class="tabs" scroll-x enable-flex>
+    <view wx:for="{{categories}}" wx:key="*this"
+          class="tab {{activeCategory === item ? 'active' : ''}}"
+          bindtap="switchCategory" data-category="{{item}}">{{item}}</view>
+  </scroll-view>
+
+  <!-- 列表 -->
+  <view wx:for="{{list}}" wx:key="id" class="list-item" bindtap="goDetail" data-id="{{item.id}}">
+    <item-card cover="{{item.cover}}" title="{{item.title}}" desc="{{item.desc}}"
+               extra="{{item.extra}}" tagText="{{item.tagText}}" tagType="{{item.tagType}}" />
+  </view>
+
+  <view wx:if="{{inited && list.length === 0}}" class="empty">暂无闲置物品，快去发布第一件吧</view>
+  <view wx:if="{{loading}}" class="loading-tip">加载中…</view>
+  <view wx:elif="{{!hasMore && list.length > 0}}" class="loading-tip">共 {{total}} 件闲置</view>
+
+  <!-- 发布按钮 -->
+  <view class="fab" bindtap="goPublish">＋</view>
+</view>

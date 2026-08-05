@@ -1,0 +1,112 @@
+/* 消息中心样式 */
+.chat-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 16rpx;
+  padding: 24rpx;
+  border-radius: 20rpx;
+  background: #e6f4f0;
+}
+
+.chat-title { color: #236b5d; font-size: 30rpx; font-weight: 600; }
+.chat-arrow { color: #2f9e8a; font-size: 48rpx; }
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  padding: 16rpx 24rpx;
+}
+
+.tabs {
+  display: flex;
+}
+
+.tab {
+  padding: 8rpx 24rpx;
+  font-size: 26rpx;
+  color: #606266;
+  border-radius: 32rpx;
+}
+
+.tab.active {
+  background: #e6f4f0;
+  color: #2f9e8a;
+  font-weight: 600;
+}
+
+.read-all {
+  font-size: 26rpx;
+  color: #2f9e8a;
+}
+
+.unread-bar {
+  background: #fdf6ec;
+  color: #e0a93f;
+  font-size: 24rpx;
+  padding: 12rpx 24rpx;
+}
+
+.msg .head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.msg .title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #303133;
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.msg .dot {
+  display: inline-block;
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background: #d9543f;
+  margin-right: 10rpx;
+  vertical-align: middle;
+}
+
+.msg .time {
+  font-size: 22rpx;
+  color: #909399;
+  margin-left: 16rpx;
+  flex-shrink: 0;
+}
+
+.msg .content {
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  color: #606266;
+  line-height: 40rpx;
+}
+
+.msg .foot {
+  margin-top: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.msg.unread {
+  border-left: 6rpx solid #2f9e8a;
+}
+
+.loading-tip {
+  text-align: center;
+  color: #c0c4cc;
+  font-size: 24rpx;
+  padding: 24rpx 0;
+}
+
+.login-tip {
+  padding: 60rpx 60rpx;
+}

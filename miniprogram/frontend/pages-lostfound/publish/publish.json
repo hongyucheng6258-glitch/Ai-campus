@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "发布失物招领",
+  "usingComponents": {
+    "upload-grid": "../../components/upload-grid/upload-grid"
+  }
+}

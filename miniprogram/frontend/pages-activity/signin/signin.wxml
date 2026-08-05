@@ -1,0 +1,28 @@
+<view class="page">
+  <view class="scan-box">
+    <view class="scan-icon">📷</view>
+    <view class="scan-title">扫码签到</view>
+    <view class="scan-sub">请扫描活动发起人出示的签到二维码</view>
+    <button class="btn-primary" bindtap="scan" loading="{{submitting}}" disabled="{{submitting}}">
+      打开摄像头扫码
+    </button>
+  </view>
+
+  <!-- 签到结果 -->
+  <view wx:if="{{lastResult}}" class="card result">{{lastResult}}</view>
+
+  <!-- 手动兜底 -->
+  <view class="card">
+    <view class="sec-title">扫不出来？手动输入签到串</view>
+    <input class="input" value="{{manualInput}}" bindinput="onManualInput"
+           placeholder="campus://signin/活动ID/签名" />
+    <button class="btn-plain submit" bindtap="submitManual" loading="{{submitting}}"
+            disabled="{{submitting}}">提交签到</button>
+  </view>
+
+  <view class="tips">
+    <view>· 只有报名审批通过的同学才能签到</view>
+    <view>· 每场活动只能签到一次，重复扫码会提示已签到</view>
+    <view>· 签到串带 HMAC 签名，伪造无效</view>
+  </view>
+</view>

@@ -1,0 +1,54 @@
+<view class="page">
+  <!-- 资料卡 -->
+  <view class="profile">
+    <block wx:if="{{logged && userInfo}}">
+      <image wx:if="{{userInfo.avatar}}" class="avatar" src="{{userInfo.avatar}}" mode="aspectFill" />
+      <view wx:else class="avatar placeholder">{{userInfo.nickname ? userInfo.nickname[0] : '同'}}</view>
+      <view class="info">
+        <view class="nickname">{{userInfo.nickname || '校园用户'}}</view>
+        <view class="sub">学号：{{userInfo.studentNo || '未绑定'}}</view>
+        <view class="sub">{{userInfo.bio || '这个人很懒，什么都没留下'}}</view>
+      </view>
+    </block>
+    <block wx:else>
+      <view class="avatar placeholder">游</view>
+      <view class="info">
+        <view class="nickname">未登录</view>
+        <view class="sub">登录后可发布、报名与使用 AI 学习助手</view>
+      </view>
+      <button class="login-btn" size="mini" bindtap="goLogin">登录</button>
+    </block>
+  </view>
+
+  <!-- 功能入口宫格 -->
+  <view class="card grid">
+    <view wx:for="{{entries}}" wx:key="name" class="cell" bindtap="goEntry" data-url="{{item.url}}">
+      <view class="icon">{{item.icon}}</view>
+      <view class="name">{{item.name}}</view>
+    </view>
+  </view>
+
+  <block wx:if="{{logged}}">
+    <!-- 我的内容分组 -->
+    <scroll-view class="tabs" scroll-x enable-flex>
+      <view wx:for="{{tabs}}" wx:key="key"
+            class="tab {{activeTab === item.key ? 'active' : ''}}"
+            bindtap="switchTab" data-key="{{item.key}}">{{item.name}}</view>
+    </scroll-view>
+
+    <view wx:for="{{list}}" wx:key="id" class="list-item"
+          bindtap="tapItem" data-url="{{item.url}}">
+      <item-card cover="{{item.cover}}" title="{{item.title}}" desc="{{item.desc}}"
+                 extra="{{item.extra}}" tagText="{{item.tagText}}" tagType="{{item.tagType}}" />
+    </view>
+
+    <view wx:if="{{inited && list.length === 0}}" class="empty">这里还什么都没有</view>
+    <view wx:if="{{loading}}" class="loading-tip">加载中…</view>
+    <view wx:elif="{{!hasMore && list.length > 0}}" class="loading-tip">没有更多了</view>
+
+    <!-- 退出登录 -->
+    <view class="footer">
+      <button class="logout" bindtap="doLogout">退出登录</button>
+    </view>
+  </block>
+</view>

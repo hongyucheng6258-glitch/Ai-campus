@@ -1,0 +1,40 @@
+<view class="page">
+  <view class="card">
+    <!-- 语言选择 -->
+    <view class="row">
+      <text class="label">编程语言</text>
+      <picker mode="selector" range="{{languages}}" value="{{languageIndex}}"
+              bindchange="onLanguageChange">
+        <view class="picker">{{languages[languageIndex]}} ▾</view>
+      </picker>
+      <view class="paste" bindtap="pasteCode">粘贴代码</view>
+    </view>
+
+    <!-- 代码输入 -->
+    <textarea class="code-area" value="{{code}}" bindinput="onCodeInput"
+              placeholder="粘贴或输入你的代码（最长 8000 字符）"
+              maxlength="8000" auto-height="{{false}}" show-confirm-bar="{{false}}" />
+    <view class="counter">{{codeLength}} / 8000</view>
+
+    <!-- 补充说明 -->
+    <textarea class="extra-area" value="{{extra}}" bindinput="onExtraInput"
+              placeholder="可选：报错信息 / 期望的运行结果" maxlength="500"
+              show-confirm-bar="{{false}}" />
+  </view>
+
+  <view class="btns">
+    <button class="btn-primary" bindtap="submit" loading="{{loading}}" disabled="{{loading}}">
+      开始纠错
+    </button>
+    <button class="btn-plain" bindtap="reset">清空</button>
+  </view>
+
+  <!-- 结果展示 -->
+  <view wx:if="{{answer}}" class="card">
+    <view class="sec-title">🔍 纠错结果</view>
+    <text class="answer" selectable>{{answer}}</text>
+    <button class="btn-plain copy" size="mini" bindtap="copyAnswer">复制结果</button>
+  </view>
+
+  <view wx:elif="{{!loading}}" class="empty">输入代码后点击"开始纠错"，AI 会指出问题并给出修复建议</view>
+</view>

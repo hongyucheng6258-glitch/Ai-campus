@@ -1,0 +1,121 @@
+/* PDF 问答页样式 */
+.pdf-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #f3f0ea;
+}
+
+.upload-box {
+  padding: 100rpx 60rpx;
+  text-align: center;
+}
+
+.upload-icon {
+  font-size: 100rpx;
+}
+
+.upload-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  margin: 24rpx 0 12rpx;
+}
+
+.upload-sub {
+  font-size: 26rpx;
+  color: #909399;
+  margin-bottom: 48rpx;
+  line-height: 40rpx;
+}
+
+.tips {
+  margin-top: 48rpx;
+  font-size: 24rpx;
+  color: #c0c4cc;
+  text-align: left;
+  line-height: 40rpx;
+}
+
+.doc-bar {
+  background: #fff;
+  padding: 24rpx;
+  border-bottom: 1rpx solid #e7e3d9;
+}
+
+.doc-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.doc-meta {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #909399;
+  display: flex;
+  justify-content: space-between;
+}
+
+.doc-meta .change {
+  color: #2f9e8a;
+}
+
+.qa-list {
+  flex: 1;
+  padding: 16rpx;
+  box-sizing: border-box;
+}
+
+.qa {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+}
+
+.qa .q {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #303133;
+  line-height: 42rpx;
+}
+
+.qa .a {
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx dashed #e7e3d9;
+  font-size: 26rpx;
+  color: #606266;
+  line-height: 44rpx;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.bottom-space {
+  height: 40rpx;
+}
+
+.input-bar {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 20rpx;
+  background: #fff;
+  border-top: 1rpx solid #e7e3d9;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+}
+
+.input {
+  flex: 1;
+  height: 72rpx;
+  background: #f3f0ea;
+  border-radius: 36rpx;
+  padding: 0 28rpx;
+  font-size: 28rpx;
+}
+
+.send {
+  margin-left: 16rpx;
+  flex-shrink: 0;
+}

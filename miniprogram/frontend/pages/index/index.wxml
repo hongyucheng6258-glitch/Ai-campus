@@ -1,0 +1,47 @@
+<view class="page">
+  <!-- 公告轮播 -->
+  <swiper wx:if="{{notices.length}}" class="banner" indicator-dots autoplay circular>
+    <swiper-item wx:for="{{notices}}" wx:key="id" bindtap="goNotice" data-id="{{item.id}}">
+      <view class="banner-item">
+        <view class="banner-title">📢 {{item.title}}</view>
+      </view>
+    </swiper-item>
+  </swiper>
+
+  <!-- 8宫格功能入口 -->
+  <view class="grid card">
+    <view wx:for="{{entries}}" wx:key="name" class="cell" bindtap="goEntry" data-item="{{item}}">
+      <view class="icon">{{item.icon}}</view>
+      <view class="name">{{item.name}}</view>
+    </view>
+  </view>
+
+  <!-- 最新闲置 -->
+  <view class="card" wx:if="{{idleItems.length}}">
+    <view class="sec-title">🔄 最新闲置</view>
+    <view wx:for="{{idleItems}}" wx:key="id" class="mini" bindtap="goIdle" data-id="{{item.id}}">
+      <image wx:if="{{item.cover}}" src="{{item.cover}}" mode="aspectFill" class="mini-img" />
+      <view class="mini-title">{{item.title}}</view>
+      <view class="mini-extra">换：{{item.expectItem || '面议'}}</view>
+    </view>
+  </view>
+
+  <!-- 最新活动 -->
+  <view class="card" wx:if="{{activities.length}}">
+    <view class="sec-title">🎉 最新活动</view>
+    <view wx:for="{{activities}}" wx:key="id" class="mini" bindtap="goActivity" data-id="{{item.id}}">
+      <image wx:if="{{item.cover}}" src="{{item.cover}}" mode="aspectFill" class="mini-img" />
+      <view class="mini-title">{{item.title}}</view>
+      <view class="mini-extra">{{item.location || '地点待定'}}</view>
+    </view>
+  </view>
+
+  <!-- 失物招领 -->
+  <view class="card" wx:if="{{lostFounds.length}}">
+    <view class="sec-title">🔍 失物招领</view>
+    <view wx:for="{{lostFounds}}" wx:key="id" class="mini" bindtap="goLostFound" data-id="{{item.id}}">
+      <text class="tag {{item.type === 0 ? 'tag-danger' : 'tag-success'}}">{{item.type === 0 ? '失物' : '招领'}}</text>
+      <view class="mini-title">{{item.title}}</view>
+    </view>
+  </view>
+</view>

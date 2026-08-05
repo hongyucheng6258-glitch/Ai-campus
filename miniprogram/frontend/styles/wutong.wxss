@@ -1,0 +1,55 @@
+/* ============================================================
+   梧桐校园 · 小程序设计 Token（静态色值 + 工具类）
+   与 Web 端 tokens.css / 后台 chartTheme.js 语义一致：
+   梧桐绿(品牌) + 暖珊瑚(强调) + 暖纸底，避开"紫蓝渐变"套路审美。
+   注：WXSS 对 CSS 变量的支持因基础库版本而异，
+   故核心组件统一用静态色值，变量仅作可选能力提供。
+   ============================================================ */
+
+/* —— 可选 CSS 变量（页面可按需 var() 使用）—— */
+page {
+  --wt-brand: #2f9e8a;
+  --wt-brand-strong: #236b5d;
+  --wt-brand-light: #8fcfc0;
+  --wt-brand-soft: #e6f4f0;
+  --wt-accent: #e9784f;
+  --wt-accent-soft: #fbe6dc;
+  --wt-paper: #faf7f1;
+  --wt-surface: #ffffff;
+  --wt-ink: #35393d;
+  --wt-ink-2: #5b6066;
+  --wt-ink-3: #9a9ea4;
+  --wt-line: #e7e3d9;
+  --wt-success: #4ca46a;
+  --wt-warning: #e0a93f;
+  --wt-error: #d9543f;
+}
+
+/* —— 品牌渐变（banner / 个人页头部 / FAB）—— */
+.wt-gradient {
+  background: linear-gradient(135deg, #2f9e8a, #8fcfc0);
+}
+
+/* —— 区块标题 —— */
+.wt-sec-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #35393d;
+  margin-bottom: 16rpx;
+}
+
+/* —— 品牌胶囊标签 —— */
+.wt-pill {
+  display: inline-block;
+  padding: 6rpx 20rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  background: #e6f4f0;
+  color: #2f9e8a;
+}
+
+/* —— 暖分隔线 —— */
+.wt-divider {
+  height: 1rpx;
+  background: #e7e3d9;
+}

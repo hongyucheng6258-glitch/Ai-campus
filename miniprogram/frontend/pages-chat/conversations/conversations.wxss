@@ -1,0 +1,16 @@
+.page { min-height: 100vh; padding: 16rpx 0 40rpx; }
+.status { margin: 0 24rpx 12rpx; color: #9a9ea4; font-size: 22rpx; }
+.status-dot { display: inline-block; width: 12rpx; height: 12rpx; margin-right: 10rpx; border-radius: 50%; background: #2f9e8a; }
+.conversation { display: flex; gap: 20rpx; margin: 0 16rpx 14rpx; padding: 24rpx; border-radius: 20rpx; background: #fff; box-shadow: 0 4rpx 16rpx rgba(53, 57, 61, .06); }
+.avatar { width: 92rpx; height: 92rpx; flex-shrink: 0; border-radius: 50%; }
+.avatar.placeholder { display: flex; align-items: center; justify-content: center; color: #fff; background: #8fcfc0; font-size: 34rpx; }
+.main { min-width: 0; flex: 1; }
+.top, .bottom { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
+.name { color: #35393d; font-size: 30rpx; font-weight: 600; }
+.time { flex-shrink: 0; color: #9a9ea4; font-size: 22rpx; }
+.bottom { margin-top: 8rpx; }
+.summary { overflow: hidden; flex: 1; color: #5b6066; font-size: 25rpx; text-overflow: ellipsis; white-space: nowrap; }
+.badge { min-width: 32rpx; height: 32rpx; padding: 0 8rpx; border-radius: 18rpx; color: #fff; background: #d9543f; font-size: 20rpx; line-height: 32rpx; text-align: center; }
+.context { overflow: hidden; margin-top: 10rpx; color: #2f9e8a; font-size: 22rpx; text-overflow: ellipsis; white-space: nowrap; }
+.loading { padding: 24rpx; color: #9a9ea4; text-align: center; }
+.login-tip { padding: 60rpx; }

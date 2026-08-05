@@ -1,0 +1,25 @@
+<view class="page">
+  <view wx:if="{{itemTitle}}" class="card target">
+    <text class="tag">预约物品</text>
+    <view class="target-title">{{itemTitle}}</view>
+  </view>
+
+  <view class="card">
+    <view class="label">给对方的留言 <text class="req">*</text></view>
+    <textarea class="textarea" value="{{message}}" bindinput="onInput" maxlength="255"
+              placeholder="说明你想交换什么、方便面交的时间地点等" show-confirm-bar="{{false}}" />
+    <view class="counter">{{message.length}} / 255</view>
+
+    <view class="tpl-label">常用留言：</view>
+    <view wx:for="{{templates}}" wx:key="*this" class="tpl"
+          bindtap="useTemplate" data-index="{{index}}">{{item}}</view>
+  </view>
+
+  <view class="notice">温馨提示：请在校内公共场所面交，注意人身与财产安全。</view>
+
+  <view class="btns">
+    <button class="btn-primary" bindtap="submit" loading="{{submitting}}" disabled="{{submitting}}">
+      提交预约
+    </button>
+  </view>
+</view>

@@ -1,0 +1,63 @@
+/* 交易评价样式 */
+.target-title {
+  margin-top: 12rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #303133;
+}
+
+.label {
+  font-size: 26rpx;
+  color: #606266;
+  margin-bottom: 16rpx;
+}
+
+.stars {
+  display: flex;
+  align-items: center;
+  margin-bottom: 32rpx;
+}
+
+.star {
+  font-size: 60rpx;
+  color: #dcdfe6;
+  margin-right: 16rpx;
+}
+
+.star.on {
+  color: #f7ba2a;
+}
+
+.score-text {
+  margin-left: 16rpx;
+  font-size: 28rpx;
+  color: #e0a93f;
+}
+
+.textarea {
+  width: 100%;
+  height: 200rpx;
+  background: #f3f0ea;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.counter {
+  text-align: right;
+  font-size: 22rpx;
+  color: #909399;
+  margin-top: 8rpx;
+}
+
+.notice {
+  margin: 0 32rpx 24rpx;
+  font-size: 24rpx;
+  color: #e0a93f;
+  line-height: 36rpx;
+}
+
+.btns {
+  padding: 0 32rpx 60rpx;
+}

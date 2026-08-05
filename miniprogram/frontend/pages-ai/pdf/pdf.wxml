@@ -1,0 +1,48 @@
+<view class="pdf-page">
+  <!-- 未上传：引导选择文件 -->
+  <view wx:if="{{!doc}}" class="upload-box">
+    <view class="upload-icon">📄</view>
+    <view class="upload-title">上传课件 / 论文 PDF</view>
+    <view class="upload-sub">上传后可就文档内容多轮提问，AI 会基于原文回答</view>
+    <button class="btn-primary" bindtap="choosePdf" loading="{{uploading}}" disabled="{{uploading}}">
+      从聊天记录选择 PDF
+    </button>
+    <view class="tips">
+      <view>· 仅支持文本型 PDF（可复制文字）</view>
+      <view>· 扫描件（图片型）无法解析，请先做 OCR</view>
+      <view>· 单个文件不超过 20MB</view>
+    </view>
+  </view>
+
+  <!-- 已上传：文档信息 + 问答区 -->
+  <block wx:else>
+    <view class="doc-bar">
+      <view class="doc-name">📄 {{doc.fileName}}</view>
+      <view class="doc-meta">
+        <text wx:if="{{doc.pageCount}}">共 {{doc.pageCount}} 页</text>
+        <text class="change" bindtap="changeDoc">更换</text>
+      </view>
+    </view>
+
+    <scroll-view class="qa-list" scroll-y scroll-top="{{scrollTop}}" scroll-with-animation>
+      <view wx:if="{{qaList.length === 0}}" class="empty">
+        试着问：「这篇文档的核心结论是什么？」
+      </view>
+
+      <view wx:for="{{qaList}}" wx:key="index" class="qa">
+        <view class="q">Q：{{item.question}}</view>
+        <view class="a" bindlongpress="copyAnswer" data-index="{{index}}">
+          <text selectable>{{item.answer}}</text>
+        </view>
+      </view>
+      <view class="bottom-space"></view>
+    </scroll-view>
+
+    <view class="input-bar">
+      <input class="input" value="{{input}}" bindinput="onInput" placeholder="针对文档提问…"
+             confirm-type="send" bindconfirm="ask" disabled="{{asking}}" />
+      <button class="btn-primary send" size="mini" bindtap="ask" loading="{{asking}}"
+              disabled="{{asking}}">提问</button>
+    </view>
+  </block>
+</view>

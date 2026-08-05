@@ -1,0 +1,30 @@
+<view class="chat-page">
+  <scroll-view class="msg-list" scroll-y scroll-top="{{scrollTop}}" scroll-with-animation>
+    <!-- 空态：欢迎语 + 快捷提问 -->
+    <view wx:if="{{messages.length === 0}}" class="welcome">
+      <view class="welcome-title">👋 我是校园 AI 学习助手</view>
+      <view class="welcome-sub">课程疑问、知识点讲解、学习规划都可以问我</view>
+      <view wx:for="{{quickAsks}}" wx:key="*this" class="quick" bindtap="tapQuick" data-text="{{item}}">
+        {{item}}
+      </view>
+    </view>
+
+    <!-- 消息气泡 -->
+    <view wx:for="{{messages}}" wx:key="index" class="bubble-wrap"
+          bindlongpress="copyMessage" data-index="{{index}}">
+      <chat-bubble role="{{item.role}}" content="{{item.content}}"
+                   nickname="{{nickname}}" avatar="{{avatar}}" />
+    </view>
+
+    <view class="bottom-space"></view>
+  </scroll-view>
+
+  <!-- 输入区 -->
+  <view class="input-bar">
+    <input class="input" value="{{input}}" bindinput="onInput" placeholder="请输入你的问题…"
+           confirm-type="send" bindconfirm="send" disabled="{{sending}}" />
+    <button class="btn-primary send" size="mini" bindtap="send" loading="{{sending}}"
+            disabled="{{sending}}">发送</button>
+    <view class="clear" bindtap="clearScreen">清屏</view>
+  </view>
+</view>

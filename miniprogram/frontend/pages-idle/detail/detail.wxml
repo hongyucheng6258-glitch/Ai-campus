@@ -1,0 +1,62 @@
+<view class="page">
+  <block wx:if="{{detail}}">
+    <!-- 图片轮播 -->
+    <swiper wx:if="{{images.length}}" class="gallery" indicator-dots circular>
+      <swiper-item wx:for="{{images}}" wx:key="*this">
+        <image src="{{item}}" mode="aspectFill" class="gallery-img"
+               bindtap="previewImage" data-index="{{index}}" />
+      </swiper-item>
+    </swiper>
+
+    <view class="card">
+      <view class="title">
+        <text wx:if="{{statusText}}" class="tag tag-{{statusType}}">{{statusText}}</text>
+        {{detail.title}}
+      </view>
+      <view class="expect">期望换取：{{detail.expectItem || '面议'}}</view>
+      <view class="meta">
+        <text wx:if="{{detail.category}}" class="tag">{{detail.category}}</text>
+        <text class="text-muted">浏览 {{detail.viewCount || 0}} 次 · {{createTimeText}}</text>
+      </view>
+    </view>
+
+    <!-- 发布者 -->
+    <view class="card publisher">
+      <image wx:if="{{detail.publisherAvatar}}" class="avatar" src="{{detail.publisherAvatar}}" mode="aspectFill" />
+      <view wx:else class="avatar placeholder">{{detail.publisherNickname ? detail.publisherNickname[0] : '同'}}</view>
+      <view class="pub-info">
+        <view class="pub-name">{{detail.publisherNickname || '校园用户'}}</view>
+        <view class="text-muted">
+          信用评分：{{detail.sellerAvgScore ? detail.sellerAvgScore + ' 分' : '暂无评价'}}
+        </view>
+      </view>
+    </view>
+
+    <!-- 描述 -->
+    <view class="card">
+      <view class="sec-title">物品描述</view>
+      <text class="desc" selectable>{{detail.description || '发布者未填写描述'}}</text>
+    </view>
+
+    <view class="bottom-space"></view>
+
+    <!-- 底部操作栏 -->
+    <view class="action-bar">
+      <block wx:if="{{detail.isOwner}}">
+        <button class="btn-plain" bindtap="offline" disabled="{{detail.status === 3}}">
+          {{detail.status === 3 ? '已下架' : '下架物品'}}
+        </button>
+      </block>
+      <block wx:else>
+        <button class="btn-plain" bindtap="contactPublisher">联系卖家</button>
+        <button wx:if="{{detail.myAppointmentId}}" class="btn-plain" bindtap="goReview">去评价</button>
+        <button class="btn-primary" bindtap="goAppoint" disabled="{{detail.status !== 0}}">
+          {{detail.status === 0 ? '我想换' : '暂不可预约'}}
+        </button>
+      </block>
+    </view>
+  </block>
+
+  <view wx:elif="{{loading}}" class="empty">加载中…</view>
+  <view wx:else class="empty">物品不存在或已下架</view>
+</view>

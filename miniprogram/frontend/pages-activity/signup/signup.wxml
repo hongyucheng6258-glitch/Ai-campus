@@ -1,0 +1,29 @@
+<view class="page">
+  <view wx:if="{{activityTitle}}" class="card">
+    <text class="tag">报名活动</text>
+    <view class="target-title">{{activityTitle}}</view>
+  </view>
+
+  <view class="card">
+    <view class="sec-title">报名人信息</view>
+    <view class="info-row">昵称：{{nickname}}</view>
+    <view class="info-row">学号：{{studentNo}}</view>
+    <view class="text-muted">如需修改资料，请前往「我的」页面完善。</view>
+  </view>
+
+  <view class="card">
+    <view class="label">报名备注</view>
+    <textarea class="textarea" value="{{remark}}" bindinput="onInput" maxlength="255"
+              placeholder="向发起人介绍一下自己，如擅长的位置/技能、能否全程参加等（选填）"
+              show-confirm-bar="{{false}}" />
+    <view class="counter">{{remark.length}} / 255</view>
+  </view>
+
+  <view class="notice">报名采用审批制，发起人通过后你才算正式参与，届时请到现场扫码签到。</view>
+
+  <view class="btns">
+    <button class="btn-primary" bindtap="submit" loading="{{submitting}}" disabled="{{submitting}}">
+      确认报名
+    </button>
+  </view>
+</view>

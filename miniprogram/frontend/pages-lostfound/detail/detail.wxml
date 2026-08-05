@@ -1,0 +1,53 @@
+<view class="page">
+  <block wx:if="{{detail}}">
+    <!-- 图片轮播 -->
+    <swiper wx:if="{{images.length}}" class="gallery" indicator-dots circular>
+      <swiper-item wx:for="{{images}}" wx:key="*this">
+        <image src="{{item}}" mode="aspectFill" class="gallery-img"
+               bindtap="previewImage" data-index="{{index}}" />
+      </swiper-item>
+    </swiper>
+
+    <view class="card">
+      <view class="title">
+        <text class="tag {{detail.type === 0 ? 'tag-danger' : 'tag-success'}}">{{typeText}}</text>
+        <text wx:if="{{statusText}}" class="tag tag-{{statusType}}">{{statusText}}</text>
+        {{detail.title}}
+      </view>
+      <view class="info-row">📍 {{detail.type === 0 ? '丢失' : '拾取'}}地点：{{detail.location || '未填写'}}</view>
+      <view class="info-row">🕐 {{detail.type === 0 ? '丢失' : '拾取'}}时间：{{happenTimeText}}</view>
+      <view class="info-row">📅 发布时间：{{createTimeText}}</view>
+    </view>
+
+    <!-- 发布者 -->
+    <view class="card publisher">
+      <image wx:if="{{detail.publisherAvatar}}" class="avatar" src="{{detail.publisherAvatar}}" mode="aspectFill" />
+      <view wx:else class="avatar placeholder">{{detail.publisherNickname ? detail.publisherNickname[0] : '同'}}</view>
+      <view class="pub-info">
+        <view class="pub-name">{{detail.publisherNickname || '校园用户'}}</view>
+        <view class="text-muted">联系方式：{{detail.contact || '未提供'}}</view>
+      </view>
+    </view>
+
+    <!-- 描述 -->
+    <view class="card">
+      <view class="sec-title">详细描述</view>
+      <text class="desc" selectable>{{detail.description || '发布者未填写描述'}}</text>
+    </view>
+
+    <view class="bottom-space"></view>
+
+    <!-- 底部操作栏 -->
+    <view class="action-bar">
+      <button wx:if="{{detail.isOwner}}" class="btn-plain" bindtap="finish"
+              disabled="{{detail.status !== 0}}">
+        {{detail.status === 0 ? '标记已完成' : '已完成'}}
+      </button>
+      <button wx:else class="btn-plain" bindtap="contactPublisher">联系发布者</button>
+      <button class="btn-primary" bindtap="copyContact">复制联系方式</button>
+    </view>
+  </block>
+
+  <view wx:elif="{{loading}}" class="empty">加载中…</view>
+  <view wx:else class="empty">信息不存在或已下架</view>
+</view>
