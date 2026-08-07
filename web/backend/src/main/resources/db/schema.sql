@@ -115,7 +115,8 @@ INSERT INTO `ai_config` (`config_key`, `config_value`, `description`) VALUES
 ('max_tokens', '2048', '最大输出token'),
 ('timeout_ms', '60000', '调用超时毫秒'),
 ('retry_times', '2', '失败重试次数'),
-('rate_limit_per_day', '50', '每用户每日AI调用上限')
+('rate_limit_per_day', '50', '每用户每日AI调用上限'),
+('audit_enabled', 'false', '是否启用大模型内容审核；关闭时使用本地规则分级')
 ON DUPLICATE KEY UPDATE `config_key` = VALUES(`config_key`);
 
 -- 提示词模板
@@ -136,7 +137,8 @@ INSERT INTO `prompt_template` (`scene`, `name`, `content`) VALUES
 ('code_fix', '代码纠错模板', '你是一名资深程序员，请检查以下{language}代码中的错误，输出Markdown格式：\n1. 【错误定位】指出行号与错误原因\n2. 【修复建议】给出修改方法\n3. 【修复后代码】用代码块给出完整修正代码\n\n待检查代码：\n```{language}\n{code}\n```'),
 ('pdf', 'PDF问答模板', '你正在基于一份课件文档回答学生问题。以下是文档相关内容片段：\n\n{context}\n\n请严格基于上述文档内容回答问题，文档未涉及的内容请说明"文档中未提及"。\n\n问题：{question}'),
 ('outline', '复习提纲模板', '请为「{subject}」学科中「{topic}」这一主题生成一份结构化复习提纲，要求：层级化要点（最多三级）、每个要点附一句话说明、结尾给出3个自测问题。输出Markdown格式。'),
-('quiz', '智能习题模板', '基于以下这道错题，请生成3道同类型、同难度的新习题，每道题给出标准答案与详细解析。输出Markdown格式。\n\n学科：{subject}\n错题：{question}\n正确答案：{answer}')
+('quiz', '智能习题模板', '基于以下这道错题，请生成3道同类型、同难度的新习题，每道题给出标准答案与详细解析。输出Markdown格式。\n\n学科：{subject}\n错题：{question}\n正确答案：{answer}'),
+('content_audit', '校园内容AI审核', '你是校园平台内容安全审核员。判断违法、诈骗、广告引流、危险交易、隐私泄露风险。只返回JSON，level只能是LOW、MEDIUM、HIGH；不确定时返回MEDIUM；不得回显完整联系方式。\n\n{question}')
 ON DUPLICATE KEY UPDATE `id` = `id`;
 
 -- PDF文档
@@ -183,6 +185,10 @@ CREATE TABLE IF NOT EXISTS `idle_item` (
   `category`      VARCHAR(32)  DEFAULT NULL COMMENT '分类',
   `audit_status`  TINYINT      NOT NULL DEFAULT 0 COMMENT '0待审核 1通过 2驳回',
   `audit_reason`  VARCHAR(255) DEFAULT NULL,
+  `ai_risk_level` TINYINT DEFAULT NULL COMMENT '0低风险 1中风险 2高风险',
+  `ai_audit_reason` VARCHAR(500) DEFAULT NULL,
+  `ai_audit_time` DATETIME DEFAULT NULL,
+  `audit_source` VARCHAR(16) NOT NULL DEFAULT 'manual',
   `status`        TINYINT      NOT NULL DEFAULT 0 COMMENT '0在架 1已预约 2已完成 3已下架',
   `view_count`    INT          NOT NULL DEFAULT 0,
   `create_time`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -236,6 +242,10 @@ CREATE TABLE IF NOT EXISTS `activity` (
   `max_members`     INT          NOT NULL DEFAULT 0 COMMENT '人数上限，0不限',
   `audit_status`    TINYINT      NOT NULL DEFAULT 0,
   `audit_reason`    VARCHAR(255) DEFAULT NULL,
+  `ai_risk_level` TINYINT DEFAULT NULL COMMENT '0低风险 1中风险 2高风险',
+  `ai_audit_reason` VARCHAR(500) DEFAULT NULL,
+  `ai_audit_time` DATETIME DEFAULT NULL,
+  `audit_source` VARCHAR(16) NOT NULL DEFAULT 'manual',
   `status`          TINYINT      NOT NULL DEFAULT 0 COMMENT '0报名中 1已满 2已结束 3已下架',
   `create_time`     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -278,6 +288,10 @@ CREATE TABLE IF NOT EXISTS `lost_found` (
   `contact`      VARCHAR(64)  DEFAULT NULL COMMENT '联系方式',
   `audit_status` TINYINT      NOT NULL DEFAULT 0,
   `audit_reason` VARCHAR(255) DEFAULT NULL,
+  `ai_risk_level` TINYINT DEFAULT NULL COMMENT '0低风险 1中风险 2高风险',
+  `ai_audit_reason` VARCHAR(500) DEFAULT NULL,
+  `ai_audit_time` DATETIME DEFAULT NULL,
+  `audit_source` VARCHAR(16) NOT NULL DEFAULT 'manual',
   `status`       TINYINT      NOT NULL DEFAULT 0 COMMENT '0进行中 1已完成 2已下架',
   `create_time`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -309,6 +323,10 @@ CREATE TABLE IF NOT EXISTS `post` (
   `comment_count` INT          NOT NULL DEFAULT 0,
   `audit_status`  TINYINT      NOT NULL DEFAULT 0,
   `audit_reason`  VARCHAR(255) DEFAULT NULL,
+  `ai_risk_level` TINYINT DEFAULT NULL COMMENT '0低风险 1中风险 2高风险',
+  `ai_audit_reason` VARCHAR(500) DEFAULT NULL,
+  `ai_audit_time` DATETIME DEFAULT NULL,
+  `audit_source` VARCHAR(16) NOT NULL DEFAULT 'manual',
   `create_time`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_audit_status` (`audit_status`),

@@ -43,6 +43,8 @@ class IdleDetailReviewEntryTest {
     private MessageService messageService;
     @Mock
     private SensitiveWordService sensitiveWordService;
+    @Mock
+    private ContentAiAuditService contentAiAuditService;
 
     private IdleService idleService;
 
@@ -54,7 +56,8 @@ class IdleDetailReviewEntryTest {
                 reviewMapper,
                 userMapper,
                 messageService,
-                sensitiveWordService);
+                sensitiveWordService,
+                contentAiAuditService);
     }
 
     @Test

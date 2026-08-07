@@ -42,6 +42,7 @@ public class PostService {
     private final UserMapper userMapper;
     private final SensitiveWordService sensitiveWordService;
     private final MessageService messageService;
+    private final ContentAiAuditService contentAiAuditService;
 
     /** 发动态（先审后发） */
     public Post publish(Long userId, PostPublishDTO dto) {
@@ -56,6 +57,7 @@ public class PostService {
         post.setCommentCount(0);
         post.setAuditStatus(Constants.AUDIT_PENDING);
         postMapper.insert(post);
+        contentAiAuditService.audit(Constants.BIZ_POST, post, userId, null, dto.getContent());
         return post;
     }
 

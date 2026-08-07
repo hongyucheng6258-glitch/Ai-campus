@@ -28,6 +28,7 @@ public class LostFoundService {
     private final LostFoundMapper lostFoundMapper;
     private final UserMapper userMapper;
     private final SensitiveWordService sensitiveWordService;
+    private final ContentAiAuditService contentAiAuditService;
 
     /** 发布（待审核） */
     public LostFound publish(Long userId, LostFoundPublishDTO dto) {
@@ -41,6 +42,7 @@ public class LostFoundService {
         lf.setAuditStatus(Constants.AUDIT_PENDING);
         lf.setStatus(Constants.LF_DOING);
         lostFoundMapper.insert(lf);
+        contentAiAuditService.audit(Constants.BIZ_LOSTFOUND, lf, userId, dto.getTitle(), dto.getDescription());
         return lf;
     }
 

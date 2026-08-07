@@ -47,6 +47,7 @@ public class ActivityService {
     private final MessageService messageService;
     private final SignTokenUtils signTokenUtils;
     private final SensitiveWordService sensitiveWordService;
+    private final ContentAiAuditService contentAiAuditService;
 
     /** 发布活动（待审核） */
     public Activity publish(Long userId, ActivityPublishDTO dto) {
@@ -68,6 +69,7 @@ public class ActivityService {
         activity.setAuditStatus(Constants.AUDIT_PENDING);
         activity.setStatus(Constants.ACTIVITY_SIGNING);
         activityMapper.insert(activity);
+        contentAiAuditService.audit(Constants.BIZ_ACTIVITY, activity, userId, dto.getTitle(), dto.getDescription());
         return activity;
     }
 

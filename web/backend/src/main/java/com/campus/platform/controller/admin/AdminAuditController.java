@@ -22,6 +22,14 @@ public class AdminAuditController {
         return R.ok(auditService.pendingList(type, pageNum, pageSize));
     }
 
+    @GetMapping("/all")
+    public R<PageResult<?>> all(
+            @RequestParam String type,
+            @RequestParam(defaultValue = "1") int pageNum,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        return R.ok(auditService.allList(type, pageNum, pageSize));
+    }
+
     @PutMapping("/{type}/{id}/pass")
     public R<Void> pass(@PathVariable String type, @PathVariable Long id) {
         auditService.pass(type, id);

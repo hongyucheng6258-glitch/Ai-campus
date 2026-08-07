@@ -42,6 +42,16 @@ public class LostFound {
 
     private String auditReason;
 
+    /** AI风险等级：0低风险 1中风险 2高风险 */
+    private Integer aiRiskLevel;
+
+    private String aiAuditReason;
+
+    private LocalDateTime aiAuditTime;
+
+    /** manual/ai/ai_manual */
+    private String auditSource;
+
     /** 0进行中 1已完成 2已下架 */
     private Integer status;
 

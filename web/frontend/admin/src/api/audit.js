@@ -5,6 +5,10 @@ export function auditList(params) {
   return request.get('/audit/pending', { params })
 }
 
+export function auditAll(params) {
+  return request.get('/audit/all', { params })
+}
+
 export function auditPass(type, id) {
   return request.put(`/audit/${type}/${id}/pass`)
 }

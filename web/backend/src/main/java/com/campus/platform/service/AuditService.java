@@ -32,7 +32,7 @@ public class AuditService {
     private final PostMapper postMapper;
     private final MessageService messageService;
 
-    /** 待审队列（按类型分页） */
+    /** 待审列表 */
     public PageResult<?> pendingList(String type, int pageNum, int pageSize) {
         return switch (type) {
             case Constants.BIZ_IDLE -> PageResult.of(idleItemMapper.selectPage(
@@ -59,6 +59,21 @@ public class AuditService {
         };
     }
 
+    /** 全量内容列表：自动通过、人工通过、待审核、已驳回均可管理。 */
+    public PageResult<?> allList(String type, int pageNum, int pageSize) {
+        return switch (type) {
+            case Constants.BIZ_IDLE -> PageResult.of(idleItemMapper.selectPage(
+                    new Page<>(pageNum, pageSize), new LambdaQueryWrapper<IdleItem>().orderByDesc(IdleItem::getId)));
+            case Constants.BIZ_ACTIVITY -> PageResult.of(activityMapper.selectPage(
+                    new Page<>(pageNum, pageSize), new LambdaQueryWrapper<Activity>().orderByDesc(Activity::getId)));
+            case Constants.BIZ_LOSTFOUND -> PageResult.of(lostFoundMapper.selectPage(
+                    new Page<>(pageNum, pageSize), new LambdaQueryWrapper<LostFound>().orderByDesc(LostFound::getId)));
+            case Constants.BIZ_POST -> PageResult.of(postMapper.selectPage(
+                    new Page<>(pageNum, pageSize), new LambdaQueryWrapper<Post>().orderByDesc(Post::getId)));
+            default -> throw new BizException(ResultCode.BAD_REQUEST, "不支持的内容类型: " + type);
+        };
+    }
+
     /** 审核通过 → 通知作者 */
     public void pass(String type, Long id) {
         AuditedTarget target = doAudit(type, id, Constants.AUDIT_PASS, null);
@@ -81,6 +96,7 @@ public class AuditService {
                 }
                 item.setAuditStatus(auditStatus);
                 item.setAuditReason(reason);
+                item.setAuditSource(item.getAiRiskLevel() == null ? "manual" : "ai_manual");
                 idleItemMapper.updateById(item);
                 return new AuditedTarget(item.getUserId(), "闲置「" + item.getTitle() + "」");
             }
@@ -91,6 +107,7 @@ public class AuditService {
                 }
                 activity.setAuditStatus(auditStatus);
                 activity.setAuditReason(reason);
+                activity.setAuditSource(activity.getAiRiskLevel() == null ? "manual" : "ai_manual");
                 activityMapper.updateById(activity);
                 return new AuditedTarget(activity.getUserId(), "活动「" + activity.getTitle() + "」");
             }
@@ -101,6 +118,7 @@ public class AuditService {
                 }
                 lf.setAuditStatus(auditStatus);
                 lf.setAuditReason(reason);
+                lf.setAuditSource(lf.getAiRiskLevel() == null ? "manual" : "ai_manual");
                 lostFoundMapper.updateById(lf);
                 return new AuditedTarget(lf.getUserId(), "失物招领「" + lf.getTitle() + "」");
             }
@@ -111,6 +129,7 @@ public class AuditService {
                 }
                 post.setAuditStatus(auditStatus);
                 post.setAuditReason(reason);
+                post.setAuditSource(post.getAiRiskLevel() == null ? "manual" : "ai_manual");
                 postMapper.updateById(post);
                 String preview = post.getContent().length() > 20
                         ? post.getContent().substring(0, 20) + "..." : post.getContent();

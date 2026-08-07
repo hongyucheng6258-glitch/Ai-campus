@@ -71,6 +71,9 @@ public class AiGatewayService {
      * @return AI 回复文本
      */
     public String chat(Long userId, String scene, String question, Long sessionId, Map<String, String> params) {
+        if (StrUtil.isBlank(question)) {
+            throw new BizException(ResultCode.SYSTEM_ERROR, "问题不能为空");
+        }
         checkRateLimit(userId);
         if (sensitiveWordService.contains(question)) {
             throw new BizException(ResultCode.SENSITIVE_WORD);
@@ -110,6 +113,26 @@ public class AiGatewayService {
      *
      * @return SseEmitter，前端 EventSource 接收
      */
+    /** 后台内部AI调用：不占用学生限额，不做输入敏感词拦截，也不保存会话。 */
+    public String internalChat(Long userId, String scene, String question, Map<String, String> params) {
+        ArrayNode messages = buildMessages(userId, scene, question, null, params);
+        long start = System.currentTimeMillis();
+        try {
+            String responseBody = doChat(messages, false);
+            JsonNode root = objectMapper.readTree(responseBody);
+            String content = root.path("choices").path(0).path("message").path("content").asText();
+            logCall(userId, scene,
+                    root.path("usage").path("prompt_tokens").asInt(),
+                    root.path("usage").path("completion_tokens").asInt(),
+                    (int) (System.currentTimeMillis() - start), 0, null);
+            return content;
+        } catch (Exception e) {
+            logCall(userId, scene, 0, 0,
+                    (int) (System.currentTimeMillis() - start), 1, e.getMessage());
+            throw new BizException(ResultCode.AI_INVOKE_FAIL, "AI审核服务暂时不可用");
+        }
+    }
+
     public SseEmitter streamChat(Long userId, String scene, String question, Long sessionId, Map<String, String> params) {
         return streamChat(userId, scene, question, sessionId, params,
                 new SseEmitter(aiConfigHolder.getTimeoutMs() * 2L));

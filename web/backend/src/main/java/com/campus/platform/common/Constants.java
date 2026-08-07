@@ -75,6 +75,7 @@ public final class Constants {
     public static final String SCENE_CODE_FIX = "code_fix";
     public static final String SCENE_OUTLINE = "outline";
     public static final String SCENE_QUIZ = "quiz";
+    public static final String SCENE_CONTENT_AUDIT = "content_audit";
 
     /** 业务对象标识（用于消息/通知等） */
     public static final String BIZ_IDLE = "idle";

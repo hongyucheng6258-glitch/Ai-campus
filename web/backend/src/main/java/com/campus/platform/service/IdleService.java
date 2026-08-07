@@ -48,6 +48,7 @@ public class IdleService {
     private final UserMapper userMapper;
     private final MessageService messageService;
     private final SensitiveWordService sensitiveWordService;
+    private final ContentAiAuditService contentAiAuditService;
 
     /** 发布闲置（进入待审核） */
     public IdleItem publish(Long userId, IdlePublishDTO dto) {
@@ -65,6 +66,7 @@ public class IdleService {
         item.setStatus(Constants.IDLE_ON_SHELF);
         item.setViewCount(0);
         idleItemMapper.insert(item);
+        contentAiAuditService.audit(Constants.BIZ_IDLE, item, userId, dto.getTitle(), dto.getDescription());
         return item;
     }
 
@@ -161,6 +163,7 @@ public class IdleService {
         item.setAuditStatus(Constants.AUDIT_PENDING);
         item.setAuditReason(null);
         idleItemMapper.updateById(item);
+        contentAiAuditService.audit(Constants.BIZ_IDLE, item, userId, dto.getTitle(), dto.getDescription());
         return item;
     }
 
