@@ -62,10 +62,12 @@ public class PostService {
     }
 
     /** 动态广场（公开，仅审核通过） */
-    public PageResult<PostVO> list(Long currentUid, int pageNum, int pageSize) {
+    public PageResult<PostVO> list(Long currentUid, String keyword, int pageNum, int pageSize) {
+        String normalizedKeyword = keyword == null ? null : keyword.trim();
         Page<Post> page = postMapper.selectPage(new Page<>(pageNum, pageSize),
                 new LambdaQueryWrapper<Post>()
                         .eq(Post::getAuditStatus, Constants.AUDIT_PASS)
+                        .like(normalizedKeyword != null && !normalizedKeyword.isEmpty(), Post::getContent, normalizedKeyword)
                         .orderByDesc(Post::getId));
         List<Post> records = page.getRecords();
         // 批量查作者与当前用户点赞状态

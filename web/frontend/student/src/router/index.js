@@ -22,6 +22,7 @@ const routes = [
     component: () => import('../layout/MainLayout.vue'),
     children: [
       { path: '', name: 'Home', component: () => import('../views/home/Home.vue'), meta: { public: true } },
+      { path: 'search', name: 'SearchResults', component: () => import('../views/search/SearchResults.vue'), meta: { public: true } },
       // AI 学习中心
       { path: 'ai/chat', name: 'AiChat', component: () => import('../views/ai/ChatView.vue') },
       { path: 'ai/code', name: 'CodeFix', component: () => import('../views/ai/CodeFix.vue') },

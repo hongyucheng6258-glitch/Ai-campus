@@ -50,15 +50,16 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { ref, watch } from 'vue'
 import WtPageHeader from '../../components/wt/WtPageHeader.vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import ItemCard from '../../components/ItemCard.vue'
 import EmptyBox from '../../components/EmptyBox.vue'
 import { listActivity } from '../../api/activity'
 import { useUserStore } from '../../store/user'
 
+const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 const categories = ['学习交流', '体育运动', '文艺娱乐', '志愿服务', '竞赛组队', '其他']
@@ -104,7 +105,14 @@ function goPublish() {
   router.push('/activity/publish')
 }
 
-onMounted(load)
+watch(
+  () => route.query.q,
+  (q) => {
+    keyword.value = String(q || '')
+    search()
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped>

@@ -27,11 +27,12 @@ public class PostController {
 
     @GetMapping("/list")
     public R<PageResult<PostVO>> list(
+            @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "10") Integer pageSize) {
         UserContext.CurrentUser current = UserContext.get();
         Long uid = current == null ? null : current.uid();
-        return R.ok(postService.list(uid, pageNum, pageSize));
+        return R.ok(postService.list(uid, keyword, pageNum, pageSize));
     }
 
     @PostMapping("/{id}/like")

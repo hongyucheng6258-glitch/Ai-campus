@@ -49,18 +49,26 @@
     <!-- ===================== 主区 ===================== -->
     <div class="main">
       <header class="topbar">
-        <div class="search">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" />
-          </svg>
-          <input
-            v-model="keyword"
-            type="text"
-            placeholder="搜索活动、闲置、失物、同学…"
-            aria-label="搜索"
-            @keyup.enter="onSearch"
-          />
-        </div>
+        <form class="search" role="search" @submit.prevent="onSearch">
+          <label class="sr-only" for="campus-search-type">搜索范围</label>
+          <select id="campus-search-type" v-model="searchType" aria-label="搜索范围">
+            <option value="all">全部</option>
+            <option value="activity">活动</option>
+            <option value="idle">闲置</option>
+            <option value="lost">失物</option>
+            <option value="post">动态</option>
+          </select>
+          <div class="search-input">
+            <WtIcon name="search" />
+            <input
+              v-model="keyword"
+              type="search"
+              :placeholder="searchPlaceholder"
+              aria-label="搜索关键词"
+            />
+          </div>
+          <button class="search-submit" type="submit">搜索</button>
+        </form>
         <div class="top-actions">
           <WtThemeToggle />
           <el-badge :value="messageStore.unread + chatStore.unreadTotal" :hidden="messageStore.unread + chatStore.unreadTotal === 0" class="bell-wrap">
@@ -82,7 +90,7 @@
 </template>
 
 <script setup>
-import { onUnmounted, ref, watch } from 'vue'
+import { computed, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '../store/user'
@@ -98,6 +106,22 @@ const userStore = useUserStore()
 const messageStore = useMessageStore()
 const chatStore = useChatStore()
 const keyword = ref('')
+const searchType = ref('all')
+const searchRoutes = {
+  all: '/search',
+  activity: '/activity',
+  idle: '/idle',
+  lost: '/lostfound',
+  post: '/social'
+}
+const searchLabels = {
+  all: '校园内容',
+  activity: '校园活动',
+  idle: '闲置物品',
+  lost: '失物招领',
+  post: '校园动态'
+}
+const searchPlaceholder = computed(() => `搜索${searchLabels[searchType.value]}`)
 
 const ICONS = {
   home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/>',
@@ -143,9 +167,11 @@ function isActive(to) {
 
 function onSearch() {
   const q = keyword.value.trim()
-  if (!q) return
-  // 轻量跳转：带关键词进入动态广场（真实接入可扩展为全局搜索页）
-  router.push({ path: '/social', query: { q } })
+  if (!q) {
+    ElMessage.warning('请输入搜索关键词')
+    return
+  }
+  router.push({ path: searchRoutes[searchType.value], query: { q } })
 }
 
 function goMessage() {
@@ -301,21 +327,17 @@ onUnmounted(() => {
   backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--line);
 }
-.search { position: relative; flex: 1; max-width: 520px; }
-.search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--ink-3); }
-.search input {
-  width: 100%;
-  padding: 12px 12px 12px 42px;
-  border-radius: var(--r-pill);
-  border: 1px solid var(--line);
-  background: var(--surface-2);
-  font-size: var(--fs-sm);
-  color: var(--ink);
-  font-family: var(--font-sans);
-  transition: border-color 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out), background 0.2s;
-}
+.search { display: grid; grid-template-columns: 94px minmax(180px, 1fr) auto; flex: 1; max-width: 560px; height: 42px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--surface-2); transition: border-color .2s var(--ease-out), box-shadow .2s var(--ease-out), background .2s; }
+.search:focus-within { border-color: var(--brand); background: var(--surface); box-shadow: 0 0 0 4px var(--brand-soft); }
+.search select { min-width: 0; padding: 0 12px 0 16px; border: 0; border-right: 1px solid var(--line); border-radius: var(--r-pill) 0 0 var(--r-pill); outline: none; background: transparent; color: var(--ink-2); font: 600 var(--fs-xs)/1 var(--font-sans); cursor: pointer; }
+.search-input { position: relative; min-width: 0; }
+.search-input svg { position: absolute; left: 13px; top: 50%; width: 18px; height: 18px; transform: translateY(-50%); color: var(--ink-3); pointer-events: none; }
+.search input { width: 100%; height: 40px; padding: 0 10px 0 40px; border: 0; outline: none; background: transparent; color: var(--ink); font: var(--fs-sm)/1 var(--font-sans); }
 .search input::placeholder { color: var(--ink-3); }
-.search input:focus { outline: none; border-color: var(--brand); background: var(--surface); box-shadow: 0 0 0 4px var(--brand-soft); }
+.search-submit { min-width: 68px; margin: 3px; border: 0; border-radius: var(--r-pill); background: var(--brand); color: var(--brand-ink); font: 600 var(--fs-xs)/1 var(--font-sans); cursor: pointer; transition: background-color .18s ease, transform .18s ease; }
+.search-submit:hover { background: var(--brand-strong); transform: translateY(-1px); }
+.search-submit:focus-visible { outline: 2px solid var(--brand-strong); outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
 .top-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
 .icon-btn {

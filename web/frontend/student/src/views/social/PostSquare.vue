@@ -2,6 +2,12 @@
   <WtPageHeader title="校园动态" subtitle="同学们都在聊些什么" eyebrow="同辈圈" />
 
   <div class="square">
+    <div class="post-search">
+      <el-input v-model="keyword" placeholder="搜索校园动态…" clearable @keyup.enter="search" @clear="search">
+        <template #append><el-button @click="search">搜索</el-button></template>
+      </el-input>
+    </div>
+
     <!-- 发布框 -->
     <el-card class="publish-box" v-if="userStore.isLoggedIn">
       <el-input v-model="newPost" type="textarea" :rows="3" placeholder="分享校园生活…" maxlength="2000" />
@@ -64,9 +70,9 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { ref, watch } from 'vue'
 import WtPageHeader from '../../components/wt/WtPageHeader.vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import UploadImg from '../../components/UploadImg.vue'
 import CommentList from '../../components/CommentList.vue'
@@ -77,8 +83,10 @@ import { useUserStore } from '../../store/user'
 import { fromNow } from '../../utils/date'
 import { startChat } from '../../utils/startChat'
 
+const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+const keyword = ref('')
 const list = ref([])
 const pageNum = ref(1)
 const total = ref(0)
@@ -93,10 +101,15 @@ const reportReasonType = ref('违规')
 const reportReason = ref('')
 const reportTarget = ref(null)
 
+function search() {
+  pageNum.value = 1
+  load()
+}
+
 async function load() {
   loading.value = true
   try {
-    const res = await listPost({ pageNum: pageNum.value, pageSize: 10 })
+    const res = await listPost({ keyword: keyword.value || undefined, pageNum: pageNum.value, pageSize: 10 })
     list.value = res.list
     total.value = res.total
   } finally {
@@ -171,10 +184,18 @@ async function doReport() {
   reportVisible.value = false
 }
 
-onMounted(load)
+watch(
+  () => route.query.q,
+  (q) => {
+    keyword.value = String(q || '')
+    search()
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped>
+.post-search { width: min(420px, 100%); margin-bottom: 16px; }
 .publish-box {
   margin-bottom: 16px;
 }

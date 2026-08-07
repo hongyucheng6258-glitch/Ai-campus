@@ -42,15 +42,16 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { ref, watch } from 'vue'
 import WtPageHeader from '../../components/wt/WtPageHeader.vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import ItemCard from '../../components/ItemCard.vue'
 import EmptyBox from '../../components/EmptyBox.vue'
 import { listLostFound } from '../../api/lostfound'
 import { useUserStore } from '../../store/user'
 
+const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 const type = ref(undefined)
@@ -85,7 +86,14 @@ function goPublish() {
   router.push('/lostfound/publish')
 }
 
-onMounted(load)
+watch(
+  () => route.query.q,
+  (q) => {
+    keyword.value = String(q || '')
+    search()
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped>

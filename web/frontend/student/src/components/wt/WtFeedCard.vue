@@ -9,6 +9,7 @@ const props = defineProps({
   price:        String,
   image:        { type: String, default: '' },
   actionLabel:  { type: String, default: '查看' },
+  compact:      { type: Boolean, default: false },
 })
 const emit = defineEmits(['action'])
 
@@ -18,7 +19,7 @@ function onImageError(event) {
 </script>
 
 <template>
-  <article class="wt-fcard">
+  <article class="wt-fcard" :class="{ 'wt-fcard--compact': compact }">
     <div class="wt-fcard__thumb">
       <slot name="thumb" />
       <img v-if="image" class="wt-fcard__image" :src="image" :alt="title" loading="lazy" @error="onImageError" />
@@ -71,9 +72,23 @@ function onImageError(event) {
 }
 .wt-fcard__act:hover { background: var(--brand-soft); border-color: var(--brand-line); color: var(--brand-strong); }
 .wt-fcard__act:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.wt-fcard--compact { grid-template-columns: 84px 1fr; min-height: 108px; padding: 11px 14px; }
+.wt-fcard--compact .wt-fcard__thumb { width: 84px; height: 84px; }
+.wt-fcard--compact .wt-fcard__thumb :deep(svg) { width: 28px; height: 28px; }
+.wt-fcard--compact .wt-fcard__body { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto 1fr; column-gap: var(--s-4); row-gap: 3px; align-items: center; }
+.wt-fcard--compact .wt-fcard__title { display: -webkit-box; grid-column: 1; overflow: hidden; line-height: 1.4; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.wt-fcard--compact .wt-fcard__meta { grid-column: 1; flex-wrap: nowrap; overflow: hidden; white-space: nowrap; }
+.wt-fcard--compact .wt-fcard__foot { display: contents; }
+.wt-fcard--compact .wt-fcard__left { grid-column: 1; align-self: end; }
+.wt-fcard--compact .wt-fcard__act { grid-column: 2; grid-row: 1 / 4; align-self: center; }
 .wt-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 @media (max-width: 520px) {
   .wt-fcard { grid-template-columns: 72px 1fr; }
   .wt-fcard__thumb { width: 72px; height: 72px; }
+  .wt-fcard--compact { grid-template-columns: 72px minmax(0, 1fr); min-height: 96px; padding: 11px; }
+  .wt-fcard--compact .wt-fcard__thumb { width: 72px; height: 72px; }
+  .wt-fcard--compact .wt-fcard__body { display: flex; gap: 4px; }
+  .wt-fcard--compact .wt-fcard__foot { display: flex; }
+  .wt-fcard--compact .wt-fcard__act { padding: 5px 11px; }
 }
 </style>

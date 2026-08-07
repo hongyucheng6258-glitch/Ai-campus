@@ -45,8 +45,9 @@
         </div>
         <div v-else-if="feedList.length" class="feed">
           <WtFeedCard
-            v-for="item in feedList"
+            v-for="item in visibleFeedList"
             :key="item.key"
+            compact
             :title="item.title"
             :meta="item.meta"
             :tag="item.tag"
@@ -59,6 +60,10 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="ICONS[item.thumb]"></svg>
             </template>
           </WtFeedCard>
+          <button class="feed-more" type="button" @click="go({ to: currentFeedRoute })">
+            查看更多{{ currentTabLabel }}
+            <span aria-hidden="true">→</span>
+          </button>
         </div>
         <WtEmptyState v-else title="暂无内容" description="该分类下还没有新动态，换个分类看看～" />
       </div>
@@ -112,7 +117,7 @@
             <div class="section-title" style="font-size: var(--fs-h3)">最新消息</div>
             <a class="link-more" @click="go({ to: '/message', needLogin: true })">全部</a>
           </div>
-          <div v-if="messages.length">
+          <div v-if="messages.length" class="message-list">
             <div
               v-for="(m, i) in messages"
               :key="i"
@@ -123,7 +128,7 @@
               @keydown.enter="openMessage(m)"
               @keydown.space.prevent="openMessage(m)"
             >
-              <WtAvatar :name="m.avatarName" :src="m.avatar" size="md" />
+              <WtAvatar :name="m.avatarName" :src="m.avatar" size="sm" />
               <div class="msg-body">
                 <b>{{ m.name }}</b>
                 <p>{{ m.preview }}</p>
@@ -181,12 +186,15 @@ const entries = [
 ]
 
 const tabs = [
-  { value: 'activity', label: '活动' },
-  { value: 'idle', label: '闲置' },
-  { value: 'lost', label: '失物' },
-  { value: 'post', label: '动态' }
+  { value: 'activity', label: '活动', to: '/activity' },
+  { value: 'idle', label: '闲置', to: '/idle' },
+  { value: 'lost', label: '失物', to: '/lostfound' },
+  { value: 'post', label: '动态', to: '/social' }
 ]
 const tab = ref('activity')
+const currentTab = computed(() => tabs.find((item) => item.value === tab.value) || tabs[0])
+const currentTabLabel = computed(() => currentTab.value.label)
+const currentFeedRoute = computed(() => currentTab.value.to)
 
 const data = ref({ activities: [], idleItems: [], lostFounds: [], posts: [] })
 const messages = ref([])
@@ -265,6 +273,7 @@ const feedList = computed(() => {
     to: '/social'
   }))
 })
+const visibleFeedList = computed(() => feedList.value.slice(0, 3))
 
 const todos = computed(() => {
   const list = []
@@ -324,9 +333,9 @@ onMounted(async () => {
     data.value.posts = Array.isArray(pr) ? pr : (pr.list || [])
   } catch (e) {}
   try {
-    const mr = await listMessage({ page: 1, size: 3 })
+    const mr = await listMessage({ page: 1, size: 5 })
     const arr = Array.isArray(mr) ? mr : (mr.list || [])
-    messages.value = arr.map((m) => ({
+    messages.value = arr.slice(0, 5).map((m) => ({
       name: m.senderName || m.nickname || ({ system: '系统通知', interact: '同学', audit: '审核通知' }[m.type] || '校园通知'),
       avatar: m.senderAvatar || m.avatar || '',
       avatarName: m.senderName || m.nickname || ({ system: '系', interact: '互', audit: '审' }[m.type] || '校'),
@@ -354,7 +363,10 @@ onMounted(async () => {
 .quick-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--s-4); margin-bottom: var(--s-7); }
 
 .layout-2 { display: grid; grid-template-columns: 1fr 340px; gap: var(--s-6); align-items: start; }
-.feed { display: flex; flex-direction: column; gap: var(--s-4); }
+.feed { display: flex; flex-direction: column; gap: var(--s-3); }
+.feed-more { align-self: center; display: inline-flex; align-items: center; gap: 6px; margin-top: var(--s-1); padding: 8px 18px; border: 1px solid var(--line-strong); border-radius: var(--r-pill); background: var(--surface); color: var(--brand-strong); font: 600 var(--fs-xs)/1 var(--font-sans); cursor: pointer; transition: border-color .18s ease, background-color .18s ease, gap .18s ease; }
+.feed-more:hover { gap: 10px; border-color: var(--brand-line); background: var(--brand-soft); }
+.feed-more:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 
 .rail { display: flex; flex-direction: column; gap: var(--s-5); }
 .ai-mini { background: linear-gradient(160deg, var(--brand-soft), var(--surface)); border: 1px solid var(--brand-line); border-radius: var(--r-lg); padding: var(--s-5); }
@@ -373,12 +385,13 @@ onMounted(async () => {
 .todo-txt { font-size: var(--fs-sm); flex: 1; }
 .todo-time { font-size: var(--fs-cap); color: var(--ink-3); font-variant-numeric: tabular-nums; }
 
-.msg-item { display: flex; gap: var(--s-3); padding: var(--s-3) 0; border-bottom: 1px solid var(--line); cursor: pointer; transition: background-color .18s ease; }
+.message-list { max-height: 280px; overflow: hidden; }
+.msg-item { display: flex; align-items: center; gap: var(--s-3); min-height: 52px; padding: 10px 0; border-bottom: 1px solid var(--line); cursor: pointer; transition: background-color .18s ease; }
 .msg-item:hover, .msg-item:focus-visible { background: var(--surface-2); outline: none; }
 .msg-item:last-child { border-bottom: none; }
-.msg-body { min-width: 0; flex: 1; }
-.msg-body b { font-size: var(--fs-sm); }
-.msg-body p { font-size: var(--fs-xs); color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; }
+.msg-body { min-width: 0; flex: 1; line-height: 1.4; }
+.msg-body b { display: block; overflow: hidden; color: var(--ink); font-size: var(--fs-sm); text-overflow: ellipsis; white-space: nowrap; }
+.msg-body p { overflow: hidden; margin: 1px 0 0; color: var(--ink-3); font-size: var(--fs-xs); text-overflow: ellipsis; white-space: nowrap; }
 
 @media (max-width: 1080px) {
   .quick-grid { grid-template-columns: repeat(3, 1fr); }
