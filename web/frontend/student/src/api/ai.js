@@ -33,12 +33,17 @@ export function codeFix(data) {
   return request.post('/ai/code-fix', data)
 }
 
+/**
+ * 生成复习提纲（v2 三种模式：subject 按学科 / selected 按选中错题 / all 全量薄弱点报告）。
+ * AI 场景失败原因由调用方展示，传 silent 关闭全局错误弹窗；生成耗时长，超时放宽到 120s。
+ */
 export function generateOutline(data) {
-  return request.post('/ai/outline', data)
+  return request.post('/ai/outline', data, { silent: true, timeout: 120000 })
 }
 
-export function generateQuiz(wrongQuestionId) {
-  return request.post('/ai/quiz', { wrongQuestionId })
+/** 基于错题生成同类题（silent + 长超时，失败原因由调用方展示并提供重试；force 可跳过信息不足检查） */
+export function generateQuiz(wrongQuestionId, force = false) {
+  return request.post('/ai/quiz', { wrongQuestionId, force }, { silent: true, timeout: 120000 })
 }
 
 export function pdfUpload(file) {

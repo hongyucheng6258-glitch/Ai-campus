@@ -1,4 +1,11 @@
 <view class="page">
+  <!-- 今日复习入口 -->
+  <view class="today-bar" bindtap="openTodayReview">
+    <text class="today-title">📖 今日复习</text>
+    <text class="today-num">{{stats.todayPending > 0 ? '待复习 ' + stats.todayPending + ' 道' : '今日无待复习'}}</text>
+    <text class="today-arrow">›</text>
+  </view>
+
   <!-- 学科筛选条 -->
   <scroll-view class="tabs" scroll-x enable-flex>
     <view class="tab {{activeSubject === '' ? 'active' : ''}}"
@@ -13,6 +20,7 @@
     <view class="head">
       <text class="tag">{{item.subject}}</text>
       <text wx:if="{{item.tag}}" class="tag tag-warning">{{item.tag}}</text>
+      <text class="st {{item.statusCls}}">{{item.statusLabel}}</text>
       <text class="time">{{item.timeText}}</text>
     </view>
 
@@ -21,21 +29,32 @@
     <!-- 展开后显示答案与解析 -->
     <block wx:if="{{expandId === item.id}}">
       <view class="ans-block">
+        <view class="ans-label">我的答案</view>
+        <text class="ans-text" selectable>{{item.myAnswer || '（未填写）'}}</text>
+      </view>
+      <view class="ans-block">
         <view class="ans-label">参考答案</view>
-        <text class="ans-text" selectable>{{item.answer || '（未填写）'}}</text>
+        <text class="ans-text" selectable>{{item.correctAnswer || '（未填写）'}}</text>
       </view>
       <view class="ans-block">
         <view class="ans-label">解析</view>
         <text class="ans-text" selectable>{{item.analysis || '（未填写）'}}</text>
       </view>
-      <view wx:if="{{item.source}}" class="source">来源：{{item.source}}</view>
+      <view class="meta-line">
+        <text wx:if="{{item.wrongCount}}" class="meta">错{{item.wrongCount}}次</text>
+        <text wx:if="{{item.consecutiveCorrectCount}}" class="meta">连续答对{{item.consecutiveCorrectCount}}次</text>
+        <text wx:if="{{item.analyzeStatus === 1}}" class="meta meta-warn">AI整理失败</text>
+        <text wx:if="{{item.source}}" class="source">来源：{{item.source}}</text>
+      </view>
     </block>
 
     <view class="ops">
+      <view class="op success" bindtap="startReviewFromCard" data-id="{{item.id}}">开始复习</view>
       <view class="op" bindtap="toggleExpand" data-id="{{item.id}}">
         {{expandId === item.id ? '收起' : '看答案'}}
       </view>
-      <view class="op primary" bindtap="generateQuiz" data-id="{{item.id}}">生成同类题</view>
+      <view class="op primary" bindtap="generateQuiz" data-id="{{item.id}}">同类题</view>
+      <view wx:if="{{item.analyzeStatus === 1}}" class="op warn" bindtap="retryAnalyze" data-id="{{item.id}}">AI整理</view>
       <view class="op danger" bindtap="removeItem" data-id="{{item.id}}">删除</view>
     </view>
   </view>
@@ -47,19 +66,70 @@
   <!-- 悬浮新增按钮 -->
   <view class="fab" bindtap="openAdd">＋</view>
 
+  <!-- 今日复习弹窗 -->
+  <view wx:if="{{showToday}}" class="mask" bindtap="closeToday">
+    <view class="dialog" catchtap="stopPropagation">
+      <view class="dialog-title">📖 今日待复习</view>
+      <scroll-view class="today-list" scroll-y>
+        <view wx:if="{{todayError}}" class="today-empty">加载失败，请稍后重试</view>
+        <view wx:elif="{{todayList.length === 0}}" class="today-empty">🎉 今日没有待复习的错题</view>
+        <view wx:for="{{todayList}}" wx:key="id" class="today-item">
+          <view class="today-q">{{item.question}}</view>
+          <view class="today-ops">
+            <view class="op success" bindtap="startReviewFromToday" data-id="{{item.id}}">开始复习</view>
+          </view>
+        </view>
+      </scroll-view>
+      <view class="dialog-btns">
+        <button class="btn-plain" bindtap="closeToday">关闭</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 复习弹窗 -->
+  <view wx:if="{{showReview && reviewItem}}" class="mask" bindtap="closeReview">
+    <view class="dialog" catchtap="stopPropagation">
+      <view class="dialog-title">🔁 复习 · 选择掌握程度</view>
+      <scroll-view class="quiz-body" scroll-y>
+        <view class="review-q">{{reviewItem.question}}</view>
+        <view class="ans-block">
+          <view class="ans-label">我的答案</view>
+          <text class="ans-text" selectable>{{reviewItem.myAnswer || '（未填写）'}}</text>
+        </view>
+        <view class="ans-block">
+          <view class="ans-label">参考答案</view>
+          <text class="ans-text" selectable>{{reviewItem.correctAnswer || '（未填写）'}}</text>
+        </view>
+        <view class="level-grid">
+          <view wx:for="{{levels}}" wx:key="v"
+                class="level-item {{reviewLevel === item.v ? 'active' : ''}}"
+                bindtap="chooseLevel" data-v="{{item.v}}">
+            <view class="lv-label">{{item.label}}</view>
+            <view class="lv-desc">{{item.desc}}</view>
+          </view>
+        </view>
+      </scroll-view>
+      <view class="dialog-btns">
+        <button class="btn-plain" bindtap="closeReview">取消</button>
+        <button class="btn-primary" bindtap="submitReview" loading="{{reviewSubmitting}}"
+                disabled="{{reviewSubmitting}}">提交反馈</button>
+      </view>
+    </view>
+  </view>
+
   <!-- 新增错题弹窗 -->
   <view wx:if="{{showAdd}}" class="mask" bindtap="closeAdd">
     <view class="dialog" catchtap="stopPropagation">
-      <view class="dialog-title">收录错题</view>
-      <input class="field" placeholder="学科（必填，如：数据结构）" value="{{form.subject}}"
+      <view class="dialog-title">⚡ 快速收录（仅题目必填）</view>
+      <input class="field" placeholder="学科（留空=待整理，如：数据结构）" value="{{form.subject}}"
              bindinput="onFormInput" data-field="subject" />
-      <input class="field" placeholder="知识点标签（选填，如：二叉树）" value="{{form.tag}}"
-             bindinput="onFormInput" data-field="tag" />
       <textarea class="field area" placeholder="题目（必填）" value="{{form.question}}"
                 bindinput="onFormInput" data-field="question" show-confirm-bar="{{false}}" />
+      <textarea class="field area" placeholder="我的答案（选填）" value="{{form.myAnswer}}"
+                bindinput="onFormInput" data-field="myAnswer" show-confirm-bar="{{false}}" />
       <textarea class="field area" placeholder="正确答案（选填）" value="{{form.answer}}"
                 bindinput="onFormInput" data-field="answer" show-confirm-bar="{{false}}" />
-      <textarea class="field area" placeholder="错因解析（选填）" value="{{form.analysis}}"
+      <textarea class="field area" placeholder="解析（选填）" value="{{form.analysis}}"
                 bindinput="onFormInput" data-field="analysis" show-confirm-bar="{{false}}" />
       <view class="dialog-btns">
         <button class="btn-plain" bindtap="closeAdd">取消</button>
@@ -72,12 +142,13 @@
   <!-- 同类题结果弹窗 -->
   <view wx:if="{{showQuiz}}" class="mask" bindtap="closeQuiz">
     <view class="dialog" catchtap="stopPropagation">
-      <view class="dialog-title">AI 生成的同类题</view>
+      <view class="dialog-title">🤖 AI 生成的同类题</view>
       <scroll-view class="quiz-body" scroll-y>
         <text selectable>{{quizContent}}</text>
       </scroll-view>
       <view class="dialog-btns">
         <button class="btn-plain" bindtap="copyQuiz">复制</button>
+        <button wx:if="{{quizFailed}}" class="btn-plain" bindtap="retryQuiz">重试</button>
         <button class="btn-primary" bindtap="closeQuiz">关闭</button>
       </view>
     </view>

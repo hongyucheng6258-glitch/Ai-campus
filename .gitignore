@@ -8,6 +8,8 @@ Thumbs.db
 # Local assistant/workspace state
 .workbuddy/
 .trae-html-share-packages/
+.reasonix/
+reasonix.toml
 
 # Build outputs and dependencies
 **/target/

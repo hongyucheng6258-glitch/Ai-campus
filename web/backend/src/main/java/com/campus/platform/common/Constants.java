@@ -76,6 +76,37 @@ public final class Constants {
     public static final String SCENE_OUTLINE = "outline";
     public static final String SCENE_QUIZ = "quiz";
     public static final String SCENE_CONTENT_AUDIT = "content_audit";
+    public static final String SCENE_WRONG_ANALYZE = "wrong_analyze"; // 错题智能整理
+    public static final String SCENE_WRONG_EXPLAIN = "wrong_explain"; // 错题讲解/错因分析
+    public static final String SCENE_REVIEW_PLAN = "review_plan";     // 复习计划
+    public static final String SCENE_PRACTICE = "practice";           // 同类练习题生成
+
+    /** 错题掌握状态 */
+    public static final int WQ_STATUS_PENDING = 0;      // 待复习
+    public static final int WQ_STATUS_REVIEWING = 1;    // 复习中
+    public static final int WQ_STATUS_BASIC = 2;        // 基本掌握
+    public static final int WQ_STATUS_MASTERED = 3;     // 已掌握
+
+    /** 错题复习反馈掌握程度 */
+    public static final int WQ_LEVEL_STILL_WRONG = 0;   // 仍然不会
+    public static final int WQ_LEVEL_A_LITTLE = 1;      // 有点理解
+    public static final int WQ_LEVEL_BASIC = 2;         // 基本掌握
+    public static final int WQ_LEVEL_FULLY = 3;         // 已完全掌握
+
+    /** 复习间隔（天）：连续答对 n 次后间隔 */
+    public static final int[] WQ_REVIEW_INTERVALS_DAYS = {0, 1, 3, 7};
+
+    /** 默认学科：待整理 */
+    public static final String WQ_SUBJECT_UNSORTED = "待整理";
+
+    /** AI 提纲生成模式 */
+    public static final String OUTLINE_MODE_SUBJECT = "subject";
+    public static final String OUTLINE_MODE_SELECTED = "selected";
+    public static final String OUTLINE_MODE_ALL = "all";
+
+    /** AI 练习题状态 */
+    public static final int GENERATED_STATUS_PRACTICING = 0; // 练习中
+    public static final int GENERATED_STATUS_SAVED = 1;      // 已加入错题本
 
     /** 业务对象标识（用于消息/通知等） */
     public static final String BIZ_IDLE = "idle";

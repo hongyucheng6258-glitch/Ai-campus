@@ -21,6 +21,8 @@ TRUNCATE TABLE `activity`;
 TRUNCATE TABLE `idle_review`;
 TRUNCATE TABLE `idle_appointment`;
 TRUNCATE TABLE `idle_item`;
+TRUNCATE TABLE `wrong_question_generated`;
+TRUNCATE TABLE `wrong_question_review`;
 TRUNCATE TABLE `wrong_question`;
 TRUNCATE TABLE `pdf_document`;
 TRUNCATE TABLE `prompt_template`;
@@ -58,7 +60,11 @@ INSERT INTO `prompt_template` (`scene`, `name`, `content`) VALUES
 ('code_fix', '代码纠错模板', '你是一名资深程序员，请检查以下{language}代码中的错误，输出Markdown格式：\n1. 【错误定位】指出行号与错误原因\n2. 【修复建议】给出修改方法\n3. 【修复后代码】用代码块给出完整修正代码\n\n待检查代码：\n```{language}\n{code}\n```'),
 ('pdf', 'PDF问答模板', '你正在基于一份课件文档回答学生问题。以下是文档相关内容片段：\n\n{context}\n\n请严格基于上述文档内容回答问题，文档未涉及的内容请说明"文档中未提及"。\n\n问题：{question}'),
 ('outline', '复习提纲模板', '请为「{subject}」学科中「{topic}」这一主题生成一份结构化复习提纲，要求：层级化要点（最多三级）、每个要点附一句话说明、结尾给出3个自测问题。输出Markdown格式。'),
-('quiz', '智能习题模板', '基于以下这道错题，请生成3道同类型、同难度的新习题，每道题给出标准答案与详细解析。输出Markdown格式。\n\n学科：{subject}\n错题：{question}\n正确答案：{answer}');
+('quiz', '智能习题模板', '基于以下这道错题，请生成3道同类型、同难度的新习题，每道题给出标准答案与详细解析。输出Markdown格式。\n\n学科：{subject}\n错题：{question}\n正确答案：{answer}'),
+('wrong_analyze', '错题智能整理模板', '你是一名资深学科老师。请分析以下错题，只输出一个 JSON 对象（不要输出任何其他文字或代码块标记），字段如下：\n{\n  "questionType": "题型，如：选择/填空/简答/计算/编程",\n  "subject": "推测的学科，如：Java/高等数学/数据结构",\n  "chapter": "所属章节",\n  "difficulty": "难度：易/中/难",\n  "knowledgePoints": "知识点数组，如：[\\"多线程\\",\\"锁\\"]",\n  "errorReason": "错因：概念不清/公式记错/审题错误/计算错误/粗心大意/不会解题/知识点混淆/其他",\n  "summary": "不超过50字的本题知识点摘要"\n}\n\n学科（已知）：{subject}\n题目：{question_text}\n我的答案：{my_answer}\n正确答案：{correct_answer}\n解析：{analysis}'),
+('wrong_explain', '错题讲解模板', '你是一名耐心的学科辅导老师。请针对学生做错的这道题，输出 Markdown 格式的讲解：\n1. 【错误分析】指出学生的答案错在哪里、为什么错\n2. 【知识点讲解】讲解本题涉及的核心知识点，分步骤说明\n3. 【正确思路】给出正确的解题思路与答案\n4. 【易错提醒】一句话总结以后再遇到这类题要注意什么\n\n学科：{subject}\n题目：{question_text}\n我的答案：{my_answer}\n正确答案：{correct_answer}\n解析：{analysis}\n错因：{error_reason}'),
+('review_plan', '复习计划模板', '你是一名学习规划师。请根据学生错题本中的待复习题目，生成一份今天的复习计划，输出 Markdown：\n1. 【今日复习清单】按优先级列出待复习题目及理由\n2. 【推荐复习顺序】说明先复习什么、后复习什么\n3. 【复习方法建议】针对不同错因给出对应复习方法\n4. 【自测问题】2-3 个检验掌握程度的问题\n\n学科筛选：{subject}\n待复习题目列表：\n{question_list}'),
+('practice', '同类练习模板', '你是一名出题老师。请基于原错题生成一道同类型、同难度的新练习题，只输出一个 JSON 对象（不要输出其他文字或代码块标记）：\n{\n  "question": "题目内容",\n  "options": ["A. 选项1", "B. 选项2", "C. 选项3", "D. 选项4"],（选择题必填数组；填空/简答等题型传空数组 []）\n  "answer": "正确答案（选择题为选项字母如 A；其他为答案文本）",\n  "analysis": "详细解析"\n}\n\n学科：{subject}\n原题：{question_text}\n原答案：{correct_answer}\n原解析：{analysis}');
 
 -- 敏感词
 INSERT INTO `sensitive_word` (`word`) VALUES
@@ -98,10 +104,16 @@ INSERT INTO `ai_call_log` (`id`, `user_id`, `scene`, `model`, `prompt_tokens`, `
 (5, 1, 'chat', 'deepseek-chat', 25, 120, 1900, 1);
 
 -- 错题本
-INSERT INTO `wrong_question` (`id`, `user_id`, `subject`, `tag`, `question`, `answer`, `analysis`, `source`) VALUES
-(1, 1, 'Java', '多线程', 'synchronized修饰静态方法和实例方法有什么区别？', '静态方法锁的是Class对象，实例方法锁的是当前实例对象', '静态方法属于类级别的锁，不同实例访问同一个静态同步方法时互斥；实例方法锁只对同一个实例互斥。', 'manual'),
-(2, 1, '数据结构', '排序', '快速排序的最坏时间复杂度是多少？如何避免？', 'O(n²)，通过随机选择基准元素避免', '当每次选择的基准都是最大或最小元素时，退化为O(n²)。随机化选择基准可使期望复杂度保持O(n log n)。', 'ai'),
-(3, 2, '高数', '微积分', '求 ∫ x·e^x dx', 'x·e^x - e^x + C', '使用分部积分法：令 u=x, dv=e^x dx，则 du=dx, v=e^x，代入公式 ∫udv = uv - ∫vdu。', 'manual');
+INSERT INTO `wrong_question` (`id`, `user_id`, `subject`, `tag`, `question`, `correct_answer`, `analysis`, `status`, `wrong_count`, `next_review_time`, `source`) VALUES
+(1, 1, 'Java', '多线程', 'synchronized修饰静态方法和实例方法有什么区别？', '静态方法锁的是Class对象，实例方法锁的是当前实例对象', '静态方法属于类级别的锁，不同实例访问同一个静态同步方法时互斥；实例方法锁只对同一个实例互斥。', 0, 2, DATE_SUB(NOW(), INTERVAL 1 DAY), 'manual'),
+(2, 1, '数据结构', '排序', '快速排序的最坏时间复杂度是多少？如何避免？', 'O(n²)，通过随机选择基准元素避免', '当每次选择的基准都是最大或最小元素时，退化为O(n²)。随机化选择基准可使期望复杂度保持O(n log n)。', 2, 1, DATE_ADD(NOW(), INTERVAL 2 DAY), 'ai'),
+(3, 2, '高数', '微积分', '求 ∫ x·e^x dx', 'x·e^x - e^x + C', '使用分部积分法：令 u=x, dv=e^x dx，则 du=dx, v=e^x，代入公式 ∫udv = uv - ∫vdu。', 3, 1, DATE_ADD(NOW(), INTERVAL 7 DAY), 'manual');
+
+-- 错题复习记录
+INSERT INTO `wrong_question_review` (`id`, `user_id`, `wrong_question_id`, `is_correct`, `mastery_level`, `review_time`) VALUES
+(1, 1, 1, 0, 0, DATE_SUB(NOW(), INTERVAL 3 DAY)),
+(2, 1, 2, 1, 2, DATE_SUB(NOW(), INTERVAL 2 DAY)),
+(3, 2, 3, 1, 3, DATE_SUB(NOW(), INTERVAL 5 DAY));
 
 -- ==================== 5. 闲置互换数据 ====================
 

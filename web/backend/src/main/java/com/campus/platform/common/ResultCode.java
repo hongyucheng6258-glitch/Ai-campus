@@ -17,6 +17,8 @@ public enum ResultCode {
     SYSTEM_ERROR(500, "系统错误"),
     SENSITIVE_WORD(1003, "内容包含敏感词"),
     AI_INVOKE_FAIL(1006, "AI调用失败"),
+    AI_NOT_CONFIGURED(1010, "AI服务暂未配置"),
+    AI_INFO_INSUFFICIENT(1011, "题目信息不足"),
     AUDIT_PENDING(1007, "内容正在审核中"),
     PDF_SCANNED(1008, "PDF为扫描件，无法提取文本"),
     DUPLICATE_OPERATION(1009, "重复操作");

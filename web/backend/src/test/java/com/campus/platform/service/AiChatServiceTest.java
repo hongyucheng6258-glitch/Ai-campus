@@ -2,13 +2,18 @@ package com.campus.platform.service;
 
 import com.campus.platform.aigateway.AiGatewayService;
 import com.campus.platform.aigateway.ChatMemoryService;
+import com.campus.platform.common.BizException;
 import com.campus.platform.common.Constants;
 import com.campus.platform.dto.PdfAskDTO;
+import com.campus.platform.dto.QuizDTO;
 import com.campus.platform.entity.AiSession;
 import com.campus.platform.entity.PdfDocument;
+import com.campus.platform.entity.WrongQuestion;
+import com.campus.platform.entity.WrongQuestionGenerated;
 import com.campus.platform.mapper.AiMessageMapper;
 import com.campus.platform.mapper.AiSessionMapper;
 import com.campus.platform.mapper.PdfDocumentMapper;
+import com.campus.platform.mapper.WrongQuestionGeneratedMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,10 +21,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -43,6 +55,8 @@ class AiChatServiceTest {
     private WrongQuestionService wrongQuestionService;
     @Mock
     private PdfDocumentMapper pdfDocumentMapper;
+    @Mock
+    private WrongQuestionGeneratedMapper wrongQuestionGeneratedMapper;
 
     @InjectMocks
     private AiChatService service;
@@ -84,6 +98,224 @@ class AiChatServiceTest {
 
         assertThatThrownBy(() -> service.pdfAsk(USER_ID, request()))
                 .hasMessageContaining("文档");
+    }
+
+    // ---------- 智能习题（B7）：AI 兜底 ----------
+
+    @Test
+    @DisplayName("AI 未配置时生成同类题应明确提示，而非笼统失败")
+    void quiz_shouldRejectWhenAiNotConfigured() {
+        when(aiGatewayService.isAiConfigured()).thenReturn(false);
+        WrongQuestion wq = new WrongQuestion();
+        wq.setId(1L);
+        wq.setUserId(USER_ID);
+        wq.setQuestion("题");
+        wq.setCorrectAnswer("答");
+        when(wrongQuestionService.getOwned(USER_ID, 1L)).thenReturn(wq);
+
+        QuizDTO dto = new QuizDTO();
+        dto.setWrongQuestionId(1L);
+
+        assertThatThrownBy(() -> service.quiz(USER_ID, dto))
+                .isInstanceOf(BizException.class)
+                .hasMessageContaining("未配置");
+    }
+
+    @Test
+    @DisplayName("题目缺答案与解析且未强制时应提示信息不足")
+    void quiz_shouldRejectInfoInsufficient() {
+        when(aiGatewayService.isAiConfigured()).thenReturn(true);
+        WrongQuestion wq = new WrongQuestion();
+        wq.setId(1L);
+        wq.setUserId(USER_ID);
+        wq.setQuestion("只有题干没有答案");
+        when(wrongQuestionService.getOwned(USER_ID, 1L)).thenReturn(wq);
+
+        QuizDTO dto = new QuizDTO();
+        dto.setWrongQuestionId(1L);
+
+        assertThatThrownBy(() -> service.quiz(USER_ID, dto))
+                .isInstanceOf(BizException.class)
+                .hasMessageContaining("信息不足");
+    }
+
+    @Test
+    @DisplayName("force=true 可跳过信息不足检查并正常调用 AI")
+    void quiz_forceShouldProceed() {
+        when(aiGatewayService.isAiConfigured()).thenReturn(true);
+        WrongQuestion wq = new WrongQuestion();
+        wq.setId(1L);
+        wq.setUserId(USER_ID);
+        wq.setSubject("Java");
+        wq.setQuestion("只有题干");
+        when(wrongQuestionService.getOwned(USER_ID, 1L)).thenReturn(wq);
+        when(aiGatewayService.chat(eq(USER_ID), eq(Constants.SCENE_QUIZ), eq("只有题干"), isNull(), anyMap()))
+                .thenReturn("新题");
+
+        QuizDTO dto = new QuizDTO();
+        dto.setWrongQuestionId(1L);
+        dto.setForce(true);
+
+        assertThat(service.quiz(USER_ID, dto)).isEqualTo("新题");
+    }
+
+    // ---------- 第二阶段：AI 智能整理 / 讲解 / 复习计划 ----------
+
+    private WrongQuestion analyzedWq() {
+        WrongQuestion wq = new WrongQuestion();
+        wq.setId(7L);
+        wq.setUserId(USER_ID);
+        wq.setSubject("Java");
+        wq.setQuestion("synchronized 锁的是什么？");
+        wq.setMyAnswer("锁的是类");
+        wq.setCorrectAnswer("锁的是对象");
+        return wq;
+    }
+
+    @Test
+    @DisplayName("AI 智能整理：成功解析 JSON 并应用（容忍 ```json 包裹）")
+    void analyzeWrong_shouldParseAndApply() {
+        when(aiGatewayService.isAiConfigured()).thenReturn(true);
+        WrongQuestion wq = analyzedWq();
+        when(wrongQuestionService.getOwned(USER_ID, 7L)).thenReturn(wq);
+        when(aiGatewayService.chat(eq(USER_ID), eq(Constants.SCENE_WRONG_ANALYZE), any(), isNull(), anyMap()))
+                .thenReturn("```json\n{\"questionType\":\"简答\",\"subject\":\"Java\",\"chapter\":\"并发\","
+                        + "\"difficulty\":\"难\",\"knowledgePoints\":[\"多线程\",\"锁\"],"
+                        + "\"errorReason\":\"概念不清\",\"summary\":\"synchronized 锁的粒度\"}\n```");
+        when(wrongQuestionService.applyAiAnalysis(eq(USER_ID), eq(7L), anyMap()))
+                .thenAnswer(inv -> inv.getArgument(2, Map.class).isEmpty() ? wq : wq);
+
+        WrongQuestion result = service.analyzeWrong(USER_ID, 7L);
+
+        verify(wrongQuestionService).applyAiAnalysis(eq(USER_ID), eq(7L), anyMap());
+        assertThat(result).isSameAs(wq);
+        verify(wrongQuestionService, never()).markAnalyzeFailed(anyLong(), anyLong());
+    }
+
+    @Test
+    @DisplayName("AI 返回部分 null 字段：不会把字面 \"null\" 写入结果")
+    void analyzeWrong_shouldSkipNullFields() {
+        when(aiGatewayService.isAiConfigured()).thenReturn(true);
+        when(wrongQuestionService.getOwned(USER_ID, 7L)).thenReturn(analyzedWq());
+        when(aiGatewayService.chat(eq(USER_ID), eq(Constants.SCENE_WRONG_ANALYZE), any(), isNull(), anyMap()))
+                .thenReturn("{\"questionType\":null,\"subject\":\"Java\",\"chapter\":\"\",\"knowledgePoints\":[\"锁\"],"
+                        + "\"errorReason\":null,\"summary\":null}");
+        when(wrongQuestionService.applyAiAnalysis(eq(USER_ID), eq(7L), anyMap())).thenReturn(analyzedWq());
+
+        service.analyzeWrong(USER_ID, 7L);
+
+        org.mockito.ArgumentCaptor<Map<String, String>> captor =
+                org.mockito.ArgumentCaptor.forClass(Map.class);
+        verify(wrongQuestionService).applyAiAnalysis(eq(USER_ID), eq(7L), captor.capture());
+        Map<String, String> fields = captor.getValue();
+        assertThat(fields).doesNotContainKey("questionType");
+        assertThat(fields).doesNotContainKey("errorReason");
+        assertThat(fields).doesNotContainValue("null");
+        assertThat(fields.get("subject")).isEqualTo("Java");
+        assertThat(fields.get("knowledgePoints")).isEqualTo("锁");
+    }
+
+    @Test
+    @DisplayName("AI 未配置时智能整理：标记失败并明确提示，不阻塞错题")
+    void analyzeWrong_shouldMarkFailedWhenNotConfigured() {
+        when(aiGatewayService.isAiConfigured()).thenReturn(false);
+        when(wrongQuestionService.getOwned(USER_ID, 7L)).thenReturn(analyzedWq());
+
+        assertThatThrownBy(() -> service.analyzeWrong(USER_ID, 7L))
+                .isInstanceOf(BizException.class)
+                .hasMessageContaining("未配置");
+        verify(wrongQuestionService).markAnalyzeFailed(USER_ID, 7L);
+    }
+
+    @Test
+    @DisplayName("AI 返回非 JSON 时：标记整理失败并提示可重试")
+    void analyzeWrong_shouldMarkFailedOnUnparseable() {
+        when(aiGatewayService.isAiConfigured()).thenReturn(true);
+        when(wrongQuestionService.getOwned(USER_ID, 7L)).thenReturn(analyzedWq());
+        when(aiGatewayService.chat(eq(USER_ID), eq(Constants.SCENE_WRONG_ANALYZE), any(), isNull(), anyMap()))
+                .thenReturn("抱歉，我无法分析这道题");
+
+        assertThatThrownBy(() -> service.analyzeWrong(USER_ID, 7L))
+                .isInstanceOf(BizException.class)
+                .hasMessageContaining("智能整理失败");
+        verify(wrongQuestionService).markAnalyzeFailed(USER_ID, 7L);
+    }
+
+    @Test
+    @DisplayName("AI 讲解：返回 Markdown 讲解文本")
+    void explainWrong_shouldReturnExplanation() {
+        when(aiGatewayService.isAiConfigured()).thenReturn(true);
+        when(wrongQuestionService.getOwned(USER_ID, 7L)).thenReturn(analyzedWq());
+        when(aiGatewayService.chat(eq(USER_ID), eq(Constants.SCENE_WRONG_EXPLAIN), any(), isNull(), anyMap()))
+                .thenReturn("【错误分析】…");
+
+        assertThat(service.explainWrong(USER_ID, 7L)).isEqualTo("【错误分析】…");
+    }
+
+    @Test
+    @DisplayName("复习计划：基于今日待复习生成，可按学科过滤")
+    void reviewPlan_shouldUseTodayPending() {
+        when(aiGatewayService.isAiConfigured()).thenReturn(true);
+        WrongQuestion pending = new WrongQuestion();
+        pending.setId(1L);
+        pending.setSubject("Java");
+        pending.setQuestion("锁的粒度");
+        when(wrongQuestionService.todayReview(USER_ID)).thenReturn(List.of(pending));
+        when(aiGatewayService.chat(eq(USER_ID), eq(Constants.SCENE_REVIEW_PLAN), any(), isNull(), anyMap()))
+                .thenReturn("今日复习计划…");
+
+        assertThat(service.reviewPlan(USER_ID, "Java")).isEqualTo("今日复习计划…");
+    }
+
+    @Test
+    @DisplayName("复习计划：今日无待复习错题时给出明确提示")
+    void reviewPlan_shouldRejectWhenEmpty() {
+        when(aiGatewayService.isAiConfigured()).thenReturn(true);
+        when(wrongQuestionService.todayReview(USER_ID)).thenReturn(java.util.List.of());
+
+        assertThatThrownBy(() -> service.reviewPlan(USER_ID, null))
+                .isInstanceOf(BizException.class)
+                .hasMessageContaining("没有待复习");
+    }
+
+    // ---------- 第三阶段：AI 练习题 ----------
+
+    @Test
+    @DisplayName("生成练习题：解析结构化 JSON 并落库（练习中，不直接入错题本）")
+    void generatePractice_shouldPersistGenerated() {
+        when(aiGatewayService.isAiConfigured()).thenReturn(true);
+        WrongQuestion wq = analyzedWq();
+        when(wrongQuestionService.getOwned(USER_ID, 7L)).thenReturn(wq);
+        when(aiGatewayService.chat(eq(USER_ID), eq(Constants.SCENE_PRACTICE), any(), isNull(), anyMap()))
+                .thenReturn("{\"question\":\"synchronized 修饰实例方法锁的是什么？\","
+                        + "\"options\":[\"A. 类对象\",\"B. 实例对象\"],\"answer\":\"B\",\"analysis\":\"锁的是当前实例\"}");
+
+        com.campus.platform.vo.GeneratedQuestionVO vo = service.generatePractice(USER_ID, 7L);
+
+        assertThat(vo.getQuestion()).contains("synchronized");
+        assertThat(vo.getOptions()).hasSize(2);
+        assertThat(vo.getAnswer()).isEqualTo("B");
+        assertThat(vo.getAnalysis()).isEqualTo("锁的是当前实例");
+        // 落库：练习中状态
+        org.mockito.ArgumentCaptor<WrongQuestionGenerated> captor =
+                org.mockito.ArgumentCaptor.forClass(WrongQuestionGenerated.class);
+        verify(wrongQuestionGeneratedMapper).insert(captor.capture());
+        assertThat(captor.getValue().getStatus()).isEqualTo(Constants.GENERATED_STATUS_PRACTICING);
+        assertThat(captor.getValue().getWrongQuestionId()).isEqualTo(7L);
+    }
+
+    @Test
+    @DisplayName("生成练习题：AI 返回非 JSON 时明确失败且不落库")
+    void generatePractice_shouldRejectUnparseable() {
+        when(aiGatewayService.isAiConfigured()).thenReturn(true);
+        when(wrongQuestionService.getOwned(USER_ID, 7L)).thenReturn(analyzedWq());
+        when(aiGatewayService.chat(eq(USER_ID), eq(Constants.SCENE_PRACTICE), any(), isNull(), anyMap()))
+                .thenReturn("抱歉，出题失败");
+
+        assertThatThrownBy(() -> service.generatePractice(USER_ID, 7L))
+                .isInstanceOf(BizException.class)
+                .hasMessageContaining("无法解析");
+        verify(wrongQuestionGeneratedMapper, never()).insert(any(WrongQuestionGenerated.class));
     }
 
     private PdfAskDTO request() {

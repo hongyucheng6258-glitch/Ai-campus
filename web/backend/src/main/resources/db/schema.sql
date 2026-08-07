@@ -1,8 +1,12 @@
 -- ============================================================
--- AI校园综合服务平台 数据库初始化脚本（MySQL 8，23张表）
+-- AI校园综合服务平台 数据库初始化脚本（MySQL 8，30张表）
 -- 通用约定：主键 id BIGINT AUTO_INCREMENT；时间 DATETIME 默认 CURRENT_TIMESTAMP；
 -- 用户发布内容统一 audit_status（0待审核/1通过/2驳回）+ audit_reason
 -- 执行方式：mysql -uroot -p < schema.sql
+--
+-- ⚠️ 错题本 v2 说明：本脚本的 wrong_question 表已是 v2 结构（correct_answer +
+-- 复习状态字段）。若数据库是 v1 旧库（已有 wrong_question 且列名为 answer），
+-- CREATE TABLE IF NOT EXISTS 不会补列，请先执行同目录 migrate_v2_wrongbook.sql 增量升级。
 -- ============================================================
 
 CREATE DATABASE IF NOT EXISTS ai_campus_platform DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
@@ -138,6 +142,9 @@ INSERT INTO `prompt_template` (`scene`, `name`, `content`) VALUES
 ('pdf', 'PDF问答模板', '你正在基于一份课件文档回答学生问题。以下是文档相关内容片段：\n\n{context}\n\n请严格基于上述文档内容回答问题，文档未涉及的内容请说明"文档中未提及"。\n\n问题：{question}'),
 ('outline', '复习提纲模板', '请为「{subject}」学科中「{topic}」这一主题生成一份结构化复习提纲，要求：层级化要点（最多三级）、每个要点附一句话说明、结尾给出3个自测问题。输出Markdown格式。'),
 ('quiz', '智能习题模板', '基于以下这道错题，请生成3道同类型、同难度的新习题，每道题给出标准答案与详细解析。输出Markdown格式。\n\n学科：{subject}\n错题：{question}\n正确答案：{answer}'),
+('wrong_analyze', '错题智能整理模板', '你是一名资深学科老师。请分析以下错题，只输出一个 JSON 对象（不要输出任何其他文字或代码块标记），字段如下：\n{\n  "questionType": "题型，如：选择/填空/简答/计算/编程",\n  "subject": "推测的学科，如：Java/高等数学/数据结构",\n  "chapter": "所属章节",\n  "difficulty": "难度：易/中/难",\n  "knowledgePoints": "知识点数组，如：[\\"多线程\\",\\"锁\\"]",\n  "errorReason": "错因：概念不清/公式记错/审题错误/计算错误/粗心大意/不会解题/知识点混淆/其他",\n  "summary": "不超过50字的本题知识点摘要"\n}\n\n学科（已知）：{subject}\n题目：{question_text}\n我的答案：{my_answer}\n正确答案：{correct_answer}\n解析：{analysis}'),
+('wrong_explain', '错题讲解模板', '你是一名耐心的学科辅导老师。请针对学生做错的这道题，输出 Markdown 格式的讲解：\n1. 【错误分析】指出学生的答案错在哪里、为什么错\n2. 【知识点讲解】讲解本题涉及的核心知识点，分步骤说明\n3. 【正确思路】给出正确的解题思路与答案\n4. 【易错提醒】一句话总结以后再遇到这类题要注意什么\n\n学科：{subject}\n题目：{question_text}\n我的答案：{my_answer}\n正确答案：{correct_answer}\n解析：{analysis}\n错因：{error_reason}'),
+('review_plan', '复习计划模板', '你是一名学习规划师。请根据学生错题本中的待复习题目，生成一份今天的复习计划，输出 Markdown：\n1. 【今日复习清单】按优先级列出待复习题目及理由\n2. 【推荐复习顺序】说明先复习什么、后复习什么\n3. 【复习方法建议】针对不同错因给出对应复习方法\n4. 【自测问题】2-3 个检验掌握程度的问题\n\n学科筛选：{subject}\n待复习题目列表：\n{question_list}'),
 ('content_audit', '校园内容AI审核', '你是校园平台内容安全审核员。判断违法、诈骗、广告引流、危险交易、隐私泄露风险。只返回JSON，level只能是LOW、MEDIUM、HIGH；不确定时返回MEDIUM；不得回显完整联系方式。\n\n{question}')
 ON DUPLICATE KEY UPDATE `id` = `id`;
 
@@ -157,20 +164,68 @@ CREATE TABLE IF NOT EXISTS `pdf_document` (
 
 -- ---------------- 3.3 学习辅助 ----------------
 
--- 错题本
+-- 错题本（v2：快速收录 + 复习闭环）
 CREATE TABLE IF NOT EXISTS `wrong_question` (
-  `id`          BIGINT      NOT NULL AUTO_INCREMENT,
-  `user_id`     BIGINT      NOT NULL,
-  `subject`     VARCHAR(32) NOT NULL DEFAULT '' COMMENT '学科',
-  `tag`         VARCHAR(32) DEFAULT NULL COMMENT '标签',
-  `question`    TEXT        NOT NULL COMMENT '题目',
-  `answer`      TEXT        COMMENT '正确答案',
-  `analysis`    TEXT        COMMENT '解析',
-  `source`      VARCHAR(16) NOT NULL DEFAULT 'manual' COMMENT 'manual手动/ai自动',
-  `create_time` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `id`                      BIGINT      NOT NULL AUTO_INCREMENT,
+  `user_id`                 BIGINT      NOT NULL,
+  `subject`                 VARCHAR(32) NOT NULL DEFAULT '' COMMENT '学科（空=待整理）',
+  `tag`                     VARCHAR(32) DEFAULT NULL COMMENT '标签',
+  `question`                TEXT        NOT NULL COMMENT '题目',
+  `correct_answer`          TEXT        COMMENT '正确答案',
+  `analysis`                TEXT        COMMENT '解析',
+  `my_answer`               TEXT        COMMENT '我的答案',
+  `error_reason`            VARCHAR(64) DEFAULT NULL COMMENT '错误原因（概念不清/审题错误等）',
+  `question_type`           VARCHAR(16) DEFAULT NULL COMMENT '题型（选择/填空/简答等）',
+  `chapter`                 VARCHAR(64) DEFAULT NULL COMMENT '章节',
+  `difficulty`              VARCHAR(16) DEFAULT NULL COMMENT '难度（易/中/难）',
+  `knowledge_points`        VARCHAR(255) DEFAULT NULL COMMENT '知识点（逗号分隔）',
+  `question_image`          VARCHAR(500) DEFAULT NULL COMMENT '题目图片URL',
+  `note`                    TEXT        COMMENT '我的笔记',
+  `analyze_status`          TINYINT     NOT NULL DEFAULT 0 COMMENT 'AI整理状态 0未整理 1整理失败 2已整理',
+  `status`                  TINYINT     NOT NULL DEFAULT 0 COMMENT '掌握状态 0待复习 1复习中 2基本掌握 3已掌握',
+  `mastery_score`           INT         NOT NULL DEFAULT 0 COMMENT '掌握度 0-100',
+  `review_count`            INT         NOT NULL DEFAULT 0 COMMENT '复习次数',
+  `wrong_count`             INT         NOT NULL DEFAULT 1 COMMENT '错误次数',
+  `consecutive_correct_count` INT       NOT NULL DEFAULT 0 COMMENT '连续答对次数',
+  `last_review_time`        DATETIME    DEFAULT NULL COMMENT '最近复习时间',
+  `next_review_time`        DATETIME    DEFAULT NULL COMMENT '下次复习时间',
+  `source`                  VARCHAR(16) NOT NULL DEFAULT 'manual' COMMENT 'manual手动/ai自动',
+  `create_time`             DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `idx_user_subject` (`user_id`, `subject`)
+  KEY `idx_user_subject` (`user_id`, `subject`),
+  KEY `idx_user_status` (`user_id`, `status`),
+  KEY `idx_user_next_review` (`user_id`, `next_review_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='错题本';
+
+-- 错题复习记录
+CREATE TABLE IF NOT EXISTS `wrong_question_review` (
+  `id`                BIGINT      NOT NULL AUTO_INCREMENT,
+  `user_id`           BIGINT      NOT NULL,
+  `wrong_question_id` BIGINT      NOT NULL,
+  `user_answer`       TEXT        COMMENT '本次作答',
+  `is_correct`        TINYINT     NOT NULL DEFAULT 0 COMMENT '0未答对 1答对',
+  `mastery_level`     TINYINT     NOT NULL DEFAULT 0 COMMENT '0仍然不会 1有点理解 2基本掌握 3已完全掌握',
+  `review_note`       VARCHAR(500) DEFAULT NULL COMMENT '复习备注',
+  `review_time`       DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_user_qid` (`user_id`, `wrong_question_id`),
+  KEY `idx_review_time` (`user_id`, `review_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='错题复习记录';
+
+-- AI 生成练习题记录（第三阶段：先作为练习，不直接污染错题本）
+CREATE TABLE IF NOT EXISTS `wrong_question_generated` (
+  `id`                BIGINT      NOT NULL AUTO_INCREMENT,
+  `user_id`           BIGINT      NOT NULL,
+  `wrong_question_id` BIGINT      NOT NULL COMMENT '来源错题',
+  `question`          TEXT        NOT NULL COMMENT '练习题题目',
+  `options`           TEXT        COMMENT '选项 JSON 数组（选择题）',
+  `answer`            TEXT        COMMENT '正确答案',
+  `analysis`          TEXT        COMMENT '解析',
+  `status`            TINYINT     NOT NULL DEFAULT 0 COMMENT '0练习中 1已加入错题本',
+  `create_time`       DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_user_src` (`user_id`, `wrong_question_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI生成练习题记录';
 
 -- ---------------- 3.4 校园生活 ----------------
 

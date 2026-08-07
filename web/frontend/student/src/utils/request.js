@@ -6,6 +6,8 @@ import router from '../router'
  * axios 封装（共享约定 #1）：
  * - 请求自动携带 Authorization: Bearer <token>
  * - 响应统一解包：code!==200 弹提示；401 跳登录
+ * - 传 { silent: true } 的请求不弹全局错误提示，错误对象带 code/message 供调用方自行展示
+ *   （AI 场景需要区分失败原因并给出重试按钮，见 WrongQuizDrawer / WrongOutlineDialog）
  */
 const request = axios.create({
   baseURL: '/api',
@@ -26,17 +28,34 @@ request.interceptors.response.use(
     if (res.code === 200) {
       return res.data
     }
-    ElMessage.error(res.message || '请求失败')
+    if (!response.config?.silent) {
+      ElMessage.error(res.message || '请求失败')
+    }
     if (res.code === 401) {
       localStorage.removeItem('token')
       localStorage.removeItem('userInfo')
       window.dispatchEvent(new Event('auth-expired'))
       router.push('/login')
     }
-    return Promise.reject(new Error(res.message || '请求失败'))
+    const err = new Error(res.message || '请求失败')
+    err.code = res.code
+    err.message = res.message || '请求失败'
+    return Promise.reject(err)
   },
   (error) => {
-    ElMessage.error(error.message || '网络异常')
+    const biz = error.response?.data
+    const message = biz?.message || error.message || '网络异常'
+    if (!error.config?.silent) {
+      ElMessage.error(message)
+    }
+    if (biz?.code === 401) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('userInfo')
+      window.dispatchEvent(new Event('auth-expired'))
+      router.push('/login')
+    }
+    error.code = biz?.code ?? -1
+    error.message = message
     return Promise.reject(error)
   }
 )

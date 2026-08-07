@@ -74,6 +74,10 @@ public class AiGatewayService {
         if (StrUtil.isBlank(question)) {
             throw new BizException(ResultCode.SYSTEM_ERROR, "问题不能为空");
         }
+        if (!isAiConfigured()) {
+            throw new BizException(ResultCode.AI_NOT_CONFIGURED,
+                    "AI 服务暂不可用（未配置 API Key），可稍后重试或使用基础功能");
+        }
         checkRateLimit(userId);
         if (sensitiveWordService.contains(question)) {
             throw new BizException(ResultCode.SENSITIVE_WORD);
@@ -221,6 +225,14 @@ public class AiGatewayService {
 
     // ==================== 内部方法 ====================
 
+    /** AI 是否已配置可用：apiKey 非空且非占位符 */
+    public boolean isAiConfigured() {
+        String key = aiConfigHolder.getApiKey();
+        return StrUtil.isNotBlank(key)
+                && !"sk-xxx".equals(key.trim())
+                && !key.trim().startsWith("${");
+    }
+
     /** 每日限流检查 */
     private void checkRateLimit(Long userId) {
         String key = Constants.REDIS_AI_RATE_LIMIT + userId + ":" + LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
@@ -281,7 +293,11 @@ public class AiGatewayService {
         } else if (Constants.SCENE_OUTLINE.equals(scene) && params != null) {
             String subject = params.getOrDefault("subject", "");
             String topic = params.getOrDefault("topic", "");
-            userContent = "科目: " + subject + "\n主题: " + topic + "\n\n" + question;
+            String questionList = params.getOrDefault("question_list", "");
+            userContent = "科目: " + subject
+                    + (StrUtil.isNotBlank(topic) ? "\n主题: " + topic : "")
+                    + (StrUtil.isNotBlank(questionList) ? "\n错题列表:\n" + questionList : "")
+                    + "\n\n" + question;
         } else if (Constants.SCENE_QUIZ.equals(scene) && params != null) {
             String subject = params.getOrDefault("subject", "");
             String q = params.getOrDefault("question", "");
