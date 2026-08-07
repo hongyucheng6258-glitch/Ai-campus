@@ -301,6 +301,7 @@ async function loadWeak() {
 function reload() {
   pageNum.value = 1
   load()
+  loadSubjects()
   loadStats()
   loadWeak()
 }
@@ -328,8 +329,7 @@ function startReviewFromToday(id) {
 }
 
 function onReviewDone() {
-  loadStats()
-  load()
+  reload()
 }
 
 // ---------- 复习 / 同类题 ----------
@@ -382,7 +382,6 @@ async function saveEdit() {
     ElMessage.success('保存成功')
     editVisible.value = false
     reload()
-    loadSubjects()
   } finally {
     saving.value = false
   }
@@ -393,7 +392,6 @@ async function remove(wq) {
   await deleteWrong(wq.id)
   ElMessage.success('已删除')
   reload()
-  loadSubjects()
 }
 </script>
 
