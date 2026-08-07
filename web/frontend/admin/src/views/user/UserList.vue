@@ -23,7 +23,9 @@
           <el-tag v-else size="small">Web</el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="lastLoginTime" label="最近登录" width="170" />
+      <el-table-column label="最近登录" width="170">
+        <template #default="{ row }">{{ formatTime(row.lastLoginTime) || '从未登录' }}</template>
+      </el-table-column>
       <el-table-column label="状态" width="90">
         <template #default="{ row }">
           <el-tag :type="row.status === 0 ? 'success' : 'danger'">
@@ -49,6 +51,7 @@ import { onMounted, ref } from 'vue'
 import WtPageHeader from '../../components/wt/WtPageHeader.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { listUsers, updateUserStatus, resetPassword } from '../../api/user'
+import { formatTime } from '../../utils/date'
 
 const keyword = ref('')
 const status = ref(undefined)

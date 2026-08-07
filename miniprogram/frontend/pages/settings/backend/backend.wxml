@@ -1,0 +1,12 @@
+<view class="page">
+  <view class="card">
+    <view class="title">后端地址</view>
+    <view class="desc">本机调试可保持默认；真机请填电脑当前局域网 IP，直接输入 host:port 也会自动补 /api。</view>
+    <input class="input" value="{{apiBaseUrl}}" placeholder="http://192.168.10.105:8080/api" bindinput="onInput" />
+    <view class="hint">保存后会写入本地存储 api_base_url，所有请求和上传都会使用它。</view>
+    <view class="actions">
+      <button class="btn secondary" bindtap="reset">恢复默认</button>
+      <button class="btn primary" loading="{{saving}}" bindtap="save">保存</button>
+    </view>
+  </view>
+</view>

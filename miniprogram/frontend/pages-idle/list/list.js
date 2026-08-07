@@ -3,6 +3,7 @@
 const { request } = require('../../utils/request')
 const { shortTime, parseImages } = require('../../utils/format')
 const { requireLogin } = require('../../utils/auth')
+const { goMyTab } = require('../../utils/tab-navigation')
 
 /** 闲置分类（与管理端字典保持一致） */
 const CATEGORIES = ['全部', '书籍教材', '数码电子', '生活用品', '运动器材', '服饰鞋包', '其他']
@@ -120,5 +121,9 @@ Page({
     if (!requireLogin()) return
     this.data.needRefresh = true
     wx.navigateTo({ url: '/pages-idle/publish/publish' })
+  },
+
+  goMyAppointments() {
+    goMyTab('appoint')
   }
 })

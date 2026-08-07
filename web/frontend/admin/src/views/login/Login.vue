@@ -36,6 +36,8 @@ async function submit() {
   }
   loading.value = true
   try {
+    // 登录前清理旧管理端状态，避免旧 Token 影响登录请求或路由判断
+    adminStore.logout()
     const res = await adminLogin(form)
     adminStore.loginSuccess(res.token, res.adminInfo)
     ElMessage.success('登录成功')

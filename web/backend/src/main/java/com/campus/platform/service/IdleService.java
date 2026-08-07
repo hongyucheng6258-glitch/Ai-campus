@@ -24,6 +24,7 @@ import com.campus.platform.aigateway.SensitiveWordService;
 import com.campus.platform.vo.AppointmentVO;
 import com.campus.platform.vo.IdleDetailVO;
 import com.campus.platform.vo.IdleItemVO;
+import com.campus.platform.vo.PendingAppointmentVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -107,6 +108,40 @@ public class IdleService {
                     .last("LIMIT 1"));
             vo.setMyAppointmentId(my == null ? null : my.getId());
         }
+        // 卖家视角：返回进行中的预约（待确认→接受/拒绝，已接受→确认完成）
+        if (isOwner) {
+            IdleAppointment pending = appointmentMapper.selectOne(new LambdaQueryWrapper<IdleAppointment>()
+                    .eq(IdleAppointment::getItemId, id)
+                    .in(IdleAppointment::getStatus, Constants.APPOINT_PENDING, Constants.APPOINT_ACCEPTED)
+                    .last("LIMIT 1"));
+            if (pending != null) {
+                User buyer = userMapper.selectById(pending.getBuyerId());
+                PendingAppointmentVO pv = new PendingAppointmentVO();
+                pv.setAppointmentId(pending.getId());
+                pv.setStatus(pending.getStatus());
+                pv.setBuyerNickname(buyer == null ? "校园用户" : buyer.getNickname());
+                pv.setBuyerAvatar(buyer == null ? null : buyer.getAvatar());
+                pv.setMessage(pending.getMessage());
+                vo.setPendingAppointment(pv);
+            }
+        }
+        // 当前用户可评价的已完成预约（买/卖双方都可评价）
+        if (currentUid != null) {
+            IdleAppointment reviewable = appointmentMapper.selectOne(new LambdaQueryWrapper<IdleAppointment>()
+                    .eq(IdleAppointment::getItemId, id)
+                    .eq(IdleAppointment::getStatus, Constants.APPOINT_FINISHED)
+                    .and(w -> w.eq(IdleAppointment::getBuyerId, currentUid)
+                            .or()
+                            .eq(IdleAppointment::getSellerId, currentUid))
+                    .last("LIMIT 1"));
+            if (reviewable != null) {
+                vo.setReviewAppointmentId(reviewable.getId());
+                Long reviewed = reviewMapper.selectCount(new LambdaQueryWrapper<IdleReview>()
+                        .eq(IdleReview::getAppointmentId, reviewable.getId())
+                        .eq(IdleReview::getFromUserId, currentUid));
+                vo.setReviewed(reviewed != null && reviewed > 0);
+            }
+        }
         // 卖家平均评分
         List<IdleReview> reviews = reviewMapper.selectList(new LambdaQueryWrapper<IdleReview>()
                 .eq(IdleReview::getToUserId, item.getUserId()));
@@ -176,7 +211,7 @@ public class IdleService {
                 "你的闲置有新预约",
                 String.format("「%s」想与你互换「%s」，请尽快处理。",
                         buyer == null ? "有用户" : buyer.getNickname(), item.getTitle()),
-                Constants.BIZ_IDLE, appointment.getId());
+                Constants.BIZ_IDLE, appointment.getItemId());
         return appointment;
     }
 
@@ -205,7 +240,7 @@ public class IdleService {
                 accept ? "预约已被接受" : "预约已被拒绝",
                 String.format("你对「%s」的预约%s。",
                         item == null ? "物品" : item.getTitle(), accept ? "已被接受，请线下完成互换" : "已被拒绝"),
-                Constants.BIZ_IDLE, appointment.getId());
+                Constants.BIZ_IDLE, appointment.getItemId());
     }
 
     /** 双方确认完成（任一一方点击即完成，毕设简化） */
@@ -227,7 +262,7 @@ public class IdleService {
         }
         Long other = appointment.getBuyerId().equals(userId) ? appointment.getSellerId() : appointment.getBuyerId();
         messageService.send(other, Constants.MSG_INTERACT, "互换已完成",
-                "一笔闲置互换已确认完成，快去互评吧。", Constants.BIZ_IDLE, appointment.getId());
+                "一笔闲置互换已确认完成，快去互评吧。", Constants.BIZ_IDLE, appointment.getItemId());
     }
 
     /** 互评（1-5分+评语，联合唯一索引防重复） */

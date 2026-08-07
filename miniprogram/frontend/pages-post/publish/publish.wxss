@@ -1,0 +1,14 @@
+.page { padding: 24rpx; }
+.card { background: #fff; border-radius: 20rpx; padding: 28rpx; margin-bottom: 24rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,.05); }
+.content-input { width: 100%; min-height: 240rpx; font-size: 30rpx; color: #26332f; line-height: 1.6; }
+.char-count { text-align: right; font-size: 22rpx; color: #9a9e9c; margin-top: 8rpx; }
+.section-title { font-size: 28rpx; font-weight: 600; color: #26332f; margin-bottom: 18rpx; }
+.image-grid { display: flex; flex-wrap: wrap; gap: 16rpx; }
+.image-item { position: relative; width: 200rpx; height: 200rpx; }
+.preview-img { width: 200rpx; height: 200rpx; border-radius: 12rpx; }
+.remove-btn { position: absolute; top: -10rpx; right: -10rpx; width: 40rpx; height: 40rpx; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; font-size: 28rpx; display: flex; align-items: center; justify-content: center; }
+.add-btn { width: 200rpx; height: 200rpx; border-radius: 12rpx; background: #f5f1e9; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8rpx; }
+.plus { font-size: 48rpx; color: #9a9e9c; }
+.add-text { font-size: 22rpx; color: #9a9e9c; }
+.submit-btn { margin-top: 16rpx; background: #236b5d; color: #fff; border-radius: 999rpx; font-size: 30rpx; }
+.submit-btn::after { border: none; }

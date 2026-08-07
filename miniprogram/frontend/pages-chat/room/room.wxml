@@ -26,8 +26,10 @@
     <view id="message-end" class="message-end"></view>
   </scroll-view>
   <view class="composer">
-    <button class="image-button" bindtap="chooseImage" loading="{{sendingImage}}">图片</button>
-    <textarea class="input" value="{{inputValue}}" bindinput="onInput" maxlength="2000" auto-height placeholder="输入消息" cursor-spacing="20" />
-    <button class="send" bindtap="sendText">发送</button>
+    <view class="composer-action composer-action--image" bindtap="chooseImage">{{sendingImage ? '上传中…' : '图片'}}</view>
+    <view class="composer-input">
+      <textarea class="composer-textarea" value="{{inputValue}}" bindinput="onInput" maxlength="2000" auto-height placeholder="输入消息…" cursor-spacing="20" />
+    </view>
+    <view class="composer-action composer-action--send" bindtap="sendText">发送</view>
   </view>
 </view>

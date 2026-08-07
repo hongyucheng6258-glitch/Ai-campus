@@ -76,7 +76,7 @@ public class ActivityService {
         Page<Activity> page = activityMapper.selectPage(new Page<>(pageNum, pageSize),
                 new LambdaQueryWrapper<Activity>()
                         .eq(Activity::getAuditStatus, Constants.AUDIT_PASS)
-                        .ne(Activity::getStatus, Constants.ACTIVITY_OFF)
+                        .in(Activity::getStatus, Constants.ACTIVITY_SIGNING, Constants.ACTIVITY_FULL)
                         .and(StrUtil.isNotBlank(keyword), w -> w
                                 .like(Activity::getTitle, keyword)
                                 .or().like(Activity::getDescription, keyword))

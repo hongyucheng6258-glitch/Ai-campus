@@ -5,6 +5,7 @@
   "description": "AI校园综合服务平台 - Web管理后台",
   "scripts": {
     "dev": "vite --port 5174",
+    "test": "node --experimental-default-type=module --test src/**/*.test.mjs",
     "build": "vite build",
     "preview": "vite preview"
   },

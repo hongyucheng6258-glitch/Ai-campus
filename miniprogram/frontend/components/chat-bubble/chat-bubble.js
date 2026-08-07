@@ -5,5 +5,19 @@ Component({
     content: { type: String, value: '' },
     nickname: { type: String, value: '我' },
     avatar: { type: String, value: '' }
+  },
+  data: {
+    avatarFailed: false
+  },
+  observers: {
+    avatar() {
+      this.setData({ avatarFailed: false })
+    }
+  },
+  methods: {
+    avatarError(e) {
+      console.warn('聊天头像加载失败', this.properties.avatar, e.detail)
+      this.setData({ avatarFailed: true })
+    }
   }
 })

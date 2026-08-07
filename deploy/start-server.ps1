@@ -113,8 +113,8 @@ Set-DefaultEnv 'REDIS_PORT' '6379'
 #    MINIO_BUCKET     : 桶名，程序首次上传时自动创建并设匿名读，无需手工建桶
 #  覆盖示例：$env:MINIO_SECRET_KEY = '你的新密码'
 Set-DefaultEnv 'MINIO_ENDPOINT'   'http://localhost:9000'
-Set-DefaultEnv 'MINIO_ACCESS_KEY' 'minioadmin'
-Set-DefaultEnv 'MINIO_SECRET_KEY' 'change-me-minio'
+Set-DefaultEnv 'MINIO_ACCESS_KEY' 'admin'
+Set-DefaultEnv 'MINIO_SECRET_KEY' '12345678'
 Set-DefaultEnv 'MINIO_BUCKET'     'campus'
 
 # ---- JWT 签名密钥（生产环境务必替换为 32 位以上随机串） ----
@@ -136,7 +136,7 @@ Set-DefaultEnv 'WX_APPID'  'wx-placeholder-appid'
 Set-DefaultEnv 'WX_SECRET' 'wx-placeholder-secret'
 
 # ---- 活动签到二维码 HMAC 密钥 ----
-Set-DefaultEnv 'SIGNIN_SECRET' 'change-me-signin-hmac-secret'
+Set-DefaultEnv 'SIGNIN_SECRET' 'campus-activity-signin-hmac-secret'
 
 # ---- 服务端口：命令行参数 > SERVER_PORT 环境变量 > 8080 ----
 if ([string]::IsNullOrEmpty($Port)) {

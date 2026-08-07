@@ -2,9 +2,12 @@
   <!-- 资料卡 -->
   <view class="profile">
     <block wx:if="{{logged && userInfo}}">
-      <image wx:if="{{userInfo.avatar}}" class="avatar" src="{{userInfo.avatar}}" mode="aspectFill" />
-      <view wx:else class="avatar placeholder">{{userInfo.nickname ? userInfo.nickname[0] : '同'}}</view>
-      <view class="info">
+      <view class="avatar-wrap" bindtap="goProfile">
+        <image wx:if="{{userInfo.avatar}}" class="avatar" src="{{userInfo.avatar}}" mode="aspectFill" />
+        <view wx:else class="avatar placeholder">{{userInfo.nickname ? userInfo.nickname[0] : '同'}}</view>
+        <view class="avatar-edit">编辑</view>
+      </view>
+      <view class="info" bindtap="goProfile">
         <view class="nickname">{{userInfo.nickname || '校园用户'}}</view>
         <view class="sub">学号：{{userInfo.studentNo || '未绑定'}}</view>
         <view class="sub">{{userInfo.bio || '这个人很懒，什么都没留下'}}</view>
@@ -36,10 +39,32 @@
             bindtap="switchTab" data-key="{{item.key}}">{{item.name}}</view>
     </scroll-view>
 
+    <!-- 我的预约：买家/卖家双视角（参考 Web 端） -->
+    <scroll-view wx:if="{{activeTab === 'appoint'}}" class="role-tabs" scroll-x enable-flex>
+      <view class="role-tab {{appointRole === 'buyer' ? 'active' : ''}}"
+            bindtap="switchAppointRole" data-role="buyer">我发起的</view>
+      <view class="role-tab {{appointRole === 'seller' ? 'active' : ''}}"
+            bindtap="switchAppointRole" data-role="seller">我收到的</view>
+    </scroll-view>
+
     <view wx:for="{{list}}" wx:key="id" class="list-item"
           bindtap="tapItem" data-url="{{item.url}}">
       <item-card cover="{{item.cover}}" title="{{item.title}}" desc="{{item.desc}}"
                  extra="{{item.extra}}" tagText="{{item.tagText}}" tagType="{{item.tagType}}" />
+      <!-- 预约操作区：卖家待确认→接受/拒绝；已接受→确认完成；已完成未评→去评价 -->
+      <view wx:if="{{activeTab === 'appoint' && item.appointStatus === 0 && item.appointRole === 'seller'}}" class="ops">
+        <button class="ops-btn ops-btn--reject" catchtap="handleAppoint"
+                data-appointment-id="{{item.id}}" data-accept="false">拒绝</button>
+        <button class="ops-btn ops-btn--accept" catchtap="handleAppoint"
+                data-appointment-id="{{item.id}}" data-accept="true">接受</button>
+      </view>
+      <view wx:if="{{activeTab === 'appoint' && item.appointStatus === 1}}" class="ops">
+        <button class="ops-btn ops-btn--primary" catchtap="finishAppoint"
+                data-appointment-id="{{item.id}}">确认完成</button>
+      </view>
+      <view wx:if="{{activeTab === 'appoint' && item.appointStatus === 3 && !item.reviewed}}" class="ops">
+        <button class="ops-btn ops-btn--primary" catchtap="tapItem" data-url="{{item.url}}">去评价</button>
+      </view>
     </view>
 
     <view wx:if="{{inited && list.length === 0}}" class="empty">这里还什么都没有</view>

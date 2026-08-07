@@ -71,9 +71,23 @@
   color: #303133;
 }
 
-.skip {
-  text-align: center;
-  font-size: 26rpx;
-  color: #2f9e8a;
+.btn-secondary {
+  width: 100%;
   margin-top: 16rpx;
+  color: #2f9e8a;
+  background: #ffffff;
+  border: 2rpx solid #2f9e8a;
+  border-radius: 999rpx;
+  font-size: 28rpx;
+}
+
+.btn-secondary::after {
+  border: none;
+}
+
+.register-link {
+  text-align: center;
+  margin-top: 24rpx;
+  color: #2f9e8a;
+  font-size: 26rpx;
 }

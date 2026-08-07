@@ -279,7 +279,7 @@ class AuthServiceTest {
     class WxBind {
 
         @Test
-        @DisplayName("学号已存在且密码正确应合并 openid 并删除临时账号")
+        @DisplayName("学号已存在且密码正确应转移 openid 并保留临时账号")
         void wxBind_shouldMergeIntoExistingWebAccount() {
             User current = buildUser(100L, null, null, Constants.USER_STATUS_NORMAL);
             current.setOpenid("oTemp");
@@ -298,8 +298,9 @@ class AuthServiceTest {
 
             assertThat(target.getOpenid()).isEqualTo("oTemp");
             assertThat(target.getPhone()).isEqualTo("13800138000");
+            verify(userMapper).clearOpenidById(100L);
             verify(userMapper).updateById(target);
-            verify(userMapper).deleteById(100L);
+            verify(userMapper, never()).deleteById(100L);
             // 合并后返回的是主账号的 token
             assertThat(vo.getToken()).isEqualTo("TOKEN_MERGED");
         }

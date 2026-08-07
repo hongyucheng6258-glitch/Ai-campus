@@ -1,6 +1,7 @@
-// 复习提纲生成（分包 pages-ai）：POST /ai/outline { subject, chapter, topic } → { answer }
+// 复习提纲生成（分包 pages-ai）：POST /ai/outline { subject, chapter, topic } → 回答文本
 const { request } = require('../../utils/request')
 const { requireLogin } = require('../../utils/auth')
+const { getAiAnswer } = require('../../utils/ai-response')
 
 /** 演示用示例，答辩时可一键填充 */
 const SAMPLES = [
@@ -63,7 +64,7 @@ Page({
         method: 'POST',
         data: { subject, chapter: (this.data.chapter || '').trim(), topic }
       })
-      this.setData({ answer: data.answer || '（AI 未返回内容）' })
+      this.setData({ answer: getAiAnswer(data) || '（AI 未返回内容）' })
     } catch (e) {
       this.setData({ answer: '' })
     } finally {

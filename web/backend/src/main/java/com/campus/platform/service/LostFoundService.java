@@ -49,8 +49,8 @@ public class LostFoundService {
         Page<LostFound> page = lostFoundMapper.selectPage(new Page<>(pageNum, pageSize),
                 new LambdaQueryWrapper<LostFound>()
                         .eq(LostFound::getAuditStatus, Constants.AUDIT_PASS)
+                        .eq(LostFound::getStatus, Constants.LF_DOING)
                         .eq(type != null, LostFound::getType, type)
-                        .ne(LostFound::getStatus, Constants.LF_OFF)
                         .and(StrUtil.isNotBlank(keyword), w -> w
                                 .like(LostFound::getTitle, keyword)
                                 .or().like(LostFound::getDescription, keyword))

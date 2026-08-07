@@ -4,6 +4,6 @@
     <!-- AI 回复：纯文本降级展示；接入 towxml 后可替换为富文本渲染 -->
     <text selectable>{{content}}</text>
   </view>
-  <image wx:if="{{role === 'user' && avatar}}" class="avatar" src="{{avatar}}" />
+  <image wx:if="{{role === 'user' && avatar && !avatarFailed}}" class="avatar" src="{{avatar}}" binderror="avatarError" />
   <view wx:elif="{{role === 'user'}}" class="avatar">{{nickname[0]}}</view>
 </view>

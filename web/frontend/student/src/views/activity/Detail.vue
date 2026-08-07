@@ -130,7 +130,7 @@ import { ElMessage } from 'element-plus'
 import { activityDetail, signupActivity, activityMembers, handleMember, signinQrcode } from '../../api/activity'
 import { submitReport } from '../../api/report'
 import { formatTime } from '../../utils/date'
-import { normalizeSigninQrContent } from '../../utils/signinQr'
+import { normalizeSigninQrContent } from '../../utils/signinQr.mjs'
 import { useUserStore } from '../../store/user'
 import { startChat } from '../../utils/startChat'
 

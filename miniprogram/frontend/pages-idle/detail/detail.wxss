@@ -75,6 +75,74 @@
   white-space: pre-wrap;
 }
 
+/* 卖家待处理预约卡片 */
+.appoint-pending {
+  border: 2rpx solid #f3d19e;
+  background: #fffdf7;
+}
+
+.pending-buyer {
+  display: flex;
+  align-items: center;
+}
+
+.pending-avatar {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: #e6f4f0;
+  flex-shrink: 0;
+}
+
+.pending-avatar.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2f9e8a;
+  font-size: 30rpx;
+}
+
+.pending-info {
+  flex: 1;
+  min-width: 0;
+  margin-left: 18rpx;
+}
+
+.pending-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #303133;
+}
+
+.pending-actions {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 24rpx;
+}
+
+.pending-btn {
+  flex: 1;
+  margin: 0;
+  height: 72rpx;
+  line-height: 72rpx;
+  border-radius: 36rpx;
+  font-size: 28rpx;
+}
+
+.pending-btn::after {
+  border: none;
+}
+
+.pending-btn--reject {
+  background: #f3f0ea;
+  color: #606266;
+}
+
+.pending-btn--accept {
+  background: #2f9e8a;
+  color: #fff;
+}
+
 .bottom-space {
   height: 140rpx;
 }

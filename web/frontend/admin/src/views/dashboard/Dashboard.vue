@@ -33,7 +33,20 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import WtPageHeader from '../../components/wt/WtPageHeader.vue'
-import * as echarts from 'echarts'
+import * as echarts from 'echarts/core'
+import { LineChart, BarChart, PieChart } from 'echarts/charts'
+import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
+import { CanvasRenderer } from 'echarts/renderers'
+
+echarts.use([
+  LineChart,
+  BarChart,
+  PieChart,
+  GridComponent,
+  LegendComponent,
+  TooltipComponent,
+  CanvasRenderer
+])
 import { statsOverview, statsTrend, statsModule, statsPie } from '../../api/stats'
 import { chartPalette, seriesColors, chartBase } from '../../utils/chartTheme'
 

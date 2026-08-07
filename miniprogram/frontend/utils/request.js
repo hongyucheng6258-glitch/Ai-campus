@@ -1,17 +1,15 @@
-// 网络请求封装：统一携带 JWT，解包 R 响应体（共享约定 #1）
+const { getApiBaseUrl } = require('./runtime-config')
+
 function getToken() {
   return wx.getStorageSync('token') || ''
 }
 
 function getBaseUrl() {
-  const app = getApp()
-  return app && app.globalData ? app.globalData.baseUrl : 'http://localhost:8080/api'
+  const app = typeof getApp === 'function' ? getApp() : null
+  if (app && app.globalData && app.globalData.baseUrl) return app.globalData.baseUrl
+  return getApiBaseUrl()
 }
 
-/**
- * 发起请求（Promise 封装 wx.request）。
- * @param {Object} options { url, method, data, header }
- */
 function request(options) {
   return new Promise((resolve, reject) => {
     const token = getToken()
@@ -28,15 +26,14 @@ function request(options) {
         const body = res.data || {}
         if (body.code === 200) {
           resolve(body.data)
-        } else {
-          // 401 跳登录页
-          if (body.code === 401) {
-            wx.removeStorageSync('token')
-            wx.navigateTo({ url: '/pages/login/login' })
-          }
-          wx.showToast({ title: body.message || '请求失败', icon: 'none' })
-          reject(new Error(body.message || '请求失败'))
+          return
         }
+        if (body.code === 401) {
+          wx.removeStorageSync('token')
+          wx.navigateTo({ url: '/pages/login/login' })
+        }
+        wx.showToast({ title: body.message || '请求失败', icon: 'none' })
+        reject(new Error(body.message || '请求失败'))
       },
       fail(err) {
         wx.showToast({ title: '网络异常', icon: 'none' })
@@ -46,11 +43,6 @@ function request(options) {
   })
 }
 
-/**
- * 上传文件到 /upload/*，返回 { url }
- * @param {String} filePath 本地临时路径
- * @param {String} type image|file
- */
 function uploadFile(filePath, type = 'image') {
   return new Promise((resolve, reject) => {
     const token = getToken()
@@ -64,10 +56,10 @@ function uploadFile(filePath, type = 'image') {
           const body = JSON.parse(res.data)
           if (body.code === 200) {
             resolve(body.data)
-          } else {
-            wx.showToast({ title: body.message || '上传失败', icon: 'none' })
-            reject(new Error(body.message))
+            return
           }
+          wx.showToast({ title: body.message || '上传失败', icon: 'none' })
+          reject(new Error(body.message))
         } catch (e) {
           reject(e)
         }
@@ -78,7 +70,7 @@ function uploadFile(filePath, type = 'image') {
 }
 
 module.exports = {
+  getBaseUrl,
   request,
-  uploadFile,
-  getBaseUrl
+  uploadFile
 }

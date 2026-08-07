@@ -3,6 +3,8 @@
 // 会话管理：POST /ai/session（scene=chat）、GET /ai/session/{id}/messages 拉历史
 const { request } = require('../../utils/request')
 const { getUserInfo, requireLogin } = require('../../utils/auth')
+const { normalizeUserInfo } = require('../../utils/avatar')
+const { getAiAnswer } = require('../../utils/ai-response')
 
 /** 常见问题快捷入口，降低毕设演示时的输入成本 */
 const QUICK_ASKS = [
@@ -25,7 +27,7 @@ Page({
 
   onLoad(options) {
     if (!requireLogin()) return
-    const user = getUserInfo() || {}
+    const user = normalizeUserInfo(getUserInfo() || {})
     this.setData({
       nickname: user.nickname || '我',
       avatar: user.avatar || ''
@@ -48,7 +50,7 @@ Page({
         url: `/ai/session/${sessionId}/messages`,
         data: { pageNum: 1, pageSize: 50 }
       })
-      const messages = (data.list || []).map((m) => ({
+      const messages = (data.list || []).slice().reverse().map((m) => ({
         role: m.role === 'user' ? 'user' : 'assistant',
         content: m.content || ''
       }))
@@ -94,13 +96,24 @@ Page({
     this.setData({ messages, input: '', sending: true }, this.scrollToBottom)
 
     try {
+      let sessionId = this.data.sessionId
+      if (!sessionId) {
+        const session = await request({
+          url: '/ai/session',
+          method: 'POST',
+          data: { scene: 'chat', title: question.slice(0, 30) || '新会话' }
+        })
+        sessionId = session && session.id
+        if (!sessionId) throw new Error('创建会话失败')
+        this.setData({ sessionId })
+      }
       const data = await request({
         url: '/ai/chat/sync',
         method: 'POST',
-        data: { sessionId: this.data.sessionId, question }
+        data: { sessionId, question }
       })
       const key = `messages[${placeholderIndex}].content`
-      this.setData({ [key]: data.answer || '（AI 未返回内容）' }, this.scrollToBottom)
+      this.setData({ [key]: getAiAnswer(data) || '（AI 未返回内容）' }, this.scrollToBottom)
     } catch (e) {
       const key = `messages[${placeholderIndex}].content`
       this.setData({ [key]: '回答失败，请稍后重试。' }, this.scrollToBottom)

@@ -34,10 +34,10 @@
                 <router-link :to="`/activity/detail/${row.id}`">{{ row.title }}</router-link>
               </template>
             </el-table-column>
-            <el-table-column label="审核状态" width="100">
+            <el-table-column label="状态" width="100">
               <template #default="{ row }">
-                <el-tag :type="['warning','success','danger'][row.auditStatus]">
-                  {{ ['待审核','已通过','已驳回'][row.auditStatus] }}
+                <el-tag :type="row.auditStatus === 2 ? 'danger' : row.status === 2 ? 'info' : row.status === 3 ? 'danger' : ['warning','success'][row.auditStatus]">
+                  {{ row.auditStatus === 0 ? '待审核' : row.auditStatus === 2 ? '已驳回' : row.status === 2 ? '已结束' : row.status === 3 ? '已下架' : '已通过' }}
                 </el-tag>
               </template>
             </el-table-column>

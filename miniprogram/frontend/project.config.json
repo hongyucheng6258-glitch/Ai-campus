@@ -1,16 +1,32 @@
 {
   "description": "AI校园综合服务平台 - 微信小程序（毕业设计）",
-  "appid": "touristappid",
+  "appid": "wx9e189da47d90c508",
   "compileType": "miniprogram",
-  "libVersion": "3.4.0",
+  "libVersion": "3.17.1",
   "projectname": "ai-campus-miniprogram",
   "setting": {
     "es6": true,
     "postcss": true,
     "minified": true,
-    "urlCheck": false
+    "urlCheck": false,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    },
+    "condition": true
   },
   "packOptions": {
-    "ignore": []
+    "ignore": [],
+    "include": []
+  },
+  "condition": {},
+  "editorSetting": {
+    "tabIndent": "insertSpaces",
+    "tabSize": 2
+  },
+  "projectArchitecture": "multiPlatform",
+  "simulatorPluginLibVersion": {
+    "wxext14566970e7e9f62": "2.27.3"
   }
 }

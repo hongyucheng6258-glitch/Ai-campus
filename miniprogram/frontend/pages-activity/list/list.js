@@ -3,6 +3,7 @@
 const { request } = require('../../utils/request')
 const { shortTime, parseImages } = require('../../utils/format')
 const { requireLogin } = require('../../utils/auth')
+const { goMyTab } = require('../../utils/tab-navigation')
 
 /** 活动分类 */
 const CATEGORIES = ['全部', '学习竞赛', '文体活动', '志愿公益', '社团招新', '讲座沙龙', '其他']
@@ -123,6 +124,11 @@ Page({
   },
 
   /** 跳转扫码签到页 */
+  /** 璺宠浆鎴戠殑鎶ュ悕 */
+  goMySignups() {
+    goMyTab('signup')
+  },
+
   goSignin() {
     if (!requireLogin()) return
     wx.navigateTo({ url: '/pages-activity/signin/signin' })

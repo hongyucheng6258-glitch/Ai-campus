@@ -1,0 +1,56 @@
+<view class="page" wx:if="{{post}}">
+  <view class="post-detail">
+    <view class="post-header">
+      <image wx:if="{{post.avatar}}" class="avatar" src="{{post.avatar}}" mode="aspectFill" />
+      <view wx:else class="avatar placeholder">{{post.nickname[0]}}</view>
+      <view class="user-info">
+        <view class="nickname">{{post.nickname}}</view>
+        <view class="time">{{post.time}}</view>
+      </view>
+      <view class="chat-btn" bindtap="goChat">私信</view>
+    </view>
+
+    <view class="post-content">{{post.content}}</view>
+
+    <view wx:if="{{post.images.length}}" class="image-grid grid-{{post.images.length === 1 ? 'one' : 'multi'}}">
+      <image wx:for="{{post.images}}" wx:for-item="img" wx:key="*this"
+             class="grid-img" src="{{img}}" mode="aspectFill"
+             bindtap="previewImages" data-current="{{img}}" data-urls="{{post.images}}" />
+    </view>
+
+    <view class="post-footer">
+      <view class="action {{post.liked ? 'liked' : ''}}" bindtap="toggleLike">
+        <text class="icon">{{post.liked ? '❤️' : '🤍'}}</text>
+        <text>{{post.likeCount}}</text>
+      </view>
+      <view class="action">
+        <text class="icon">💬</text>
+        <text>{{post.commentCount}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="comment-section">
+    <view class="section-title">评论 ({{comments.length}})</view>
+
+    <view wx:for="{{comments}}" wx:key="id" class="comment-item">
+      <image wx:if="{{item.avatar}}" class="c-avatar" src="{{item.avatar}}" mode="aspectFill" />
+      <view wx:else class="c-avatar placeholder">{{item.nickname[0]}}</view>
+      <view class="c-body">
+        <view class="c-nickname">{{item.nickname}}</view>
+        <view class="c-content">{{item.content}}</view>
+        <view class="c-time">{{item.time}}</view>
+      </view>
+    </view>
+
+    <view wx:if="{{comments.length === 0 && !loading}}" class="empty-comment">还没有评论，快来抢沙发</view>
+    <view wx:if="{{loading}}" class="loading-tip">加载中…</view>
+    <view wx:elif="{{!hasMore && comments.length > 0}}" class="loading-tip">没有更多了</view>
+  </view>
+
+  <view class="comment-bar">
+    <input class="comment-input" value="{{commentText}}" bindinput="onCommentInput"
+           placeholder="写评论…" confirm-type="send" bindconfirm="submitComment" />
+    <button class="send-btn" size="mini" loading="{{submitting}}" bindtap="submitComment">发送</button>
+  </view>
+</view>

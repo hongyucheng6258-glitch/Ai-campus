@@ -1,0 +1,32 @@
+.page { padding: 24rpx; padding-bottom: 120rpx; }
+.post-detail { background: #fff; border-radius: 20rpx; padding: 28rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,.05); }
+.post-header { display: flex; align-items: center; }
+.avatar { width: 72rpx; height: 72rpx; border-radius: 50%; background: #e8f0ed; }
+.avatar.placeholder { display: flex; align-items: center; justify-content: center; color: #236b5d; font-size: 30rpx; }
+.user-info { flex: 1; margin-left: 18rpx; }
+.nickname { font-size: 28rpx; font-weight: 600; color: #26332f; }
+.time { font-size: 22rpx; color: #9a9e9c; margin-top: 4rpx; }
+.chat-btn { padding: 8rpx 20rpx; border-radius: 999rpx; background: #f0f7f5; color: #236b5d; font-size: 22rpx; }
+.post-content { margin-top: 18rpx; font-size: 30rpx; color: #3a4642; line-height: 1.7; word-break: break-all; }
+.image-grid { margin-top: 18rpx; display: flex; flex-wrap: wrap; gap: 8rpx; }
+.grid-multi .grid-img { width: 218rpx; height: 218rpx; border-radius: 12rpx; }
+.grid-one .grid-img { width: 400rpx; height: 300rpx; border-radius: 12rpx; }
+.post-footer { margin-top: 20rpx; display: flex; gap: 48rpx; }
+.action { display: flex; align-items: center; gap: 8rpx; font-size: 26rpx; color: #6b7470; }
+.action.liked { color: #e84855; }
+.action .icon { font-size: 32rpx; }
+.comment-section { margin-top: 24rpx; background: #fff; border-radius: 20rpx; padding: 28rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,.05); }
+.section-title { font-size: 28rpx; font-weight: 700; color: #26332f; margin-bottom: 18rpx; }
+.comment-item { display: flex; padding: 18rpx 0; border-bottom: 2rpx solid #f5f1e9; }
+.c-avatar { width: 56rpx; height: 56rpx; border-radius: 50%; background: #e8f0ed; flex-shrink: 0; }
+.c-avatar.placeholder { display: flex; align-items: center; justify-content: center; color: #236b5d; font-size: 24rpx; }
+.c-body { margin-left: 14rpx; flex: 1; }
+.c-nickname { font-size: 24rpx; font-weight: 600; color: #52605b; }
+.c-content { font-size: 28rpx; color: #3a4642; margin-top: 6rpx; line-height: 1.5; word-break: break-all; }
+.c-time { font-size: 20rpx; color: #9a9e9c; margin-top: 6rpx; }
+.empty-comment { text-align: center; padding: 48rpx; color: #9a9e9c; font-size: 26rpx; }
+.loading-tip { text-align: center; padding: 24rpx; color: #9a9e9c; font-size: 24rpx; }
+.comment-bar { position: fixed; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 16rpx; padding: 16rpx 24rpx; background: #fff; box-shadow: 0 -2rpx 12rpx rgba(0,0,0,.05); }
+.comment-input { flex: 1; height: 72rpx; background: #f5f1e9; border-radius: 999rpx; padding: 0 28rpx; font-size: 28rpx; }
+.send-btn { background: #236b5d; color: #fff; border-radius: 999rpx; font-size: 26rpx; }
+.send-btn::after { border: none; }

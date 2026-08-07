@@ -4,6 +4,7 @@ const { request } = require('../../utils/request')
 const { fromNow } = require('../../utils/format')
 const { isLoggedIn } = require('../../utils/auth')
 const chatManager = require('../../utils/chat-manager')
+const { goMyTab } = require('../../utils/tab-navigation')
 
 /** 消息类型筛选项（与后端 Constants.MSG_* 一致） */
 const TYPE_TABS = [
@@ -18,7 +19,7 @@ const BIZ_URL_MAP = {
   idle: '/pages-idle/detail/detail?id=',
   activity: '/pages-activity/detail/detail?id=',
   lostfound: '/pages-lostfound/detail/detail?id=',
-  post: ''
+  post: '/pages-post/detail/detail?id='
 }
 
 Page({
@@ -167,6 +168,11 @@ Page({
       } catch (err) {
         // 标记失败不阻塞跳转
       }
+    }
+
+    if (item.bizType === 'idle' && item.bizId) {
+      goMyTab('appoint')
+      return
     }
 
     const prefix = BIZ_URL_MAP[item.bizType]

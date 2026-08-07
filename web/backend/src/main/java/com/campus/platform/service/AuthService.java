@@ -103,7 +103,7 @@ public class AuthService {
 
     /**
      * 小程序绑定学号/手机号（A3 账号合并）：
-     * 若学号已存在 Web 账号且密码校验通过 → 把当前 openid 合并到该账号，删除自动建号的临时账号；
+     * 若学号已存在 Web 账号且密码校验通过 → 把当前 openid 合并到该账号，保留临时账号避免关联数据删除异常；
      * 若学号不存在 → 直接给当前账号补学号。
      */
     public LoginVO wxBind(Long uid, WxBindDTO dto) {
@@ -119,13 +119,16 @@ public class AuthService {
                     || !passwordEncoder.matches(dto.getPassword(), target.getPassword())) {
                 throw new BizException(ResultCode.BAD_REQUEST, "该学号已有账号，请输入正确的账号密码完成绑定");
             }
-            target.setOpenid(current.getOpenid());
+            String openid = current.getOpenid();
+            // 先释放临时账号的 openid，避免唯一索引冲突，再绑定到 Web 账号。
+            // 临时账号可能已有消息/会话等关联数据，因此不能直接物理删除。
+            userMapper.clearOpenidById(uid);
+            target.setOpenid(openid);
             if (StrUtil.isNotBlank(dto.getPhone())) {
                 target.setPhone(dto.getPhone());
             }
+            target.setLastLoginTime(LocalDateTime.now());
             userMapper.updateById(target);
-            // 删除自动建号的临时账号（毕设体量直接物理删除）
-            userMapper.deleteById(uid);
             return buildLoginVO(target);
         }
         // 学号未被占用：直接补到当前账号

@@ -1,9 +1,10 @@
 // PDF 文档问答（分包 pages-ai）
-// 流程：wx.chooseMessageFile 选文件 → POST /ai/pdf/upload（multipart）→ POST /ai/pdf/ask 多轮提问
-// 注意：/ai/pdf/upload 不属于通用 /upload/* 接口，故此处单独封装 wx.uploadFile，
+// 流程：wx.chooseMessageFile 选文件 → POST /pdf/upload（multipart）→ POST /ai/pdf/ask 多轮提问
+// 注意：/pdf/upload 不属于通用 /upload/* 接口，故此处单独封装 wx.uploadFile，
 //       目的是能拿到业务码 1004（扫描件PDF无法解析）并给出针对性引导。
 const { request, getBaseUrl } = require('../../utils/request')
 const { getToken, requireLogin } = require('../../utils/auth')
+const { getAiAnswer } = require('../../utils/ai-response')
 
 /** 扫描件错误码（后端 ResultCode.PDF_SCANNED） */
 const CODE_PDF_SCANNED = 1004
@@ -52,7 +53,7 @@ Page({
   },
 
   /**
-   * 上传 PDF 到 /ai/pdf/upload。
+   * 上传 PDF 到 /pdf/upload。
    * @param {String} filePath 本地临时路径
    * @param {String} fileName 原始文件名
    */
@@ -61,11 +62,11 @@ Page({
     wx.showLoading({ title: '解析中…', mask: true })
     const token = getToken()
     wx.uploadFile({
-      url: getBaseUrl() + '/ai/pdf/upload',
+      url: getBaseUrl() + '/pdf/upload',
       filePath,
       name: 'file',
       header: token ? { Authorization: 'Bearer ' + token } : {},
-      success: (res) => {
+      success: async (res) => {
         let body = {}
         try {
           body = JSON.parse(res.data)
@@ -80,6 +81,18 @@ Page({
             qaList: [],
             sessionId: null
           })
+          try {
+            const session = await request({
+              url: '/ai/session',
+              method: 'POST',
+              data: { scene: 'pdf', title: fileName, docId: doc.docId }
+            })
+            if (!session || !session.id) throw new Error('创建PDF会话失败')
+            this.setData({ sessionId: session.id })
+          } catch (e) {
+            wx.showToast({ title: '会话创建失败，请重试', icon: 'none' })
+            return
+          }
           wx.showToast({ title: '解析完成', icon: 'success' })
         } else if (body.code === CODE_PDF_SCANNED) {
           // 1004：扫描件（图片型）PDF，提取不到文本，给出可操作的友好引导
@@ -145,7 +158,7 @@ Page({
         }
       })
       const key = `qaList[${index}].answer`
-      this.setData({ [key]: data.answer || '（AI 未返回内容）' }, this.scrollToBottom)
+      this.setData({ [key]: getAiAnswer(data) || '（AI 未返回内容）' }, this.scrollToBottom)
     } catch (e) {
       const key = `qaList[${index}].answer`
       this.setData({ [key]: '回答失败，请稍后重试。' }, this.scrollToBottom)

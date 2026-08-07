@@ -5,6 +5,7 @@
 const { request } = require('../../utils/request')
 const { shortTime } = require('../../utils/format')
 const { requireLogin } = require('../../utils/auth')
+const { getAiAnswer } = require('../../utils/ai-response')
 
 Page({
   data: {
@@ -135,7 +136,7 @@ Page({
         method: 'POST',
         data: { wrongQuestionId: id }
       })
-      this.setData({ quizContent: data.answer || '（AI 未返回内容）' })
+      this.setData({ quizContent: getAiAnswer(data) || '（AI 未返回内容）' })
     } catch (err) {
       this.setData({ quizContent: '出题失败，请稍后重试。' })
     } finally {

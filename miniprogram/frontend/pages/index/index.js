@@ -16,7 +16,7 @@ Page({
       { icon: '🎉', name: '活动组队', url: '/pages-activity/list/list' },
       { icon: '🔍', name: '失物招领', url: '/pages-lostfound/list/list' },
       { icon: '📢', name: '校园公告', url: '/pages/notice/list/list' },
-      { icon: '📄', name: 'PDF问答', url: '/pages-ai/pdf/pdf', login: true }
+      { icon: '🌟', name: '动态广场', url: '/pages-post/square/square', login: true }
     ]
   },
 

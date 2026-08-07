@@ -44,6 +44,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/api/auth/register",
                         "/api/auth/login",
                         "/api/auth/wx-login",
+                        "/api/assets/**",
                         "/api/idle/list",
                         "/api/activity/list",
                         "/api/lostfound/list",

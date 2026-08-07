@@ -5,6 +5,11 @@ server:
   port: 8080
   servlet:
     context-path: /   # 接口统一 /api 前缀在各 Controller 上声明
+    encoding:
+      enabled: true
+      charset: UTF-8
+      force: true
+      force-response: true
 
 spring:
   application:
@@ -17,7 +22,7 @@ spring:
     # 服务端库表已是 utf8mb4，客户端用 UTF-8 即可完整支持中文与 emoji。
     url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DB:ai_campus_platform}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
     username: ${MYSQL_USER:root}
-    password: ${MYSQL_PASSWORD:change-me}
+    password: ${MYSQL_PASSWORD:666666}
   # ---- Redis（限流计数 / AI配置缓存 / 会话上下文缓存） ----
   data:
     redis:
@@ -59,12 +64,12 @@ mybatis-plus:
 minio:
   endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
   access-key: ${MINIO_ACCESS_KEY:admin}         # 本机实测值，可用环境变量 MINIO_ACCESS_KEY 覆盖
-  secret-key: ${MINIO_SECRET_KEY:change-me-minio}      # 本机实测值，可用环境变量 MINIO_SECRET_KEY 覆盖
+  secret-key: ${MINIO_SECRET_KEY:12345678}      # 本机实测值，可用环境变量 MINIO_SECRET_KEY 覆盖
   bucket: ${MINIO_BUCKET:campus}
 
 # ---- JWT 鉴权（共享约定：claims={uid,role}，有效期7天） ----
 jwt:
-  secret: ${JWT_SECRET:change-me-with-at-least-32-random-characters}
+  secret: ${JWT_SECRET:campus-platform-jwt-secret-key-2024-graduation-project-must-be-long-enough}
   expire-days: 7
 
 # ---- AI 网关（DeepSeek OpenAI兼容协议） ----
@@ -92,11 +97,11 @@ wx:
 
 # ---- 活动签到二维码 HMAC 密钥 ----
 signin:
-  secret: ${SIGNIN_SECRET:change-me-signin-hmac-secret}
+  secret: ${SIGNIN_SECRET:campus-activity-signin-hmac-secret}
 
 # REST CORS 与 WebSocket 握手共用可信 Origin 白名单，生产环境通过 TRUSTED_ORIGINS 逗号分隔覆盖
 security:
-  trusted-origins: "${TRUSTED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}"
+  trusted-origins: "${TRUSTED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174}"
 
 logging:
   level:

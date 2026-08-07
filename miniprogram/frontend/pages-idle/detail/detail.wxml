@@ -38,6 +38,29 @@
       <text class="desc" selectable>{{detail.description || '发布者未填写描述'}}</text>
     </view>
 
+    <!-- 卖家预约处理卡片：待确认→接受/拒绝，已接受→确认完成 -->
+    <view wx:if="{{detail.isOwner && detail.pendingAppointment}}" class="card appoint-pending">
+      <view class="sec-title">{{detail.pendingAppointment.status === 1 ? '进行中的互换' : '待处理预约'}}</view>
+      <view class="pending-buyer">
+        <image wx:if="{{detail.pendingAppointment.buyerAvatar}}" class="pending-avatar"
+               src="{{detail.pendingAppointment.buyerAvatar}}" mode="aspectFill" />
+        <view wx:else class="pending-avatar placeholder">
+          {{detail.pendingAppointment.buyerNickname ? detail.pendingAppointment.buyerNickname[0] : '用'}}
+        </view>
+        <view class="pending-info">
+          <view class="pending-name">{{detail.pendingAppointment.buyerNickname}} 想与你互换</view>
+          <view class="text-muted">留言：{{detail.pendingAppointment.message || '无'}}</view>
+        </view>
+      </view>
+      <view wx:if="{{detail.pendingAppointment.status === 1}}" class="pending-actions">
+        <button class="pending-btn pending-btn--accept" bindtap="finishAppoint">确认完成</button>
+      </view>
+      <view wx:else class="pending-actions">
+        <button class="pending-btn pending-btn--reject" bindtap="handleAppoint" data-accept="false">拒绝</button>
+        <button class="pending-btn pending-btn--accept" bindtap="handleAppoint" data-accept="true">接受</button>
+      </view>
+    </view>
+
     <view class="bottom-space"></view>
 
     <!-- 底部操作栏 -->
@@ -46,10 +69,11 @@
         <button class="btn-plain" bindtap="offline" disabled="{{detail.status === 3}}">
           {{detail.status === 3 ? '已下架' : '下架物品'}}
         </button>
+        <button wx:if="{{detail.reviewAppointmentId && !detail.reviewed}}" class="btn-plain" bindtap="goReview">去评价</button>
       </block>
       <block wx:else>
         <button class="btn-plain" bindtap="contactPublisher">联系卖家</button>
-        <button wx:if="{{detail.myAppointmentId}}" class="btn-plain" bindtap="goReview">去评价</button>
+        <button wx:if="{{detail.reviewAppointmentId && !detail.reviewed}}" class="btn-plain" bindtap="goReview">去评价</button>
         <button class="btn-primary" bindtap="goAppoint" disabled="{{detail.status !== 0}}">
           {{detail.status === 0 ? '我想换' : '暂不可预约'}}
         </button>
@@ -60,3 +84,4 @@
   <view wx:elif="{{loading}}" class="empty">加载中…</view>
   <view wx:else class="empty">物品不存在或已下架</view>
 </view>
+

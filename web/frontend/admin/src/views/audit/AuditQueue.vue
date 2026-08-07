@@ -17,9 +17,11 @@
       </el-table-column>
       <el-table-column label="图片" width="90">
         <template #default="{ row }">
-          <el-image v-if="firstImage(row.images)" :src="firstImage(row.images)" fit="cover"
-                    style="width:48px;height:48px;border-radius:4px" :preview-src-list="parseImages(row.images)" />
-          <span v-else>-</span>
+          <el-image v-if="firstValidImage(row) && !imageErrors[row.id]" :src="firstValidImage(row)" fit="cover"
+                    style="width:48px;height:48px;border-radius:4px" :preview-src-list="normalizeImages(row)"
+                    @error="imageErrors[row.id] = true" />
+          <span v-if="imageErrors[row.id]" class="image-placeholder">图片加载失败</span>
+          <span v-else-if="!firstValidImage(row)" class="image-placeholder">暂无图片</span>
         </template>
       </el-table-column>
       <el-table-column label="描述/内容" min-width="220">
@@ -27,7 +29,9 @@
           <span class="desc">{{ row.description || row.content }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="createTime" label="提交时间" width="170" />
+      <el-table-column label="提交时间" width="170">
+        <template #default="{ row }">{{ formatTime(row.createTime) }}</template>
+      </el-table-column>
       <el-table-column label="操作" width="200" fixed="right">
         <template #default="{ row }">
           <el-button size="small" type="success" @click="pass(row)">通过</el-button>
@@ -55,6 +59,8 @@ import { computed, onMounted, ref } from 'vue'
 import WtPageHeader from '../../components/wt/WtPageHeader.vue'
 import { ElMessage } from 'element-plus'
 import { auditList, auditPass, auditReject } from '../../api/audit'
+import { formatTime } from '../../utils/date'
+import { normalizeImages, firstValidImage } from '../../utils/image'
 
 const type = ref('idle')
 const list = ref([])
@@ -65,6 +71,7 @@ const acting = ref(false)
 const rejectVisible = ref(false)
 const rejectReason = ref('')
 const currentRow = ref(null)
+const imageErrors = ref({})
 
 const titleLabel = computed(() => (type.value === 'post' ? '动态内容' : '标题'))
 
@@ -84,17 +91,6 @@ async function load() {
   }
 }
 
-/** images 为 JSON 数组字符串 */
-function parseImages(json) {
-  try {
-    return JSON.parse(json || '[]')
-  } catch (e) {
-    return []
-  }
-}
-function firstImage(json) {
-  return parseImages(json)[0]
-}
 
 async function pass(row) {
   await auditPass(type.value, row.id)
@@ -128,6 +124,17 @@ onMounted(load)
 </script>
 
 <style scoped>
+.image-placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  min-height: 48px;
+  color: var(--ink-3);
+  font-size: 12px;
+  text-align: center;
+}
+
 .desc {
   display: -webkit-box;
   -webkit-line-clamp: 2;

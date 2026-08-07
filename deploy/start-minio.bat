@@ -22,7 +22,7 @@ REM            deploy\start-minio.bat
 REM
 REM  重要：本脚本设置的账号密码，必须与后端 start-server.bat 中的
 REM        MINIO_ACCESS_KEY / MINIO_SECRET_KEY 一一对应，否则后端上传
-REM        会报签名错误。请在环境变量中配置一致的强凭据。
+REM        会报签名错误。两处默认值均为 admin / 12345678，已对齐。
 REM
 REM  本脚本以 UTF-8 编码保存（无 BOM），配合 chcp 65001 保证中文不乱码。
 REM =====================================================================
@@ -49,9 +49,9 @@ REM ---- 控制台端口。API 端口固定 9000，是 MinIO 默认值，启动�
 if not defined MINIO_CONSOLE_PORT set "MINIO_CONSOLE_PORT=9001"
 
 REM ---- root 账号密码。后端以此作为 accessKey / secretKey 连接 ----
-REM     MinIO 要求 MINIO_ROOT_PASSWORD 长度至少 8 位，部署时请通过环境变量设置强密码。
-if not defined MINIO_ROOT_USER     set "MINIO_ROOT_USER=minioadmin"
-if not defined MINIO_ROOT_PASSWORD set "MINIO_ROOT_PASSWORD=change-me-minio"
+REM     MinIO 要求 MINIO_ROOT_PASSWORD 长度至少 8 位，12345678 恰好满足。
+if not defined MINIO_ROOT_USER     set "MINIO_ROOT_USER=admin"
+if not defined MINIO_ROOT_PASSWORD set "MINIO_ROOT_PASSWORD=12345678"
 
 REM ---------- 2. 环境检查：minio.exe ----------
 if not exist "%MINIO_EXE%" (

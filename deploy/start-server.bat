@@ -67,7 +67,7 @@ if not defined MYSQL_HOST     set "MYSQL_HOST=localhost"
 if not defined MYSQL_PORT     set "MYSQL_PORT=3306"
 if not defined MYSQL_DB       set "MYSQL_DB=ai_campus_platform"
 if not defined MYSQL_USER     set "MYSQL_USER=root"
-if not defined MYSQL_PASSWORD set "MYSQL_PASSWORD=change-me"
+if not defined MYSQL_PASSWORD set "MYSQL_PASSWORD=666666"
 
 REM ---- Redis（无密码时保持 REDIS_PASSWORD 不定义即可） ----
 if not defined REDIS_HOST set "REDIS_HOST=localhost"
@@ -84,11 +84,11 @@ REM    MINIO_BUCKET     : 桶名，程序首次上传时自动创建并设匿名
 REM  覆盖示例：set MINIO_SECRET_KEY=你的新密码
 if not defined MINIO_ENDPOINT   set "MINIO_ENDPOINT=http://localhost:9000"
 if not defined MINIO_ACCESS_KEY set "MINIO_ACCESS_KEY=admin"
-if not defined MINIO_SECRET_KEY set "MINIO_SECRET_KEY=change-me-minio"
+if not defined MINIO_SECRET_KEY set "MINIO_SECRET_KEY=12345678"
 if not defined MINIO_BUCKET     set "MINIO_BUCKET=campus"
 
 REM ---- JWT 签名密钥（生产环境务必替换为 32 位以上随机串） ----
-if not defined JWT_SECRET set "JWT_SECRET=change-me-with-at-least-32-random-characters"
+if not defined JWT_SECRET set "JWT_SECRET=campus-platform-jwt-secret-key-2024-graduation-project-must-be-long-enough"
 
 REM ---- AI 网关（DeepSeek） ----
 REM  配置优先级：ai_config 表非空值 > 本处环境变量 > application.yml 默认值。
@@ -106,7 +106,7 @@ if not defined WX_APPID  set "WX_APPID=wx-placeholder-appid"
 if not defined WX_SECRET set "WX_SECRET=wx-placeholder-secret"
 
 REM ---- 活动签到二维码 HMAC 密钥 ----
-if not defined SIGNIN_SECRET set "SIGNIN_SECRET=change-me-signin-hmac-secret"
+if not defined SIGNIN_SECRET set "SIGNIN_SECRET=campus-activity-signin-hmac-secret"
 
 REM =====================================================================
 REM  4. 关键防护：清除可能污染端口配置的环境变量

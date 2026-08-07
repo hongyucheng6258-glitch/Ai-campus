@@ -7,6 +7,10 @@
     <view class="scan-btn" bindtap="goSignin">签到</view>
   </view>
 
+  <view class="tool-bar">
+    <view class="my-btn" bindtap="goMySignups">我的报名</view>
+  </view>
+
   <!-- 分类筛选 -->
   <scroll-view class="tabs" scroll-x enable-flex>
     <view wx:for="{{categories}}" wx:key="*this"

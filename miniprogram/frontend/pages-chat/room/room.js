@@ -246,11 +246,16 @@ Page({
 
   openContext() {
     const c = this.data.conversation
-    if (!c || !c.contextId) return
+    if (!c || (!c.contextId && c.contextType !== 'post')) return
     const map = {
       idle: '/pages-idle/detail/detail?id=',
       lostfound: '/pages-lostfound/detail/detail?id=',
-      activity: '/pages-activity/detail/detail?id='
+      activity: '/pages-activity/detail/detail?id=',
+      post: '/pages-post/square/square'
+    }
+    if (c.contextType === 'post') {
+      wx.navigateTo({ url: map.post })
+      return
     }
     if (map[c.contextType]) wx.navigateTo({ url: map[c.contextType] + c.contextId })
   }

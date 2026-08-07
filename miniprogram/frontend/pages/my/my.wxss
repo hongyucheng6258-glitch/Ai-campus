@@ -7,12 +7,29 @@
   color: #fff;
 }
 
+.avatar-wrap {
+  position: relative;
+  width: 120rpx;
+  height: 120rpx;
+  flex-shrink: 0;
+}
+
 .profile .avatar {
   width: 120rpx;
   height: 120rpx;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.25);
-  flex-shrink: 0;
+}
+
+.avatar-edit {
+  position: absolute;
+  right: -8rpx;
+  bottom: -4rpx;
+  padding: 4rpx 10rpx;
+  border-radius: 16rpx;
+  background: #fff;
+  color: #236b5d;
+  font-size: 20rpx;
 }
 
 .profile .avatar.placeholder {
@@ -89,6 +106,61 @@
 }
 
 .tabs .tab.active {
+  background: #2f9e8a;
+  color: #fff;
+}
+
+/* 我的预约：买家/卖家二级 Tab */
+.role-tabs {
+  white-space: nowrap;
+  background: #fff;
+  padding: 8rpx 24rpx 16rpx;
+  display: flex;
+}
+
+.role-tabs .role-tab {
+  display: inline-block;
+  padding: 8rpx 32rpx;
+  margin-right: 16rpx;
+  font-size: 26rpx;
+  color: #606266;
+  background: #f3f0ea;
+  border-radius: 32rpx;
+  flex-shrink: 0;
+}
+
+.role-tabs .role-tab.active {
+  background: #2f9e8a;
+  color: #fff;
+}
+
+/* 预约操作按钮区 */
+.ops {
+  display: flex;
+  gap: 20rpx;
+  padding: 0 24rpx 24rpx;
+}
+
+.ops-btn {
+  flex: 1;
+  margin: 0;
+  height: 68rpx;
+  line-height: 68rpx;
+  border-radius: 34rpx;
+  font-size: 27rpx;
+}
+
+.ops-btn::after {
+  border: none;
+}
+
+.ops-btn--reject {
+  background: #f3f0ea;
+  color: #606266;
+}
+
+.ops-btn--accept,
+.ops-btn--primary {
   background: #2f9e8a;
   color: #fff;
 }

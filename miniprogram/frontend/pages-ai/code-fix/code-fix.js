@@ -1,6 +1,7 @@
-// AI 代码纠错（分包 pages-ai）：POST /ai/code/fix { code, language, extra } → { answer }
+// AI 代码纠错（分包 pages-ai）：POST /ai/code-fix { code, language, extra } → 回答文本
 const { request } = require('../../utils/request')
 const { requireLogin } = require('../../utils/auth')
+const { getAiAnswer } = require('../../utils/ai-response')
 
 /** 支持的编程语言（与后端提示词模板占位一致，传语言名字符串即可） */
 const LANGUAGES = ['Java', 'Python', 'JavaScript', 'C', 'C++', 'Go', 'SQL']
@@ -68,7 +69,7 @@ Page({
     wx.showLoading({ title: 'AI 分析中…', mask: true })
     try {
       const data = await request({
-        url: '/ai/code/fix',
+        url: '/ai/code-fix',
         method: 'POST',
         data: {
           code,
@@ -76,7 +77,7 @@ Page({
           extra: (this.data.extra || '').trim()
         }
       })
-      this.setData({ answer: data.answer || '（AI 未返回内容）' })
+      this.setData({ answer: getAiAnswer(data) || '（AI 未返回内容）' })
     } catch (e) {
       this.setData({ answer: '' })
     } finally {

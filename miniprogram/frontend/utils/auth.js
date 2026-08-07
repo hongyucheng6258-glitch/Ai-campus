@@ -1,5 +1,6 @@
 // 登录态工具：token 存 storage（共享约定 #3）
 const { request } = require('./request')
+const { normalizeUserInfo } = require('./avatar')
 
 function getToken() {
   return wx.getStorageSync('token') || ''
@@ -7,9 +8,10 @@ function getToken() {
 
 function setLogin(token, userInfo) {
   wx.setStorageSync('token', token)
-  wx.setStorageSync('userInfo', userInfo)
+  const normalizedUserInfo = normalizeUserInfo(userInfo)
+  wx.setStorageSync('userInfo', normalizedUserInfo)
   getApp().globalData.token = token
-  getApp().globalData.userInfo = userInfo
+  getApp().globalData.userInfo = normalizedUserInfo
 }
 
 function getUserInfo() {

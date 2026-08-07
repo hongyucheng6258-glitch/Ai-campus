@@ -8,6 +8,8 @@ import com.campus.platform.config.MinioConfig;
 import io.minio.BucketExistsArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
+import io.minio.GetObjectArgs;
+import io.minio.GetObjectResponse;
 import io.minio.PutObjectArgs;
 import io.minio.SetBucketPolicyArgs;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
 /**
@@ -59,6 +62,29 @@ public class MinioUtils {
             throw new BizException(ResultCode.SYSTEM_ERROR, "文件上传失败，请稍后重试");
         }
     }
+
+    /** 通过后端读取对象，供小程序使用同源图片地址。 */
+    public AssetData readPublicAsset(String bucket, String objectName) {
+        if (!minioConfig.getBucket().equals(bucket) || objectName == null || objectName.isBlank()
+                || objectName.contains("..") || objectName.startsWith("/")) {
+            throw new BizException(ResultCode.NOT_FOUND, "资源不存在");
+        }
+        try (GetObjectResponse response = minioClient.getObject(GetObjectArgs.builder()
+                .bucket(bucket)
+                .object(objectName)
+                .build());
+             InputStream input = response;
+             ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            input.transferTo(output);
+            String contentType = response.headers().get("Content-Type");
+            return new AssetData(output.toByteArray(), contentType == null ? "application/octet-stream" : contentType);
+        } catch (Exception e) {
+            log.warn("读取 MinIO 资源失败: {}/{}", bucket, objectName, e);
+            throw new BizException(ResultCode.NOT_FOUND, "资源不存在");
+        }
+    }
+
+    public record AssetData(byte[] bytes, String contentType) {}
 
     /** 确保 bucket 存在并设置匿名读策略（供图片回显，架构设计第10章假设3） */
     private void ensureBucket() throws Exception {

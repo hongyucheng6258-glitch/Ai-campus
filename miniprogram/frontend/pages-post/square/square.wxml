@@ -1,0 +1,38 @@
+<view class="page">
+  <view wx:for="{{list}}" wx:key="id" class="post-card">
+    <view class="post-header" bindtap="goDetail" data-id="{{item.id}}">
+      <image wx:if="{{item.avatar}}" class="avatar" src="{{item.avatar}}" mode="aspectFill" />
+      <view wx:else class="avatar placeholder">{{item.nickname[0]}}</view>
+      <view class="user-info">
+        <view class="nickname">{{item.nickname}}</view>
+        <view class="time">{{item.time}}</view>
+      </view>
+      <view class="chat-btn" catchtap="goChat" data-index="{{index}}">私信</view>
+    </view>
+
+    <view class="post-content" bindtap="goDetail" data-id="{{item.id}}">{{item.content}}</view>
+
+    <view wx:if="{{item.images.length}}" class="image-grid grid-{{item.images.length === 1 ? 'one' : 'multi'}}">
+      <image wx:for="{{item.images}}" wx:for-item="img" wx:for-index="idx" wx:key="*this"
+             class="grid-img" src="{{img}}" mode="aspectFill"
+             catchtap="previewImages" data-current="{{img}}" data-urls="{{item.images}}" />
+    </view>
+
+    <view class="post-footer">
+      <view class="action {{item.liked ? 'liked' : ''}}" catchtap="toggleLike" data-index="{{index}}">
+        <text class="icon">{{item.liked ? '❤️' : '🤍'}}</text>
+        <text>{{item.likeCount}}</text>
+      </view>
+      <view class="action" catchtap="goDetail" data-id="{{item.id}}">
+        <text class="icon">💬</text>
+        <text>{{item.commentCount}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{inited && list.length === 0}}" class="empty">还没有动态，快来发布第一条吧</view>
+  <view wx:if="{{loading}}" class="loading-tip">加载中…</view>
+  <view wx:elif="{{!hasMore && list.length > 0}}" class="loading-tip">没有更多了</view>
+
+  <view class="fab" bindtap="goPublish">＋</view>
+</view>

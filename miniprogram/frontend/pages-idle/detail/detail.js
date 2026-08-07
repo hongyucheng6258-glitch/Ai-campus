@@ -92,9 +92,61 @@ Page({
   /** 去评价（已完成的预约） */
   goReview() {
     const d = this.data.detail
-    if (!d || !d.myAppointmentId) return
+    const appointmentId = d && (d.reviewAppointmentId || d.myAppointmentId)
+    if (!d || d.reviewed || !appointmentId) return
     wx.navigateTo({
-      url: `/pages-idle/review/review?appointmentId=${d.myAppointmentId}&title=${encodeURIComponent(d.title || '')}`
+      url: `/pages-idle/review/review?appointmentId=${appointmentId}&title=${encodeURIComponent(d.title || '')}`
+    })
+  },
+
+  /** 卖家处理预约：接受/拒绝（PUT /idle/appoint/{id}/handle） */
+  handleAppoint(e) {
+    const d = this.data.detail
+    const pending = d && d.pendingAppointment
+    if (!pending || !pending.appointmentId) return
+    const accept = e.currentTarget.dataset.accept === true ||
+      e.currentTarget.dataset.accept === 'true'
+    wx.showModal({
+      title: '处理预约',
+      content: accept ? '确定接受该预约吗？' : '确定拒绝该预约吗？',
+      success: async (res) => {
+        if (!res.confirm) return
+        try {
+          await request({
+            url: `/idle/appoint/${pending.appointmentId}/handle`,
+            method: 'PUT',
+            data: { accept }
+          })
+          wx.showToast({ title: accept ? '已接受' : '已拒绝', icon: 'success' })
+          this.loadDetail()
+        } catch (err) {
+          // 错误已统一提示
+        }
+      }
+    })
+  },
+
+  /** 卖家确认完成互换（PUT /idle/appoint/{id}/finish） */
+  finishAppoint() {
+    const d = this.data.detail
+    const pending = d && d.pendingAppointment
+    if (!pending || !pending.appointmentId) return
+    wx.showModal({
+      title: '确认完成',
+      content: '确认这次互换已经完成吗？确认后将进入互评环节。',
+      success: async (res) => {
+        if (!res.confirm) return
+        try {
+          await request({
+            url: `/idle/appoint/${pending.appointmentId}/finish`,
+            method: 'PUT'
+          })
+          wx.showToast({ title: '已完成', icon: 'success' })
+          this.loadDetail()
+        } catch (err) {
+          // 错误已统一提示
+        }
+      }
     })
   },
 

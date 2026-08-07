@@ -2,10 +2,13 @@
   "pages": [
     "pages/index/index",
     "pages/login/login",
+    "pages/register/register",
     "pages/notice/list/list",
     "pages/notice/detail/detail",
     "pages/message/message",
-    "pages/my/my"
+    "pages/my/my",
+    "pages/settings/backend/backend",
+    "pages/profile/profile"
   ],
   "subPackages": [
     {
@@ -56,6 +59,15 @@
       "pages": [
         "conversations/conversations",
         "room/room"
+      ]
+    },
+    {
+      "root": "pages-post",
+      "name": "校园动态",
+      "pages": [
+        "square/square",
+        "publish/publish",
+        "detail/detail"
       ]
     }
   ],

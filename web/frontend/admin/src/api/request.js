@@ -1,6 +1,9 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '../router'
+import { shouldAttachAdminToken } from './auth-token'
+
+export { shouldAttachAdminToken }
 
 /**
  * axios 封装（管理端）：统一解包 R，401 跳登录。
@@ -12,7 +15,7 @@ const request = axios.create({
 
 request.interceptors.request.use((config) => {
   const token = localStorage.getItem('admin_token')
-  if (token) {
+  if (token && shouldAttachAdminToken(config.url)) {
     config.headers.Authorization = `Bearer ${token}`
   }
   return config

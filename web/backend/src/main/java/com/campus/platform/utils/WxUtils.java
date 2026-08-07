@@ -34,10 +34,11 @@ public class WxUtils {
         if (StrUtil.isBlank(code)) {
             throw new BizException(ResultCode.BAD_REQUEST, "code 不能为空");
         }
-        // 开发环境占位 AppID 时返回模拟 openid，便于无真实小程序账号联调
+        // 开发环境占位 AppID 时返回稳定的模拟 openid。
+        // wx.login 每次产生的 code 都不同，不能用 code 生成身份，否则每次登录都会成为新用户并重复绑定。
         if (appid.startsWith("wx-placeholder")) {
-            log.warn("小程序 appid 为占位符，返回模拟 openid（仅开发联调用）");
-            return "mock_openid_" + code.hashCode();
+            log.warn("小程序 appid 为占位符，返回稳定模拟 openid（仅开发联调用）");
+            return "mock_openid_local_developer";
         }
         String url = StrUtil.format(
                 "https://api.weixin.qq.com/sns/jscode2session?appid={}&secret={}&js_code={}&grant_type=authorization_code",

@@ -11,7 +11,7 @@ const { requireLogin } = require('../../utils/auth')
  */
 function joinDateTime(date, time) {
   if (!date) return null
-  return `${date} ${time || '00:00'}:00`
+  return `${date}T${time || '00:00'}:00`
 }
 
 Page({
