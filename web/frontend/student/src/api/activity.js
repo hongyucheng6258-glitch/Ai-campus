@@ -34,5 +34,5 @@ export function myActivities(params) {
 }
 
 export function mySignups(params) {
-  return request.get('/activity/my/signups', { params })
+  return request.get('/activity/my/signup', { params })
 }

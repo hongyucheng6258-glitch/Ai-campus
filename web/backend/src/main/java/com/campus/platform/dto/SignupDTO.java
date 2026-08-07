@@ -1,5 +1,6 @@
 package com.campus.platform.dto;
 
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 /**
@@ -8,5 +9,6 @@ import lombok.Data;
 @Data
 public class SignupDTO {
 
+    @Size(max = 255, message = "报名说明最长255字")
     private String remark;
 }

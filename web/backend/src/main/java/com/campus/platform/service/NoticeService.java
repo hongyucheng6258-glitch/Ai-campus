@@ -63,6 +63,8 @@ public class NoticeService {
         vo.setActivities(activityMapper.selectList(new LambdaQueryWrapper<Activity>()
                 .eq(Activity::getAuditStatus, Constants.AUDIT_PASS)
                 .eq(Activity::getStatus, Constants.ACTIVITY_SIGNING)
+                // 已结束的活动不再计入首页推荐
+                .and(w -> w.isNull(Activity::getEndTime).or().gt(Activity::getEndTime, java.time.LocalDateTime.now()))
                 .orderByDesc(Activity::getId)
                 .last("LIMIT 3")));
         vo.setLostFounds(lostFoundMapper.selectList(new LambdaQueryWrapper<LostFound>()

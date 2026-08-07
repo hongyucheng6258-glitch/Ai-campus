@@ -16,8 +16,8 @@
           <h2>{{ act.title }}</h2>
           <div class="meta">
             <el-tag v-if="act.category">{{ act.category }}</el-tag>
-            <el-tag :type="['success','warning','info','danger'][act.status]">
-              {{ ['报名中','已满','已结束','已下架'][act.status] }}
+            <el-tag :type="displayType(act.displayStatus)">
+              {{ act.displayStatusText || ['报名中', '已满', '已结束', '已下架'][act.status] || '报名中' }}
             </el-tag>
           </div>
           <div class="kv">📍 地点：{{ act.location || '待定' }}</div>
@@ -38,8 +38,8 @@
             <!-- 参与者视角 -->
             <template v-else>
               <el-button v-if="act.mySignupStatus === null || act.mySignupStatus === undefined"
-                         type="primary" size="large" :disabled="act.status !== 0" @click="signupVisible = true">
-                我要报名
+                         type="primary" size="large" :disabled="!act.canSignup" @click="signupVisible = true">
+                {{ act.canSignup ? '我要报名' : (act.signupDisabledReason || '不可报名') }}
               </el-button>
               <el-tag v-else-if="act.mySignupStatus === 0" type="warning" size="large">报名待审批</el-tag>
               <el-tag v-else-if="act.mySignupStatus === 1" type="success" size="large">
@@ -149,6 +149,11 @@ const qrVisible = ref(false)
 const qrContent = ref('')
 const qrImage = ref('')
 const reportVisible = ref(false)
+
+/** 有效展示状态 → 标签颜色：0报名中 1已满员 2报名已截止 3进行中 4已结束 5已下架 */
+function displayType(s) {
+  return ['success', 'warning', 'info', 'info', 'info', 'danger'][s ?? 0] || 'info'
+}
 const reportReasonType = ref('违规')
 const reportReason = ref('')
 

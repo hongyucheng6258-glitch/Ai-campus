@@ -21,4 +21,17 @@ public class ActivityVO extends Activity {
 
     /** 已通过报名数 */
     private Long memberCount;
+
+    // ---------- 有效展示状态（按时间动态计算，不落库） ----------
+
+    /** 有效展示状态：0报名中 1已满员 2报名已截止 3活动进行中 4已结束 5已下架 */
+    private Integer displayStatus;
+
+    private String displayStatusText;
+
+    /** 当前是否可报名 */
+    private Boolean canSignup;
+
+    /** 不可报名原因（可报名时为空） */
+    private String signupDisabledReason;
 }

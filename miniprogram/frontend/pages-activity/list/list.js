@@ -8,9 +8,9 @@ const { goMyTab } = require('../../utils/tab-navigation')
 /** 活动分类 */
 const CATEGORIES = ['全部', '学习竞赛', '文体活动', '志愿公益', '社团招新', '讲座沙龙', '其他']
 
-/** 活动状态文案（activity.status 0报名中1已满2已结束3已下架） */
-const STATUS_TEXT = { 0: '报名中', 1: '已满员', 2: '已结束', 3: '已下架' }
-const STATUS_TYPE = { 0: 'success', 1: 'warning', 2: '', 3: 'danger' }
+/** 活动状态文案（后端 displayStatus：0报名中 1已满员 2报名已截止 3活动进行中 4已结束 5已下架） */
+const STATUS_TEXT = { 0: '报名中', 1: '已满员', 2: '报名已截止', 3: '活动进行中', 4: '已结束', 5: '已下架' }
+const STATUS_TYPE = { 0: 'success', 1: 'warning', 2: '', 3: '', 4: '', 5: 'danger' }
 
 Page({
   data: {
@@ -73,8 +73,8 @@ Page({
           title: item.title || '',
           desc: '📍 ' + (item.location || '地点待定') + ' · 已报名 ' + (item.memberCount || 0) + limit + ' 人',
           extra: '开始：' + (shortTime(item.startTime) || '待定'),
-          tagText: STATUS_TEXT[item.status] || '',
-          tagType: STATUS_TYPE[item.status] || ''
+          tagText: item.displayStatusText || STATUS_TEXT[item.displayStatus ?? item.status] || '',
+          tagType: STATUS_TYPE[item.displayStatus ?? item.status] || ''
         }
       })
       const list = reset ? rows : this.data.list.concat(rows)

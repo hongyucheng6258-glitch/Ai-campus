@@ -37,6 +37,14 @@ public final class Constants {
     public static final int ACTIVITY_ENDED = 2;
     public static final int ACTIVITY_OFF = 3;
 
+    /** 活动有效展示状态（VO 层按时间动态计算，不落库） */
+    public static final int ACT_DISPLAY_SIGNING = 0;        // 报名中
+    public static final int ACT_DISPLAY_FULL = 1;           // 已满员
+    public static final int ACT_DISPLAY_DEADLINE_PASSED = 2; // 报名已截止
+    public static final int ACT_DISPLAY_ONGOING = 3;        // 活动进行中
+    public static final int ACT_DISPLAY_ENDED = 4;          // 已结束
+    public static final int ACT_DISPLAY_OFF = 5;            // 已下架
+
     /** 活动成员状态 */
     public static final int MEMBER_PENDING = 0;
     public static final int MEMBER_APPROVED = 1;

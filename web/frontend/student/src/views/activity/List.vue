@@ -27,7 +27,13 @@
         <template #footer>
           <div class="card-footer">
             <span>📍 {{ a.location || '地点待定' }}</span>
+            <span class="act-status" :class="statusCls(a.displayStatus)">
+              {{ a.displayStatusText || ['报名中', '已满', '已结束', '已下架'][a.status] || '报名中' }}
+            </span>
+          </div>
+          <div class="card-footer sub">
             <span>{{ a.memberCount }}{{ a.maxMembers ? '/' + a.maxMembers : '' }} 人已报名</span>
+            <span v-if="a.signupDeadline">截止 {{ formatTime(a.signupDeadline) }}</span>
           </div>
         </template>
       </ItemCard>
@@ -62,6 +68,16 @@ const list = ref([])
 const pageNum = ref(1)
 const total = ref(0)
 const loading = ref(false)
+
+/** 有效展示状态 → 标签颜色：0报名中 1已满员 2报名已截止 3进行中 4已结束 5已下架 */
+function statusCls(s) {
+  return ['st-signing', 'st-full', 'st-closed', 'st-closed', 'st-closed', 'st-off'][s ?? 0] || 'st-closed'
+}
+
+function formatTime(t) {
+  if (!t) return ''
+  return String(t).slice(0, 16)
+}
 
 function search() {
   pageNum.value = 1
@@ -111,5 +127,23 @@ onMounted(load)
   justify-content: space-between;
   font-size: 12px;
   color: var(--ink-3);
+}
+.card-footer.sub {
+  margin-top: 4px;
+}
+.act-status {
+  font-weight: 600;
+}
+.st-signing {
+  color: #67c23a;
+}
+.st-full {
+  color: #e6a23c;
+}
+.st-closed {
+  color: #909399;
+}
+.st-off {
+  color: #f56c6c;
 }
 </style>

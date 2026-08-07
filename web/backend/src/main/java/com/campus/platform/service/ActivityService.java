@@ -28,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -62,6 +63,10 @@ public class ActivityService {
                 && dto.getSignupDeadline().isAfter(dto.getStartTime())) {
             throw new BizException(ResultCode.BAD_REQUEST, "报名截止时间不能晚于活动开始时间");
         }
+        if (dto.getSignupDeadline() != null && dto.getEndTime() != null
+                && dto.getSignupDeadline().isAfter(dto.getEndTime())) {
+            throw new BizException(ResultCode.BAD_REQUEST, "报名截止时间不能晚于活动结束时间");
+        }
         Activity activity = new Activity();
         BeanUtil.copyProperties(dto, activity);
         activity.setUserId(userId);
@@ -73,12 +78,17 @@ public class ActivityService {
         return activity;
     }
 
-    /** 列表检索（公开，仅审核通过） */
+    /** 列表检索（公开，仅审核通过；已结束的活动不展示） */
     public PageResult<ActivityVO> list(String keyword, String category, int pageNum, int pageSize) {
+        LocalDateTime now = LocalDateTime.now();
         Page<Activity> page = activityMapper.selectPage(new Page<>(pageNum, pageSize),
                 new LambdaQueryWrapper<Activity>()
                         .eq(Activity::getAuditStatus, Constants.AUDIT_PASS)
-                        .in(Activity::getStatus, Constants.ACTIVITY_SIGNING, Constants.ACTIVITY_FULL)
+                        .and(w -> w.eq(Activity::getStatus, Constants.ACTIVITY_SIGNING)
+                                .or().eq(Activity::getStatus, Constants.ACTIVITY_FULL))
+                        // 时间已结束的活动不再展示（endTime 为空视为长期活动）
+                        .and(w -> w.isNull(Activity::getEndTime)
+                                .or().gt(Activity::getEndTime, now))
                         .and(StrUtil.isNotBlank(keyword), w -> w
                                 .like(Activity::getTitle, keyword)
                                 .or().like(Activity::getDescription, keyword))
@@ -117,15 +127,12 @@ public class ActivityService {
 
     /**
      * 报名（审批制，联合唯一索引防重复报名）。
+     * 时间/人数/下架等校验统一走 checkSignAllowed（最终安全边界）。
      */
     public void signup(Long userId, Long activityId, SignupDTO dto) {
-        Activity activity = checkSignable(activityId);
+        Activity activity = checkSignAllowed(activityId);
         if (activity.getUserId().equals(userId)) {
             throw new BizException(ResultCode.BAD_REQUEST, "不能报名自己发布的活动");
-        }
-        if (activity.getSignupDeadline() != null
-                && activity.getSignupDeadline().isBefore(java.time.LocalDateTime.now())) {
-            throw new BizException(ResultCode.BAD_REQUEST, "报名已截止");
         }
         Long exist = memberMapper.selectCount(new LambdaQueryWrapper<ActivityMember>()
                 .eq(ActivityMember::getActivityId, activityId)
@@ -138,7 +145,12 @@ public class ActivityService {
         member.setUserId(userId);
         member.setRemark(dto.getRemark());
         member.setStatus(Constants.MEMBER_PENDING);
-        memberMapper.insert(member);
+        try {
+            memberMapper.insert(member);
+        } catch (org.springframework.dao.DuplicateKeyException e) {
+            // 并发下唯一索引兜底：重复报名转友好提示
+            throw new BizException(ResultCode.DUPLICATE_OPERATION, "你已报名该活动，请等待审批");
+        }
 
         User applicant = userMapper.selectById(userId);
         messageService.send(activity.getUserId(), Constants.MSG_INTERACT,
@@ -187,6 +199,13 @@ public class ActivityService {
         Activity activity = checkPublisher(userId, member.getActivityId());
         if (member.getStatus() != Constants.MEMBER_PENDING) {
             throw new BizException(ResultCode.DUPLICATE_OPERATION, "该报名已审批");
+        }
+        // 活动已结束/已下架时不允许再审批（防止与定时状态清理竞争时误放行）
+        if (activity.getStatus() == Constants.ACTIVITY_OFF) {
+            throw new BizException(ResultCode.BAD_REQUEST, "活动已下架，无法审批");
+        }
+        if (activity.getEndTime() != null && !LocalDateTime.now().isBefore(activity.getEndTime())) {
+            throw new BizException(ResultCode.BAD_REQUEST, "活动已结束，无法审批");
         }
         // 人数上限校验
         if (approve && activity.getMaxMembers() != null && activity.getMaxMembers() > 0) {
@@ -285,16 +304,38 @@ public class ActivityService {
 
     // ---------- 内部方法 ----------
 
-    private Activity checkSignable(Long activityId) {
+    /**
+     * 报名资格最终校验（安全边界，不能只依赖前端按钮）。
+     * 顺序：不存在/未审核 → 已下架 → 已结束 → 报名已截止 → 已开始 → 人数已满。
+     * signupDeadline 为空时，默认截止时间 = startTime（活动开始后不允许新报名）。
+     */
+    private Activity checkSignAllowed(Long activityId) {
         Activity activity = activityMapper.selectById(activityId);
         if (activity == null || activity.getAuditStatus() != Constants.AUDIT_PASS) {
             throw new BizException(ResultCode.NOT_FOUND, "活动不存在或未通过审核");
         }
-        if (activity.getStatus() == Constants.ACTIVITY_FULL) {
-            throw new BizException(ResultCode.BAD_REQUEST, "活动人数已满");
+        if (activity.getStatus() == Constants.ACTIVITY_OFF) {
+            throw new BizException(ResultCode.BAD_REQUEST, "活动已下架");
         }
-        if (activity.getStatus() != Constants.ACTIVITY_SIGNING) {
-            throw new BizException(ResultCode.BAD_REQUEST, "活动已结束或已下架");
+        LocalDateTime now = LocalDateTime.now();
+        if (activity.getEndTime() != null && !now.isBefore(activity.getEndTime())) {
+            throw new BizException(ResultCode.BAD_REQUEST, "活动已结束");
+        }
+        if (activity.getSignupDeadline() != null && !now.isBefore(activity.getSignupDeadline())) {
+            throw new BizException(ResultCode.BAD_REQUEST, "报名已截止");
+        }
+        // signupDeadline 为空 → 默认截止为 startTime
+        if (activity.getStartTime() != null && !now.isBefore(activity.getStartTime())) {
+            throw new BizException(ResultCode.BAD_REQUEST, "活动已开始，无法报名");
+        }
+        // 人数已满（审批通过数达到上限）
+        if (activity.getMaxMembers() != null && activity.getMaxMembers() > 0) {
+            Long approved = memberMapper.selectCount(new LambdaQueryWrapper<ActivityMember>()
+                    .eq(ActivityMember::getActivityId, activityId)
+                    .eq(ActivityMember::getStatus, Constants.MEMBER_APPROVED));
+            if (approved >= activity.getMaxMembers()) {
+                throw new BizException(ResultCode.BAD_REQUEST, "活动人数已满");
+            }
         }
         return activity;
     }
@@ -320,6 +361,60 @@ public class ActivityService {
         vo.setMemberCount(memberMapper.selectCount(new LambdaQueryWrapper<ActivityMember>()
                 .eq(ActivityMember::getActivityId, activity.getId())
                 .eq(ActivityMember::getStatus, Constants.MEMBER_APPROVED)));
+        // 按当前时间动态计算有效展示状态（不落库，避免时间驱动状态不一致）
+        DisplayInfo info = resolveDisplayStatus(activity, LocalDateTime.now(), vo.getMemberCount());
+        vo.setDisplayStatus(info.status);
+        vo.setDisplayStatusText(info.text);
+        vo.setCanSignup(info.canSignup);
+        vo.setSignupDisabledReason(info.reason);
         return vo;
+    }
+
+    // ---------- 活动有效状态计算（统一规则，展示与报名共用） ----------
+
+    /**
+     * 统一状态计算（展示层，不依赖定时任务）：
+     * <pre>
+     * 已下架(5) → 已结束(4) → 已满员(1) → 报名已截止(2) → 活动进行中(3) → 报名中(0)
+     * </pre>
+     * 报名截止时间优先用 signupDeadline；为空时默认用 startTime（活动开始后不可报名）。
+     */
+    static DisplayInfo resolveDisplayStatus(Activity activity, LocalDateTime now, long approvedCount) {
+        int dbStatus = activity.getStatus() == null ? Constants.ACTIVITY_SIGNING : activity.getStatus();
+        // 1. 下架（数据库硬状态优先）
+        if (dbStatus == Constants.ACTIVITY_OFF) {
+            return new DisplayInfo(Constants.ACT_DISPLAY_OFF, "已下架", false, "活动已下架");
+        }
+        // 2. 数据库已结束
+        if (dbStatus == Constants.ACTIVITY_ENDED) {
+            return new DisplayInfo(Constants.ACT_DISPLAY_ENDED, "已结束", false, "活动已结束");
+        }
+        // 3. 当前时间已过结束时间
+        if (activity.getEndTime() != null && !now.isBefore(activity.getEndTime())) {
+            return new DisplayInfo(Constants.ACT_DISPLAY_ENDED, "已结束", false, "活动已结束");
+        }
+        // 4. 人数已满
+        if (activity.getMaxMembers() != null && activity.getMaxMembers() > 0
+                && approvedCount >= activity.getMaxMembers()) {
+            return new DisplayInfo(Constants.ACT_DISPLAY_FULL, "已满员", false, "活动人数已满");
+        }
+        // 5. 报名截止
+        if (activity.getSignupDeadline() != null && !now.isBefore(activity.getSignupDeadline())) {
+            return new DisplayInfo(Constants.ACT_DISPLAY_DEADLINE_PASSED, "报名已截止", false, "报名已截止");
+        }
+        // 6. 活动已开始（signupDeadline 为空时默认截止=startTime）
+        if (activity.getStartTime() != null && !now.isBefore(activity.getStartTime())) {
+            return new DisplayInfo(Constants.ACT_DISPLAY_ONGOING, "活动进行中", false, "活动已开始，无法报名");
+        }
+        return new DisplayInfo(Constants.ACT_DISPLAY_SIGNING, "报名中", true, null);
+    }
+
+    /** 展示状态计算结果（静态内部类，便于单元测试） */
+    @lombok.AllArgsConstructor
+    static class DisplayInfo {
+        final int status;
+        final String text;
+        final boolean canSignup;
+        final String reason;
     }
 }

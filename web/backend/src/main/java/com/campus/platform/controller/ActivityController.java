@@ -35,7 +35,9 @@ public class ActivityController {
             @RequestParam(required = false) String category,
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "10") Integer pageSize) {
-        return R.ok(activityService.list(keyword, category, pageNum, pageSize));
+        // 匿名公开接口：限制分页大小，防止一次性拉全表
+        int capped = Math.min(pageSize == null ? 10 : pageSize, 50);
+        return R.ok(activityService.list(keyword, category, pageNum, capped));
     }
 
     @GetMapping("/my")

@@ -63,8 +63,8 @@ Page({
       this.setData({
         detail: data,
         images,
-        statusText: STATUS_TEXT[data.status] || '',
-        statusType: STATUS_TYPE[data.status] || '',
+        statusText: data.displayStatusText || STATUS_TEXT[data.status] || '',
+        statusType: STATUS_TYPE[data.displayStatus ?? data.status] || '',
         startTimeText: shortTime(data.startTime) || '待定',
         endTimeText: shortTime(data.endTime) || '待定',
         deadlineText: shortTime(data.signupDeadline) || '不限',
@@ -101,8 +101,8 @@ Page({
       wx.showToast({ title: '不能报名自己发起的活动', icon: 'none' })
       return
     }
-    if (d.status !== 0) {
-      wx.showToast({ title: '该活动已停止报名', icon: 'none' })
+    if (d.canSignup === false) {
+      wx.showToast({ title: d.signupDisabledReason || '该活动已停止报名', icon: 'none' })
       return
     }
     wx.navigateTo({
