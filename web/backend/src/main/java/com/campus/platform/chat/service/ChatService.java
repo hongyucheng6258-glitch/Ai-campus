@@ -205,7 +205,10 @@ public class ChatService {
             if (sensitiveWordService.contains(dto.getContent())) throw new BizException(ResultCode.SENSITIVE_WORD);
             return null;
         }
-        return uploadResourceService.requireOwnedImage(senderId, dto.getContent().trim());
+        String imageUrl = dto.getContent().trim();
+        return dto.getResourceId() == null
+                ? uploadResourceService.requireOwnedImage(senderId, imageUrl)
+                : uploadResourceService.requireOwnedImage(senderId, dto.getResourceId(), imageUrl);
     }
 
     private void restoreMember(Long conversationId, Long userId) {

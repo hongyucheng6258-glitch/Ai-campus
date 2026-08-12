@@ -13,10 +13,17 @@ public class UploadResourceService {
     private final UploadResourceMapper mapper;
 
     public UploadResource requireOwnedImage(Long ownerUserId, String url) {
-        UploadResource resource = mapper.findByUrl(url);
+        return requireOwnedImage(ownerUserId, null, url);
+    }
+
+    public UploadResource requireOwnedImage(Long ownerUserId, Long resourceId, String url) {
+        UploadResource resource = resourceId == null ? mapper.findByUrl(url) : mapper.selectById(resourceId);
         if (resource == null || !ownerUserId.equals(resource.getOwnerUserId()) ||
                 !"image".equals(resource.getResourceType())) {
             throw new BizException(ResultCode.BAD_REQUEST, "图片资源不存在或不属于当前用户");
+        }
+        if (resourceId != null && !url.equals(resource.getResourceUrl())) {
+            throw new BizException(ResultCode.BAD_REQUEST, "图片资源内容不匹配");
         }
         if (resource.getBizType() != null) {
             throw new BizException(ResultCode.BAD_REQUEST, "图片资源已被使用");

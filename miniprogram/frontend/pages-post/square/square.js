@@ -1,7 +1,7 @@
 const { request } = require('../../utils/request')
 const { requireLogin } = require('../../utils/auth')
 const { fromNow, parseImages } = require('../../utils/format')
-const { normalizeAssetUrl } = require('../../utils/avatar')
+const { normalizeAssetUrl, getAppBaseUrl } = require('../../utils/avatar')
 const startChat = require('../../utils/start-chat')
 
 Page({
@@ -12,7 +12,8 @@ Page({
     total: 0,
     hasMore: true,
     loading: false,
-    inited: false
+    inited: false,
+    keyword: ''
   },
 
   onShow() {
@@ -29,12 +30,30 @@ Page({
     }
   },
 
+  onSearchInput(e) {
+    this.setData({ keyword: e.detail.value })
+  },
+
+  onSearch() {
+    this.setData({ list: [], pageNum: 1, hasMore: true, inited: false })
+    this.loadList(true)
+  },
+
+  onClearSearch() {
+    if (!this.data.keyword) return
+    this.setData({ keyword: '', list: [], pageNum: 1, hasMore: true, inited: false })
+    this.loadList(true)
+  },
+
   async loadList(reset) {
     if (this.data.loading) return
     const pageNum = reset ? 1 : this.data.pageNum + 1
     this.setData({ loading: true })
     try {
-      const data = await request({ url: '/post/list', data: { pageNum, pageSize: this.data.pageSize } })
+      const params = { pageNum, pageSize: this.data.pageSize }
+      const kw = (this.data.keyword || '').trim()
+      if (kw) params.keyword = kw
+      const data = await request({ url: '/post/list', data: params })
       const rows = (data.list || []).map((item) => this.normalize(item))
       const list = reset ? rows : this.data.list.concat(rows)
       this.setData({
@@ -57,7 +76,7 @@ Page({
       id: item.id,
       userId: item.userId,
       nickname: item.nickname || '校园用户',
-      avatar: normalizeAssetUrl(item.avatar, getApp().globalData.baseUrl),
+      avatar: normalizeAssetUrl(item.avatar, getAppBaseUrl()),
       content: item.content || '',
       images,
       likeCount: item.likeCount || 0,

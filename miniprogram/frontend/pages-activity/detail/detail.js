@@ -8,8 +8,8 @@ const { requireLogin } = require('../../utils/auth')
 const startChat = require('../../utils/start-chat')
 
 /** 活动状态文案 */
-const STATUS_TEXT = { 0: '报名中', 1: '已满员', 2: '已结束', 3: '已下架' }
-const STATUS_TYPE = { 0: 'success', 1: 'warning', 2: '', 3: 'danger' }
+const STATUS_TEXT = { 0: '报名中', 1: '已满员', 2: '报名已截止', 3: '活动进行中', 4: '已结束', 5: '已下架' }
+const STATUS_TYPE = { 0: 'success', 1: 'warning', 2: '', 3: '', 4: '', 5: 'danger' }
 
 /** 报名状态文案（Constants.MEMBER_*） */
 const MEMBER_TEXT = { 0: '待审批', 1: '已通过', 2: '未通过' }
@@ -114,6 +114,21 @@ Page({
   goSignin() {
     if (!requireLogin()) return
     wx.navigateTo({ url: '/pages-activity/signin/signin' })
+  },
+
+  /** 更多操作：联系发起人 / 扫码签到（ActionSheet 收拢，避免窄屏挤压） */
+  moreActions() {
+    if (!requireLogin()) return
+    wx.showActionSheet({
+      itemList: ['联系发起人', '扫码签到'],
+      success: (res) => {
+        if (res.tapIndex === 0) {
+          this.contactPublisher()
+        } else if (res.tapIndex === 1) {
+          this.goSignin()
+        }
+      }
+    })
   },
 
   /** 发布者：加载报名名单 */

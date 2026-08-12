@@ -33,7 +33,7 @@
 
   <view wx:if="{{answer}}" class="card">
     <view class="sec-title">📝 复习提纲</view>
-    <text class="answer" selectable>{{answer}}</text>
+    <rich-text class="answer" nodes="{{answerHtml}}" />
     <button class="btn-plain copy" size="mini" bindtap="copyAnswer">复制提纲</button>
   </view>
 

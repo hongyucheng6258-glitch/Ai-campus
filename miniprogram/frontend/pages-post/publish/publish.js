@@ -1,5 +1,5 @@
 const { request, uploadFile } = require('../../utils/request')
-const { normalizeAssetUrl } = require('../../utils/avatar')
+const { normalizeAssetUrl, getAppBaseUrl } = require('../../utils/avatar')
 
 Page({
   data: {
@@ -38,7 +38,7 @@ Page({
       const uploaded = []
       for (const path of paths) {
         const data = await uploadFile(path, 'image')
-        uploaded.push(normalizeAssetUrl(data.url, app.globalData.baseUrl))
+        uploaded.push(normalizeAssetUrl(data.url, getAppBaseUrl()))
       }
       this.setData({ images: this.data.images.concat(uploaded) })
     } catch (e) {

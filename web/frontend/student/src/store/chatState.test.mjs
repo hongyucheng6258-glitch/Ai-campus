@@ -35,6 +35,19 @@ test('历史分页前插且不重复当前消息', () => {
   assert.deepEqual(prependHistory(current, history).map((item) => item.id), [1, 2, 3, 4])
 })
 
+test('临时发送消息始终排列在服务端历史消息末尾', () => {
+  const pending = optimisticMessage({
+    conversationId: 8,
+    senderId: 1,
+    receiverId: 2,
+    messageType: 'image',
+    content: 'data:image/png;base64,AA==',
+    clientMessageId: 'pending-image'
+  })
+  const list = mergeMessages([message(8), message(9)], [pending])
+  assert.deepEqual(list.map((item) => item.id ?? item.clientMessageId), [8, 9, 'pending-image'])
+})
+
 test('未读事件只更新目标会话并重算总未读', () => {
   const state = {
     conversations: [{ id: 8, unreadCount: 1 }, { id: 9, unreadCount: 2 }],

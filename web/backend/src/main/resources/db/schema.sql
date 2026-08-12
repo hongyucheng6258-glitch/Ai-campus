@@ -7,6 +7,8 @@
 -- ⚠️ 错题本 v2 说明：本脚本的 wrong_question 表已是 v2 结构（correct_answer +
 -- 复习状态字段）。若数据库是 v1 旧库（已有 wrong_question 且列名为 answer），
 -- CREATE TABLE IF NOT EXISTS 不会补列，请先执行同目录 migrate_v2_wrongbook.sql 增量升级。
+-- 增量迁移脚本按顺序执行：migrate_v2_wrongbook.sql → migrate_v3_wrongbook_analyze.sql
+--   → migrate_v4_wrongbook_generated.sql → migrate_v5_images_to_db.sql（图片 base64 入库）。
 -- ============================================================
 
 CREATE DATABASE IF NOT EXISTS ai_campus_platform DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
@@ -24,7 +26,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   `password`        VARCHAR(100) DEFAULT NULL COMMENT 'BCrypt密码，小程序自动建号可为空',
   `phone`           VARCHAR(11)  DEFAULT NULL COMMENT '手机号，账号合并绑定用',
   `openid`          VARCHAR(64)  DEFAULT NULL COMMENT '微信openid',
-  `avatar`          VARCHAR(255) DEFAULT NULL COMMENT '头像URL',
+  `avatar`          MEDIUMTEXT DEFAULT NULL COMMENT '头像（base64 data URI）',
   `gender`          TINYINT      NOT NULL DEFAULT 0 COMMENT '0未知 1男 2女',
   `bio`             VARCHAR(255) DEFAULT NULL COMMENT '个人简介',
   `status`          TINYINT      NOT NULL DEFAULT 0 COMMENT '0正常 1禁用',
@@ -42,7 +44,7 @@ CREATE TABLE IF NOT EXISTS `admin` (
   `username`    VARCHAR(32) NOT NULL COMMENT '登录名',
   `password`    VARCHAR(100) NOT NULL COMMENT 'BCrypt密码',
   `nickname`    VARCHAR(32) DEFAULT NULL,
-  `avatar`      VARCHAR(255) DEFAULT NULL,
+  `avatar`      MEDIUMTEXT DEFAULT NULL,
   `role`        VARCHAR(20) NOT NULL DEFAULT 'audit' COMMENT 'super/audit',
   `status`      TINYINT     NOT NULL DEFAULT 0 COMMENT '0正常 1禁用',
   `create_time` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -75,7 +77,7 @@ CREATE TABLE IF NOT EXISTS `ai_message` (
   `id`          BIGINT      NOT NULL AUTO_INCREMENT,
   `session_id`  BIGINT      NOT NULL COMMENT '所属会话',
   `role`        VARCHAR(10) NOT NULL COMMENT 'user/assistant/system',
-  `content`     TEXT        NOT NULL COMMENT '消息内容',
+  `content`     MEDIUMTEXT   NOT NULL COMMENT '消息内容（图片消息为 base64）',
   `tokens`      INT         NOT NULL DEFAULT 0 COMMENT '消耗token数',
   `create_time` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -153,7 +155,7 @@ CREATE TABLE IF NOT EXISTS `pdf_document` (
   `id`           BIGINT       NOT NULL AUTO_INCREMENT,
   `user_id`      BIGINT       NOT NULL,
   `file_name`    VARCHAR(255) NOT NULL,
-  `file_url`     VARCHAR(255) NOT NULL COMMENT 'MinIO地址',
+  `file_url`     LONGTEXT     NOT NULL COMMENT 'Base64 Data URI 或历史 MinIO 地址',
   `page_count`   INT          NOT NULL DEFAULT 0,
   `text_content` LONGTEXT     COMMENT 'PDFBox提取全文',
   `status`       TINYINT      NOT NULL DEFAULT 0 COMMENT '0解析中 1成功 2失败-扫描件',
@@ -179,7 +181,7 @@ CREATE TABLE IF NOT EXISTS `wrong_question` (
   `chapter`                 VARCHAR(64) DEFAULT NULL COMMENT '章节',
   `difficulty`              VARCHAR(16) DEFAULT NULL COMMENT '难度（易/中/难）',
   `knowledge_points`        VARCHAR(255) DEFAULT NULL COMMENT '知识点（逗号分隔）',
-  `question_image`          VARCHAR(500) DEFAULT NULL COMMENT '题目图片URL',
+  `question_image`          MEDIUMTEXT DEFAULT NULL COMMENT '题目图片（base64 data URI）',
   `note`                    TEXT        COMMENT '我的笔记',
   `analyze_status`          TINYINT     NOT NULL DEFAULT 0 COMMENT 'AI整理状态 0未整理 1整理失败 2已整理',
   `status`                  TINYINT     NOT NULL DEFAULT 0 COMMENT '掌握状态 0待复习 1复习中 2基本掌握 3已掌握',
@@ -235,7 +237,7 @@ CREATE TABLE IF NOT EXISTS `idle_item` (
   `user_id`       BIGINT       NOT NULL COMMENT '发布者',
   `title`         VARCHAR(64)  NOT NULL,
   `description`   TEXT         COMMENT '物品描述',
-  `images`        VARCHAR(1000) DEFAULT NULL COMMENT '图片URL JSON数组',
+  `images`        MEDIUMTEXT DEFAULT NULL COMMENT '图片 JSON 数组（base64 data URI）',
   `expect_item`   VARCHAR(128) DEFAULT NULL COMMENT '期望换物',
   `category`      VARCHAR(32)  DEFAULT NULL COMMENT '分类',
   `audit_status`  TINYINT      NOT NULL DEFAULT 0 COMMENT '0待审核 1通过 2驳回',
@@ -288,7 +290,7 @@ CREATE TABLE IF NOT EXISTS `activity` (
   `user_id`         BIGINT       NOT NULL COMMENT '发布者',
   `title`           VARCHAR(64)  NOT NULL,
   `description`     TEXT,
-  `images`          VARCHAR(1000) DEFAULT NULL COMMENT '图片URL JSON数组',
+  `images`          MEDIUMTEXT DEFAULT NULL COMMENT '图片 JSON 数组（base64 data URI）',
   `category`        VARCHAR(32)  DEFAULT NULL,
   `location`        VARCHAR(128) DEFAULT NULL,
   `start_time`      DATETIME     DEFAULT NULL,
@@ -337,7 +339,7 @@ CREATE TABLE IF NOT EXISTS `lost_found` (
   `type`         TINYINT      NOT NULL DEFAULT 0 COMMENT '0失物 1招领',
   `title`        VARCHAR(64)  NOT NULL,
   `description`  TEXT,
-  `images`       VARCHAR(1000) DEFAULT NULL,
+  `images`       MEDIUMTEXT DEFAULT NULL,
   `location`     VARCHAR(128) DEFAULT NULL COMMENT '丢失/拾获地点',
   `happen_time`  DATETIME     DEFAULT NULL COMMENT '发生时间',
   `contact`      VARCHAR(64)  DEFAULT NULL COMMENT '联系方式',
@@ -360,7 +362,7 @@ CREATE TABLE IF NOT EXISTS `notice` (
   `admin_id`     BIGINT      NOT NULL COMMENT '发布管理员',
   `title`        VARCHAR(64) NOT NULL,
   `content`      TEXT        COMMENT 'Markdown内容',
-  `cover`        VARCHAR(255) DEFAULT NULL COMMENT '封面图',
+  `cover`        MEDIUMTEXT DEFAULT NULL COMMENT '封面图（base64 data URI）',
   `status`       TINYINT     NOT NULL DEFAULT 0 COMMENT '0草稿 1已发布 2已下线',
   `publish_time` DATETIME    DEFAULT NULL,
   `create_time`  DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -373,7 +375,7 @@ CREATE TABLE IF NOT EXISTS `post` (
   `id`            BIGINT       NOT NULL AUTO_INCREMENT,
   `user_id`       BIGINT       NOT NULL,
   `content`       TEXT         NOT NULL,
-  `images`        VARCHAR(1000) DEFAULT NULL,
+  `images`        MEDIUMTEXT DEFAULT NULL,
   `like_count`    INT          NOT NULL DEFAULT 0,
   `comment_count` INT          NOT NULL DEFAULT 0,
   `audit_status`  TINYINT      NOT NULL DEFAULT 0,
@@ -452,7 +454,7 @@ CREATE TABLE IF NOT EXISTS `message` (
 CREATE TABLE IF NOT EXISTS `upload_resource` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
   `owner_user_id` BIGINT NOT NULL,
-  `resource_url` VARCHAR(500) NOT NULL,
+  `resource_url` LONGTEXT NOT NULL COMMENT 'Base64 Data URI 或历史 MinIO 地址',
   `resource_type` VARCHAR(16) NOT NULL COMMENT 'image/file',
   `content_type` VARCHAR(128) DEFAULT NULL,
   `file_size` BIGINT NOT NULL DEFAULT 0,
@@ -460,7 +462,6 @@ CREATE TABLE IF NOT EXISTS `upload_resource` (
   `biz_id` BIGINT DEFAULT NULL,
   `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_upload_resource_url` (`resource_url`),
   KEY `idx_upload_owner` (`owner_user_id`, `resource_type`),
   KEY `idx_upload_biz` (`biz_type`, `biz_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='上传资源归属与消费记录';
@@ -506,7 +507,7 @@ CREATE TABLE IF NOT EXISTS `chat_message` (
   `receiver_id` BIGINT NOT NULL,
   `client_message_id` VARCHAR(64) NOT NULL,
   `message_type` VARCHAR(16) NOT NULL COMMENT 'text/image',
-  `content` VARCHAR(2000) NOT NULL,
+  `content` MEDIUMTEXT NOT NULL,
   `status` TINYINT NOT NULL DEFAULT 0 COMMENT '0已发送 1已读',
   `read_time` DATETIME DEFAULT NULL,
   `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

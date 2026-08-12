@@ -9,14 +9,12 @@ Page({
     activities: [],
     lostFounds: [],
     entries: [
-      { icon: '🤖', name: 'AI答疑', url: '/pages-ai/chat/chat', login: true },
-      { icon: '💻', name: '代码纠错', url: '/pages-ai/code-fix/code-fix', login: true },
-      { icon: '📕', name: '错题本', url: '/pages-ai/wrong/wrong', login: true },
       { icon: '🔄', name: '闲置互换', url: '/pages-idle/list/list' },
       { icon: '🎉', name: '活动组队', url: '/pages-activity/list/list' },
       { icon: '🔍', name: '失物招领', url: '/pages-lostfound/list/list' },
-      { icon: '📢', name: '校园公告', url: '/pages/notice/list/list' },
-      { icon: '🌟', name: '动态广场', url: '/pages-post/square/square', login: true }
+      { icon: '🌟', name: '动态广场', url: '/pages-post/square/square', login: true },
+      { icon: '🤖', name: 'AI 学习中心', url: '/pages-ai/home/home' },
+      { icon: '📢', name: '校园公告', url: '/pages/notice/list/list' }
     ]
   },
 
@@ -55,6 +53,19 @@ Page({
 
   goActivity(e) {
     wx.navigateTo({ url: `/pages-activity/detail/detail?id=${e.currentTarget.dataset.id}` })
+  },
+
+  /** 更多入口 */
+  goIdleList() {
+    wx.navigateTo({ url: '/pages-idle/list/list' })
+  },
+
+  goActivityList() {
+    wx.navigateTo({ url: '/pages-activity/list/list' })
+  },
+
+  goLostFoundList() {
+    wx.navigateTo({ url: '/pages-lostfound/list/list' })
   },
 
   goLostFound(e) {

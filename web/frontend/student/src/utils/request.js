@@ -16,8 +16,11 @@ const request = axios.create({
 
 request.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
-  if (token) {
+  const isAuthRequest = /^\/auth\/(login|register|wx-login)$/.test(config.url || '')
+  if (token && !isAuthRequest) {
     config.headers.Authorization = `Bearer ${token}`
+  } else if (isAuthRequest && config.headers?.Authorization) {
+    delete config.headers.Authorization
   }
   return config
 })
@@ -48,13 +51,13 @@ request.interceptors.response.use(
     if (!error.config?.silent) {
       ElMessage.error(message)
     }
-    if (biz?.code === 401) {
+    if (biz?.code === 401 || error.response?.status === 401 || error.response?.status === 403) {
       localStorage.removeItem('token')
       localStorage.removeItem('userInfo')
       window.dispatchEvent(new Event('auth-expired'))
-      router.push('/login')
+      if (router.currentRoute.value.path !== '/login') router.push('/login')
     }
-    error.code = biz?.code ?? -1
+    error.code = biz?.code ?? error.response?.status ?? -1
     error.message = message
     return Promise.reject(error)
   }

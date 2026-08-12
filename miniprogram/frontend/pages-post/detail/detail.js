@@ -1,7 +1,7 @@
 const { request } = require('../../utils/request')
 const { requireLogin } = require('../../utils/auth')
 const { fromNow, parseImages } = require('../../utils/format')
-const { normalizeAssetUrl } = require('../../utils/avatar')
+const { normalizeAssetUrl, getAppBaseUrl } = require('../../utils/avatar')
 const startChat = require('../../utils/start-chat')
 
 Page({
@@ -35,7 +35,7 @@ Page({
             id: post.id,
             userId: post.userId,
             nickname: post.nickname || '校园用户',
-            avatar: normalizeAssetUrl(post.avatar, getApp().globalData.baseUrl),
+            avatar: normalizeAssetUrl(post.avatar, getAppBaseUrl()),
             content: post.content || '',
             images,
             likeCount: post.likeCount || 0,
@@ -57,7 +57,7 @@ Page({
       const rows = (data.list || []).map((c) => ({
         id: c.id,
         nickname: c.nickname || '校园用户',
-        avatar: normalizeAssetUrl(c.avatar, getApp().globalData.baseUrl),
+        avatar: normalizeAssetUrl(c.avatar, getAppBaseUrl()),
         content: c.content || '',
         time: fromNow(c.createTime)
       }))

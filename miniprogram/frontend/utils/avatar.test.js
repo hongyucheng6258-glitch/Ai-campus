@@ -20,6 +20,14 @@ test('将局域网 MinIO 图片也改为后端公开代理地址', () => {
   )
 })
 
+test('保留数据库中的头像 Data URI', () => {
+  const baseUrl = 'http://127.0.0.1:8080/api'
+  assert.equal(
+    normalizeAssetUrl('data:image/png;base64,AA==', baseUrl),
+    'data:image/png;base64,AA=='
+  )
+})
+
 test('保留已可访问的远程头像地址', () => {
   const baseUrl = 'http://127.0.0.1:8080/api'
   assert.equal(

@@ -24,11 +24,11 @@ function submit() {
   text.value = ''
 }
 async function upload({ file }) {
-  if (file.size > 5 * 1024 * 1024) return ElMessage.warning('图片不能超过5MB')
+  if (file.size > 3 * 1024 * 1024) return ElMessage.warning('图片不能超过3MB')
   uploading.value = true
   try {
     const result = await uploadImage(file)
-    emit('send', 'image', result.url)
+    emit('send', 'image', { url: result.url, resourceId: result.resourceId })
   } finally {
     uploading.value = false
   }

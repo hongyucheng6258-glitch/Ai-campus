@@ -5,7 +5,7 @@ import com.campus.platform.common.BizException;
 import com.campus.platform.common.ResultCode;
 import com.campus.platform.entity.PdfDocument;
 import com.campus.platform.mapper.PdfDocumentMapper;
-import com.campus.platform.utils.MinioUtils;
+import com.campus.platform.utils.DataUriUtils;
 import com.campus.platform.utils.PdfUtils;
 import com.campus.platform.vo.PdfDocVO;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * PDF 解析服务（B3）：上传 → MinIO → PDFBox 提取 → 入库。
+ * PDF 解析服务（B3）：上传 → 数据库 Data URI → PDFBox 提取 → 入库。
  * 扫描件（提取文本为空）标记 status=2 并提示 1004。
  */
 @Slf4j
@@ -25,7 +25,7 @@ public class PdfService {
     private static final long PDF_MAX_SIZE = 20 * 1024 * 1024;
 
     private final PdfDocumentMapper pdfDocumentMapper;
-    private final MinioUtils minioUtils;
+    private final DataUriUtils dataUriUtils;
 
     /**
      * 上传并解析 PDF。
@@ -41,8 +41,8 @@ public class PdfService {
         if (file.getSize() > PDF_MAX_SIZE) {
             throw new BizException(ResultCode.BAD_REQUEST, "PDF 不能超过20MB");
         }
-        // 1. 上传 MinIO
-        String url = minioUtils.upload(file, "pdf");
+        // 1. 将新 PDF 编码为数据库可直接保存的 Data URI
+        String url = dataUriUtils.toDataUri(file);
         // 2. PDFBox 解析
         PdfDocument doc = new PdfDocument();
         doc.setUserId(userId);

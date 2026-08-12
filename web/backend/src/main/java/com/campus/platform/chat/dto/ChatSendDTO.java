@@ -14,6 +14,7 @@ public class ChatSendDTO {
     @Pattern(regexp = "text|image")
     private String messageType;
     @NotBlank
-    @Size(max = 2000)
+    @Size(max = 6_000_000)
     private String content;
+    private Long resourceId;
 }

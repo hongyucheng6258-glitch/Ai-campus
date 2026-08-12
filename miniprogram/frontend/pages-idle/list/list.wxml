@@ -23,7 +23,10 @@
                extra="{{item.extra}}" tagText="{{item.tagText}}" tagType="{{item.tagType}}" />
   </view>
 
-  <view wx:if="{{inited && list.length === 0}}" class="empty">暂无闲置物品，快去发布第一件吧</view>
+  <view wx:if="{{inited && list.length === 0}}" class="empty">
+    <view class="empty-text">暂无闲置物品</view>
+    <view class="empty-btn" bindtap="goPublish">＋ 立即发布</view>
+  </view>
   <view wx:if="{{loading}}" class="loading-tip">加载中…</view>
   <view wx:elif="{{!hasMore && list.length > 0}}" class="loading-tip">共 {{total}} 件闲置</view>
 

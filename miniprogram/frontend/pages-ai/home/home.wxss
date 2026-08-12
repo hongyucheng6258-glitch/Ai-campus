@@ -1,0 +1,56 @@
+.page {
+  padding: 24rpx;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+.hero {
+  padding: 24rpx 8rpx 28rpx;
+}
+.hero-title {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #236b5d;
+}
+.hero-sub {
+  font-size: 26rpx;
+  color: #9a9ea4;
+  margin-top: 10rpx;
+}
+.ai-card {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 28rpx 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(53, 57, 61, 0.06);
+}
+.ai-icon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 22rpx;
+  background: #e6f4f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44rpx;
+  flex-shrink: 0;
+}
+.ai-body {
+  flex: 1;
+  margin-left: 24rpx;
+}
+.ai-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #35393d;
+}
+.ai-desc {
+  font-size: 24rpx;
+  color: #9a9ea4;
+  margin-top: 6rpx;
+}
+.ai-arrow {
+  color: #c0c4cc;
+  font-size: 32rpx;
+}

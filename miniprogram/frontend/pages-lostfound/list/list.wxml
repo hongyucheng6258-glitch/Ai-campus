@@ -19,7 +19,10 @@
                extra="{{item.extra}}" tagText="{{item.tagText}}" tagType="{{item.tagType}}" />
   </view>
 
-  <view wx:if="{{inited && list.length === 0}}" class="empty">暂无信息，丢了或捡到东西可点右下角发布</view>
+  <view wx:if="{{inited && list.length === 0}}" class="empty">
+    <view class="empty-text">暂无信息，丢了或捡到东西可发布</view>
+    <view class="empty-btn" bindtap="goPublish">＋ 立即发布</view>
+  </view>
   <view wx:if="{{loading}}" class="loading-tip">加载中…</view>
   <view wx:elif="{{!hasMore && list.length > 0}}" class="loading-tip">共 {{total}} 条信息</view>
 

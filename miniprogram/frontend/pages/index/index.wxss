@@ -1,6 +1,30 @@
 .banner {
   height: 300rpx;
 }
+.hero {
+  padding: 20rpx 8rpx 16rpx;
+}
+.hero-title {
+  font-size: 42rpx;
+  font-weight: 700;
+  color: #236b5d;
+}
+.hero-sub {
+  font-size: 26rpx;
+  color: #9a9ea4;
+  margin-top: 8rpx;
+}
+.sec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+.more {
+  font-size: 24rpx;
+  color: #2f9e8a;
+  padding: 4rpx 8rpx;
+}
 .banner-item {
   height: 100%;
   background: linear-gradient(135deg, #2f9e8a, #8fcfc0);

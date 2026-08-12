@@ -15,7 +15,9 @@ export function mergeMessages(current = [], incoming = []) {
     byId.set(key || `temp:${byId.size}`, item)
   }
   return [...byId.values()].sort((a, b) => {
-    if (a.id != null && b.id != null) return a.id - b.id
+    if (a.id != null && b.id != null) return Number(a.id) - Number(b.id)
+    if (a.id != null) return -1
+    if (b.id != null) return 1
     return String(a.createTime || '').localeCompare(String(b.createTime || ''))
   })
 }

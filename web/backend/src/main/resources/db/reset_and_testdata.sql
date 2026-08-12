@@ -8,6 +8,10 @@ SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- ==================== 1. 清空所有表数据 ====================
+TRUNCATE TABLE `chat_message`;
+TRUNCATE TABLE `chat_conversation_member`;
+TRUNCATE TABLE `chat_conversation`;
+TRUNCATE TABLE `upload_resource`;
 TRUNCATE TABLE `message`;
 TRUNCATE TABLE `report`;
 TRUNCATE TABLE `post_like`;
@@ -124,7 +128,11 @@ INSERT INTO `idle_item` (`id`, `user_id`, `title`, `description`, `category`, `e
 (3, 3, '吉他入门教程', '含配套视频课程兑换码，入门自学够用', '兴趣', '换一个马克杯', 0, 0, 12),
 (4, 4, '素描铅笔套装', '6B到2H共12支，只用过3支', '文具', '换一本笔记本', 1, 1, 28),
 (5, 1, '二手自行车', '7成新，通勤代步没问题，急需出手', '生活', '150元或等价物品', 1, 0, 67),
-(6, 5, '算法导论（CLRS）', '经典教材，少量笔记，考研必备', '教材', '换深度学习书籍', 1, 0, 53);
+(6, 5, '算法导论（CLRS）', '经典教材，少量笔记，考研必备', '教材', '换深度学习书籍', 1, 0, 53),
+(7, 2, '机械键盘87键', '红轴，声音较轻，适合宿舍使用', '数码', '换无线鼠标或80元', 1, 0, 41),
+(8, 3, '便携小风扇', '宿舍夏天使用，续航约6小时', '生活', '换等价饮料', 1, 0, 19),
+(9, 4, '摄影三脚架', '铝合金材质，适合相机和手机', '数码', '换素描纸或120元', 1, 0, 36),
+(10, 5, '考研数学资料包', '高数、线代、概率论资料整理齐全', '教辅', '换英语资料', 1, 0, 58);
 
 -- 闲置预约
 INSERT INTO `idle_appointment` (`id`, `item_id`, `buyer_id`, `seller_id`, `message`, `status`) VALUES
@@ -214,6 +222,47 @@ INSERT INTO `message` (`id`, `user_id`, `type`, `title`, `content`, `biz_type`, 
 (3, 1, 'interact', '新预约消息', '用户"李四"预约了您的"二手自行车"', 'idle', 5, 0),
 (4, 3, 'audit', '活动报名通过', '您的"校园写生采风"报名申请已通过', 'activity', 2, 0),
 (5, 1, 'system', '欢迎使用平台', '欢迎加入AI校园综合服务平台，祝您使用愉快！', NULL, NULL, 1);
+
+-- ==================== 12. 图片示例与扩展数据 ====================
+-- 内置 SVG 示例图，不依赖外部图片服务
+SET @demo_image = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgNDAwIDIwMCI+PHJlY3QgZmlsbD0iI2U3ZjBmZiIgd2lkdGg9IjQwMCIgaGVpZ2h0PSIyMDAiLz48dGV4dCB4PSIyMCIgeT0iMTAwIiBmb250LXNpemU9IjMyIiBmaWxsPSIjMTk2N2QyIj5BSSDmiqXmtYvlhYjlkJc8L3RleHQ+PC9zdmc+';
+UPDATE `idle_item` SET `images` = JSON_ARRAY(@demo_image) WHERE `id` IN (1, 2, 7);
+UPDATE `activity` SET `images` = JSON_ARRAY(@demo_image) WHERE `id` IN (1, 2);
+UPDATE `lost_found` SET `images` = JSON_ARRAY(@demo_image) WHERE `id` IN (1, 3);
+UPDATE `post` SET `images` = JSON_ARRAY(@demo_image) WHERE `id` IN (1, 3);
+
+-- 更多活动
+INSERT INTO `activity` (`id`, `user_id`, `title`, `description`, `category`, `location`, `start_time`, `end_time`, `signup_deadline`, `max_members`, `audit_status`, `status`) VALUES
+(5, 3, '校园夜跑打卡', '每周三晚在操场集合，轻松跑步并互相监督', '运动', '东区操场', '2026-08-19 19:00:00', '2026-08-19 20:30:00', '2026-08-18 23:59:59', 30, 1, 0),
+(6, 1, '开源项目交流会', '分享开源项目实践经验，欢迎带电脑参加', '技术', '创新创业中心', '2026-08-22 14:00:00', '2026-08-22 17:00:00', '2026-08-21 23:59:59', 40, 1, 0);
+INSERT INTO `activity_member` (`activity_id`, `user_id`, `remark`, `status`) VALUES
+(5, 2, '最近想开始跑步', 1), (5, 4, '可以负责拍照记录', 0), (6, 5, '分享一个课程项目', 1);
+
+-- 更多失物招领
+INSERT INTO `lost_found` (`id`, `user_id`, `type`, `title`, `description`, `location`, `contact`, `audit_status`, `status`) VALUES
+(5, 1, 1, '捡到黑色耳机盒', '在教学楼一层自习区发现，盒盖有白色贴纸', '教学楼A栋一层', '13800000001', 1, 0),
+(6, 2, 0, '丢失银色U盘', '内有课程资料，外壳贴有蓝色标签', '计算机实验室', '13800000002', 1, 0);
+
+-- 更多动态
+INSERT INTO `post` (`id`, `user_id`, `content`, `images`, `like_count`, `comment_count`, `audit_status`) VALUES
+(8, 3, '宿舍楼下的晚霞，今天的校园很温柔。', JSON_ARRAY(@demo_image), 16, 2, 1),
+(9, 2, '整理了一份期末复习清单，需要的同学可以留言交流。', NULL, 9, 1, 1),
+(10, 5, '实验室新项目启动，欢迎对机器学习感兴趣的同学一起讨论。', NULL, 7, 0, 1);
+INSERT INTO `post_comment` (`post_id`, `user_id`, `content`, `status`) VALUES
+(8, 1, '这张照片的颜色很好看！', 0), (8, 4, '校园晚霞确实很治愈。', 0),
+(9, 3, '求一份数据结构复习资料。', 0);
+INSERT INTO `post_like` (`post_id`, `user_id`) VALUES
+(8, 1), (8, 2), (8, 4), (8, 5), (9, 1), (9, 3), (10, 1);
+
+-- 聊天会话与消息
+INSERT INTO `chat_conversation` (`id`, `user1_id`, `user2_id`, `last_message_id`, `last_message_summary`, `last_message_time`, `context_type`, `context_id`, `context_title`) VALUES
+(1, 1, 2, 3, '明天下午图书馆见吗？', '2026-08-12 13:30:00', 'idle', 2, '英语四级真题');
+INSERT INTO `chat_conversation_member` (`conversation_id`, `user_id`, `unread_count`, `last_read_message_id`) VALUES
+(1, 1, 0, 3), (1, 2, 1, 2);
+INSERT INTO `chat_message` (`id`, `conversation_id`, `sender_id`, `receiver_id`, `client_message_id`, `message_type`, `content`, `status`, `create_time`) VALUES
+(1, 1, 1, 2, 'seed-1-1', 'text', '你好，我想咨询一下英语四级真题。', 1, '2026-08-12 13:20:00'),
+(2, 1, 2, 1, 'seed-1-2', 'text', '可以的，还剩两套全新的。', 1, '2026-08-12 13:25:00'),
+(3, 1, 1, 2, 'seed-1-3', 'text', '明天下午图书馆见吗？', 0, '2026-08-12 13:30:00');
 
 -- ==================== 完成 ====================
 SELECT '数据重置与测试数据插入完成！' AS result;

@@ -49,8 +49,7 @@
         <button class="btn-primary" bindtap="showSigninQr">生成签到码</button>
       </block>
       <block wx:else>
-        <button class="btn-plain" bindtap="contactPublisher">联系发起人</button>
-        <button class="btn-plain" bindtap="goSignin">扫码签到</button>
+        <button class="btn-plain" bindtap="moreActions">更多</button>
         <button class="btn-primary" bindtap="goSignup"
                 disabled="{{!detail.canSignup || mySignupText !== ''}}">
           {{mySignupText ? '已报名（' + mySignupText + '）' : (detail.canSignup ? '立即报名' : (detail.signupDisabledReason || '停止报名'))}}

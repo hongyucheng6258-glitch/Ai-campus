@@ -15,6 +15,7 @@
       "root": "pages-ai",
       "name": "AI学习中心",
       "pages": [
+        "home/home",
         "chat/chat",
         "code-fix/code-fix",
         "pdf/pdf",

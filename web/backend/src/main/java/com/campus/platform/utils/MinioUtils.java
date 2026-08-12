@@ -2,6 +2,7 @@ package com.campus.platform.utils;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.StrUtil;
 import com.campus.platform.common.BizException;
 import com.campus.platform.common.ResultCode;
 import com.campus.platform.config.MinioConfig;
@@ -18,11 +19,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.Base64;
 
 /**
- * MinIO 工具：统一图片/文件上传，返回可公开访问的 URL。
- * 共享约定 #8：一律「先传 /upload/* 拿 URL，再随业务表单提交」，DB 只存 URL。
+ * MinIO 工具：保留历史对象上传与读取能力。
+ * 新上传入口默认使用数据库 Data URI；本类的对象存储方法用于历史兼容和明确指定 MinIO 的场景。
  */
 @Slf4j
 @Component
@@ -56,10 +59,29 @@ public class MinioUtils {
                         .contentType(file.getContentType())
                         .build());
             }
-            return minioConfig.getEndpoint() + "/" + minioConfig.getBucket() + "/" + objectName;
+            // 返回后端代理相对路径：Web 端同源直接显示，小程序端由响应归一化拼上主机。
+            // 不返回 MinIO 原始地址（localhost:9000 在真机上不可达）。
+            return "/api/assets/" + minioConfig.getBucket() + "/" + objectName;
         } catch (Exception e) {
             log.error("MinIO 上传失败", e);
             throw new BizException(ResultCode.SYSTEM_ERROR, "文件上传失败，请稍后重试");
+        }
+    }
+
+    /**
+     * 图片直接以 base64 data URI 返回（存数据库，不依赖 MinIO 可达性/端口/域名）。
+     * 毕业设计演示环境采用该方案：前端（Web/小程序）拿到 data:image/...;base64,... 直接显示。
+     */
+    public String uploadImageAsDataUri(MultipartFile file, String dir) {
+        String contentType = StrUtil.nullToEmpty(file.getContentType()).toLowerCase();
+        if (contentType.isBlank()) contentType = "image/jpeg";
+        try (InputStream in = file.getInputStream(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            in.transferTo(out);
+            String base64 = Base64.getEncoder().encodeToString(out.toByteArray());
+            return "data:" + contentType + ";base64," + base64;
+        } catch (IOException e) {
+            log.error("图片转 base64 失败", e);
+            throw new BizException(ResultCode.SYSTEM_ERROR, "图片上传失败，请稍后重试");
         }
     }
 

@@ -8,7 +8,7 @@ const MY_TABS = [
   { key: 'idle', name: '我的闲置', url: '/idle/my' },
   { key: 'activity', name: '我的活动', url: '/activity/my' },
   { key: 'lostfound', name: '我的失物', url: '/lostfound/my' },
-  { key: 'signup', name: '我的报名', url: '/activity/my/signups' },
+  { key: 'signup', name: '我的报名', url: '/activity/my/signup' },
   { key: 'appoint', name: '我的预约', url: '/idle/appoint/my' }
 ]
 
@@ -16,8 +16,9 @@ const AUDIT_TEXT = { 0: '待审核', 1: '已通过', 2: '已驳回' }
 const AUDIT_TYPE = { 0: 'warning', 1: 'success', 2: 'danger' }
 const MEMBER_TEXT = { 0: '待审核', 1: '已通过', 2: '未通过' }
 const MEMBER_TYPE = { 0: 'warning', 1: 'success', 2: 'danger' }
-const ACTIVITY_STATUS_TEXT = { 0: '报名中', 1: '已满员', 2: '已结束', 3: '已下架' }
-const ACTIVITY_STATUS_TYPE = { 0: 'success', 1: 'warning', 2: '', 3: 'danger' }
+// 活动有效展示状态（后端 displayStatus）：0报名中 1已满员 2报名已截止 3进行中 4已结束 5已下架
+const ACTIVITY_STATUS_TEXT = { 0: '报名中', 1: '已满员', 2: '报名已截止', 3: '活动进行中', 4: '已结束', 5: '已下架' }
+const ACTIVITY_STATUS_TYPE = { 0: 'success', 1: 'warning', 2: '', 3: '', 4: '', 5: 'danger' }
 const LOST_FOUND_STATUS_TEXT = { 0: '寻找中', 1: '已完成', 2: '已下架' }
 const LOST_FOUND_STATUS_TYPE = { 0: 'warning', 1: 'success', 2: 'danger' }
 const APPOINT_TEXT = { 0: '待确认', 1: '已接受', 2: '已拒绝', 3: '已完成', 4: '已取消' }
@@ -143,14 +144,19 @@ Page({
 
     if (key === 'activity') {
       const images = item.imageList && item.imageList.length ? item.imageList : parseImages(item.images)
+      const display = item.displayStatus ?? item.status
       return {
         id: item.id,
         cover: images[0] || '',
         title: item.title || '',
         desc: `${item.location || '地点待定'} · 已报名 ${item.memberCount || 0} 人`,
         extra: shortTime(item.startTime || item.createTime),
-        tagText: item.auditStatus !== 1 ? (AUDIT_TEXT[item.auditStatus] || '') : (ACTIVITY_STATUS_TEXT[item.status] || '已通过'),
-        tagType: item.auditStatus !== 1 ? (AUDIT_TYPE[item.auditStatus] || '') : (ACTIVITY_STATUS_TYPE[item.status] || 'success'),
+        tagText: item.auditStatus !== 1
+          ? (AUDIT_TEXT[item.auditStatus] || '')
+          : (item.displayStatusText || ACTIVITY_STATUS_TEXT[display] || '已通过'),
+        tagType: item.auditStatus !== 1
+          ? (AUDIT_TYPE[item.auditStatus] || '')
+          : (ACTIVITY_STATUS_TYPE[display] || 'success'),
         url: `/pages-activity/detail/detail?id=${item.id}`
       }
     }
@@ -215,7 +221,7 @@ Page({
   switchAppointRole(e) {
     const role = e.currentTarget.dataset.role
     if (role === this.data.appointRole) return
-    this.setData({ appointRole: role, list: [], pageNum: 1, hasMore: true })
+    this.setData({ appointRole: role, list: [], pageNum: 1, hasMore: true, inited: false })
     this.loadList(true)
   },
 

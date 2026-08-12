@@ -33,6 +33,7 @@ reasonix.toml
 *.log
 *.tmp
 *.temp
+*.err
 .enc_check.txt
 
 # Local backups and generated reverse-engineering artifacts

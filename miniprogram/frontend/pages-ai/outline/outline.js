@@ -2,6 +2,8 @@
 const { request } = require('../../utils/request')
 const { requireLogin } = require('../../utils/auth')
 const { getAiAnswer } = require('../../utils/ai-response')
+const { md2plain } = require('../../utils/format')
+const { mdToHtml } = require('../../utils/md-render')
 
 /** 演示用示例，答辩时可一键填充 */
 const SAMPLES = [
@@ -15,7 +17,8 @@ Page({
     subject: '',   // 学科（必填）
     chapter: '',   // 章节（选填）
     topic: '',     // 主题（必填）
-    answer: '',    // 生成的提纲
+    answer: '',    // 生成的提纲（纯文本，复制用）
+    answerHtml: '', // Markdown 渲染 HTML（rich-text 用）
     loading: false,
     samples: SAMPLES
   },
@@ -65,19 +68,20 @@ Page({
         data: { subject, chapter: (this.data.chapter || '').trim(), topic }
       })
       this.setData({ answer: getAiAnswer(data) || '（AI 未返回内容）' })
+      this.setData({ answerHtml: mdToHtml(this.data.answer) })
     } catch (e) {
-      this.setData({ answer: '' })
+      this.setData({ answer: '', answerHtml: '' })
     } finally {
       wx.hideLoading()
       this.setData({ loading: false })
     }
   },
 
-  /** 复制提纲 */
+  /** 复制提纲（纯文本） */
   copyAnswer() {
     if (!this.data.answer) return
     wx.setClipboardData({
-      data: this.data.answer,
+      data: md2plain(this.data.answer),
       success() {
         wx.showToast({ title: '已复制到剪贴板', icon: 'success' })
       }

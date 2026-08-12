@@ -22,6 +22,7 @@ public class PdfDocument {
 
     private String fileName;
 
+    /** Base64 Data URI 或历史 MinIO 地址 */
     private String fileUrl;
 
     private Integer pageCount;

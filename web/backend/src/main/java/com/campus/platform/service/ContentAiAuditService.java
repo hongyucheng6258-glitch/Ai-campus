@@ -57,8 +57,12 @@ public class ContentAiAuditService {
                 result = parse(aiGatewayService.internalChat(userId, Constants.SCENE_CONTENT_AUDIT,
                         buildAuditText(type, title, body), Map.of("contentType", type)));
             } catch (Exception e) {
-                log.warn("AI内容审核失败，降级为人工审核: type={}, userId={}", type, userId, e);
-                result = new AiAuditResult("MEDIUM", 50, "AI审核暂不可用，已转人工审核", List.of("AI降级"));
+                log.warn("AI内容审核失败，回退本地规则: type={}, userId={}", type, userId, e);
+                // AI 不可用时回退本地规则（安全底线）：规则判 LOW 的内容直接放行，
+                // 避免动态/闲置/活动等永久停留在「待审核」；命中规则词的保持拦截（HIGH 拒绝 / MEDIUM 人工）。
+                result = "LOW".equals(result.level())
+                        ? result
+                        : new AiAuditResult("MEDIUM", 50, "AI审核暂不可用，已转人工审核", List.of("AI降级"));
             }
         }
         applyDecision(type, content, result);

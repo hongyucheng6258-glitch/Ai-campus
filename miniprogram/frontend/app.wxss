@@ -12,10 +12,10 @@ page {
   line-height: 1.6;
 }
 
-/* 卡片 */
+/* 卡片（统一 16rpx 圆角 + 16rpx 间距，与 item-card 一致） */
 .card {
   background: #fff;
-  border-radius: 20rpx;
+  border-radius: 16rpx;
   padding: 24rpx;
   margin: 16rpx;
   box-shadow: 0 4rpx 16rpx rgba(53, 57, 61, 0.06);
@@ -60,10 +60,23 @@ page {
   color: #e0a93f;
 }
 
-/* 空状态 */
+/* 空状态（统一组件：文字 + 可选操作按钮） */
 .empty {
   text-align: center;
   color: #c0c4cc;
   padding: 80rpx 0;
+  font-size: 26rpx;
+}
+.empty-text {
+  font-size: 26rpx;
+  color: #9a9ea4;
+}
+.empty-btn {
+  display: inline-block;
+  margin-top: 24rpx;
+  padding: 14rpx 44rpx;
+  background: #e6f4f0;
+  color: #2f9e8a;
+  border-radius: 999rpx;
   font-size: 26rpx;
 }

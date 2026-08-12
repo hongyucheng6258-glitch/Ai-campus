@@ -13,6 +13,12 @@ test('normalizeImages 兼容 imageList 数组并过滤无效项', () => {
   ])
 })
 
+test('normalizeImages 保留数据库中的图片 Data URI', () => {
+  assert.deepEqual(normalizeImages({ images: 'data:image/png;base64,AA==' }), [
+    'data:image/png;base64,AA=='
+  ])
+})
+
 test('normalizeImages 兼容 images JSON 数组字符串', () => {
   assert.deepEqual(normalizeImages({ images: '["", "https://img.test/json.png"]' }), [
     'https://img.test/json.png'

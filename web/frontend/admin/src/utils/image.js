@@ -15,6 +15,7 @@ function parseImageValue(value) {
   if (typeof value !== 'string' || !value.trim()) return []
 
   const text = value.trim()
+  if (/^data:/i.test(text)) return cleanImages([text])
   try {
     const parsed = JSON.parse(text)
     if (Array.isArray(parsed)) return cleanImages(parsed)

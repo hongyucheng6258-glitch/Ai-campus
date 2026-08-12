@@ -11,6 +11,10 @@ test('管理端图片工具兼容数组、JSON 字符串、单 URL 和逗号分�
   ])
 })
 
+test('管理端图片工具保留数据库中的图片 Data URI', () => {
+  assert.deepEqual(normalizeImages({ images: 'data:image/png;base64,AA==' }), ['data:image/png;base64,AA=='])
+})
+
 test('管理端图片工具忽略非法输入并提供首图', () => {
   assert.equal(firstValidImage({ images: 'not-an-image' }), '')
   assert.equal(firstValidImage({ imageList: 'blob:test' }), 'blob:test')

@@ -10,5 +10,6 @@ import lombok.Data;
 @AllArgsConstructor
 public class UploadVO {
 
+    private Long resourceId;
     private String url;
 }

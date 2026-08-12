@@ -11,6 +11,7 @@ import {
   optimisticMessage,
   prependHistory
 } from './chatState.mjs'
+import { shouldUseChatSocket } from './chatSendPolicy.mjs'
 
 export const useChatStore = defineStore('chat', {
   state: () => ({
@@ -77,28 +78,32 @@ export const useChatStore = defineStore('chat', {
       this.historyDone[conversationId] = list.length < 20
       return list
     },
-    async send(conversation, messageType, content, retryId) {
+    async send(conversation, messageType, content, retryId, resourceId) {
+      const imagePayload = messageType === 'image' && content && typeof content === 'object' ? content : null
+      const imageUrl = imagePayload ? imagePayload.url : content
+      const imageResourceId = imagePayload ? imagePayload.resourceId : resourceId
       const clientMessageId = retryId || `${this.currentUserId}-${Date.now()}-${Math.random().toString(36).slice(2)}`
       const pending = optimisticMessage({
         conversationId: conversation.id,
         senderId: this.currentUserId,
         receiverId: conversation.peerUserId,
         messageType,
-        content,
+        content: imageUrl,
+        resourceId: imageResourceId,
         clientMessageId
       })
       this.messagesByConversation[conversation.id] = mergeMessages(this.messages(conversation.id).filter((m) => m.clientMessageId !== clientMessageId), [pending])
-      const payload = { conversationId: conversation.id, clientMessageId, messageType, content }
-      if (this.connected) {
+      const payload = { conversationId: conversation.id, clientMessageId, messageType, content: imageUrl, resourceId: imageResourceId }
+      if (this.connected && shouldUseChatSocket(messageType)) {
         const result = this.socket.sendMessage(payload)
         if (result.sent) {
           const timer = setTimeout(() => this.compensateSend(result.requestId), this.ackTimeoutMs)
-          this.pendingRequests.set(result.requestId, { conversationId: conversation.id, clientMessageId, messageType, content, timer })
+          this.pendingRequests.set(result.requestId, { conversationId: conversation.id, clientMessageId, messageType, content: imageUrl, resourceId: imageResourceId, timer })
           return
         }
       }
       try {
-        const confirmed = await api.sendChatMessage(conversation.id, { clientMessageId, messageType, content })
+        const confirmed = await api.sendChatMessage(conversation.id, { clientMessageId, messageType, content: imageUrl, resourceId: imageResourceId })
         this.replacePending(conversation.id, clientMessageId, confirmed)
       } catch (error) {
         this.markFailed(conversation.id, clientMessageId, error.message)
@@ -112,7 +117,8 @@ export const useChatStore = defineStore('chat', {
         const confirmed = await api.sendChatMessage(pending.conversationId, {
           clientMessageId: pending.clientMessageId,
           messageType: pending.messageType,
-          content: pending.content
+          content: pending.content,
+          resourceId: pending.resourceId
         })
         this.replacePending(pending.conversationId, pending.clientMessageId, confirmed)
       } catch (error) {
@@ -130,7 +136,7 @@ export const useChatStore = defineStore('chat', {
         : item)
     },
     async retry(conversation, message) {
-      await this.send(conversation, message.messageType, message.content, message.clientMessageId)
+      await this.send(conversation, message.messageType, message.content, message.clientMessageId, message.resourceId)
     },
     async markRead(conversationId) {
       const last = [...this.messages(conversationId)].reverse().find((item) => item.id != null)

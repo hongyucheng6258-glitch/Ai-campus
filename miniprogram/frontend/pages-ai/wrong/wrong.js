@@ -1,9 +1,10 @@
-// 错题本（分包 pages-ai，v2/v3 同步）
-// 列表/筛选/快速收录（学科可选）/复习反馈/今日复习/AI 智能整理/同类题
+// 错题本（分包 pages-ai，v2/v3/v4 同步）
+// 快速收录/复习闭环/今日复习/AI 智能整理/同类题练习/讲解/复习计划/薄弱点
 const { request } = require('../../utils/request')
-const { shortTime } = require('../../utils/format')
-const { requireLogin } = require('../../utils/auth')
+const { shortTime, md2plain } = require('../../utils/format')
+const { mdToHtml } = require('../../utils/md-render')
 const { getAiAnswer } = require('../../utils/ai-response')
+const { requireLogin } = require('../../utils/auth')
 
 const STATUS_TEXT = { 0: '待复习', 1: '复习中', 2: '基本掌握', 3: '已掌握' }
 const STATUS_CLS = { 0: 'st-pending', 1: 'st-reviewing', 2: 'st-basic', 3: 'st-mastered' }
@@ -47,11 +48,33 @@ Page({
     todayList: [],
     todayError: false,
 
-    // 同类题结果弹窗
-    showQuiz: false,
-    quizContent: '',
-    quizLoading: false,
-    quizFailed: false,
+    // AI 同类题练习弹窗（v4 练习模式）
+    showPractice: false,
+    practiceWqId: null,     // 当前练习的来源错题ID
+    practice: null,          // { id, wrongQuestionId, question, options, answer, analysis }
+    practiceAnalysisHtml: '',
+    practiceAnswer: '',
+    practiceSubmitted: false,
+    practiceJudged: false,
+    practiceLoading: false,
+    practiceSaving: false,
+    practiceFailed: false,
+
+    // AI 讲解弹窗
+    showExplain: false,
+    explainHtml: '',
+    explainLoading: false,
+    explainFailed: false,
+
+    // 复习计划弹窗
+    showPlan: false,
+    planHtml: '',
+    planLoading: false,
+    planFailed: false,
+
+    // 薄弱点弹窗
+    showWeak: false,
+    weak: { knowledgePoints: [], errorReasons: [] },
 
     // 展示映射
     statusText: STATUS_TEXT,
@@ -78,6 +101,8 @@ Page({
     }
   },
 
+  // ---------- 基础加载 ----------
+
   /** 加载学科标签（用于顶部筛选条） */
   async loadSubjects() {
     try {
@@ -98,10 +123,7 @@ Page({
     }
   },
 
-  /**
-   * 加载错题列表。
-   * @param {Boolean} reset true=重置第一页
-   */
+  /** 加载错题列表 */
   async loadList(reset) {
     if (this.data.loading) return
     const pageNum = reset ? 1 : this.data.pageNum + 1
@@ -147,7 +169,7 @@ Page({
     this.setData({ expandId: this.data.expandId === id ? null : id })
   },
 
-  /** 删除错题 */
+  /** 删除错题（统一刷新列表、分类、统计） */
   removeItem(e) {
     const id = e.currentTarget.dataset.id
     wx.showModal({
@@ -159,6 +181,7 @@ Page({
           await request({ url: `/wrong-question/${id}`, method: 'DELETE' })
           this.setData({ list: this.data.list.filter((x) => x.id !== id) })
           wx.showToast({ title: '已删除', icon: 'success' })
+          this.loadSubjects()
           this.loadStats()
         } catch (err) {
           // 错误已统一提示
@@ -242,7 +265,6 @@ Page({
         }
       })
       wx.showToast({ title: '复习反馈已记录', icon: 'success' })
-      // 今日列表移除该题
       if (this.data.fromToday) {
         this.setData({
           todayList: this.data.todayList.filter((x) => x.id !== reviewItem.id)
@@ -260,7 +282,7 @@ Page({
 
   // ---------- AI 智能整理 ----------
 
-  /** 重试/触发智能整理（卡片上 analyzeStatus=1 时显示按钮） */
+  /** 重试/触发智能整理（AI 可能修正学科：统一刷新） */
   async retryAnalyze(e) {
     const id = e.currentTarget.dataset.id
     try {
@@ -269,55 +291,245 @@ Page({
     } catch (err) {
       wx.showToast({ title: '暂未完成智能整理，可稍后重试', icon: 'none' })
     }
+    this.loadSubjects()
+    this.loadStats()
     this.loadList(true)
   },
 
-  // ---------- AI 同类题（文本展示 + 复制 + 重试） ----------
+  // ---------- AI 同类题练习（v4 practice 结构化） ----------
 
-  /** 生成同类题：POST /ai/quiz { wrongQuestionId } */
-  async generateQuiz(e) {
+  /** 打开练习弹窗并生成练习题 */
+  async openPractice(e) {
     const id = e.currentTarget.dataset.id
-    if (this.data.quizLoading) return
-    this.setData({ quizLoading: true, showQuiz: true, quizFailed: false, quizContent: 'AI 正在出题…' })
-    this._quizId = id
+    this.setData({
+      showPractice: true,
+      practiceWqId: id,
+      practice: null,
+      practiceAnalysisHtml: '',
+      practiceAnswer: '',
+      practiceSubmitted: false,
+      practiceJudged: false,
+      practiceFailed: false,
+      practiceLoading: true
+    })
     try {
-      const data = await request({
-        url: '/ai/quiz',
-        method: 'POST',
-        data: { wrongQuestionId: id }
-      })
-      this.setData({ quizContent: getAiAnswer(data) || '（AI 未返回内容）' })
-    } catch (err) {
+      const data = await request({ url: `/wrong-question/${id}/practice`, method: 'POST', data: {} })
       this.setData({
-        quizFailed: true,
-        quizContent: '出题失败：' + (err.message || 'AI 服务暂不可用') + '\n点击「重试」再试一次。'
+        practice: {
+          id: data.id,
+          wrongQuestionId: data.wrongQuestionId,
+          question: data.question || '',
+          options: this.normalizeOptions(data.options),
+          answer: data.answer || '',
+          analysis: data.analysis || ''
+        },
+        practiceAnalysisHtml: mdToHtml(data.analysis || '')
       })
+    } catch (err) {
+      this.setData({ practiceFailed: true, practice: null })
     } finally {
-      this.setData({ quizLoading: false })
+      this.setData({ practiceLoading: false })
     }
   },
 
-  retryQuiz() {
-    if (!this._quizId) return
-    this.setData({ showQuiz: true, quizFailed: false, quizContent: 'AI 正在出题…' })
-    this.generateQuiz({ currentTarget: { dataset: { id: this._quizId } } })
+  closePractice() {
+    this.setData({ showPractice: false, practice: null, practiceAnalysisHtml: '', practiceWqId: null })
   },
 
-  /** 关闭同类题弹窗 */
-  closeQuiz() {
-    this.setData({ showQuiz: false, quizContent: '', quizFailed: false })
-    this._quizId = null
+  /** 选择选项：存选项字母作为答案 */
+  choosePracticeOption(e) {
+    const item = e.currentTarget.dataset.item || {}
+    this.setData({ practiceAnswer: item.letter || '' })
   },
 
-  /** 复制同类题内容 */
-  copyQuiz() {
-    if (!this.data.quizContent) return
+  /** 提取选项字母："A. 内容" → "A"；无字母前缀 → 原文 */
+  pickOptionLetter(opt) {
+    const m = /^\s*([A-Ha-h])\s*[.、:：)]/.exec(opt || '')
+    return m ? m[1].toUpperCase() : (opt || '').trim()
+  },
+
+  /** 把选项转为 { text, letter } 结构（高亮与判对错共用） */
+  normalizeOptions(options) {
+    return (Array.isArray(options) ? options : []).map((o) => ({
+      text: o,
+      letter: this.pickOptionLetter(o)
+    }))
+  },
+
+
+  onPracticeInput(e) {
+    this.setData({ practiceAnswer: e.detail.value })
+  },
+
+  /** 判对错归一化：纯字母答案取字母；"A. 内容" 提取字母；文本答案全文比较 */
+  normalizeAnswer(s) {
+    const t = (s || '').trim().toUpperCase().replace(/\.+$/, '')
+    const m = /^([A-H])\s*[.、:：)]/.exec(t)
+    return m ? m[1] : t
+  },
+
+  practiceSubmit() {
+    const { practice, practiceAnswer } = this.data
+    if (!practice) return
+    if (!practiceAnswer.trim()) {
+      wx.showToast({ title: '请先作答', icon: 'none' })
+      return
+    }
+    const judged = !practice.answer
+      ? null // AI 未给标准答案：不判对错
+      : this.normalizeAnswer(practiceAnswer) === this.normalizeAnswer(practice.answer)
+    this.setData({ practiceSubmitted: true, practiceJudged: judged })
+  },
+
+  /** 保存练习题到错题本（幂等） */
+  async practiceSave() {
+    const { practice, practiceSaving } = this.data
+    if (!practice || practiceSaving) return
+    this.setData({ practiceSaving: true })
+    try {
+      await request({ url: `/wrong-question/practice/${practice.id}/save`, method: 'POST', data: {} })
+      wx.showToast({ title: '已保存到错题本', icon: 'success' })
+      this.setData({ showPractice: false, practice: null })
+      this.loadSubjects()
+      this.loadStats()
+      this.loadList(true)
+    } catch (err) {
+      // 重复保存等错误已统一提示
+    } finally {
+      this.setData({ practiceSaving: false })
+    }
+  },
+
+  /** 再生成一题 */
+  async practiceRegenerate() {
+    const wqId = this.data.practiceWqId
+    if (!wqId) return
+    this.setData({
+      practice: null,
+      practiceAnalysisHtml: '',
+      practiceAnswer: '',
+      practiceSubmitted: false,
+      practiceJudged: false,
+      practiceFailed: false,
+      practiceLoading: true
+    })
+    try {
+      const data = await request({ url: `/wrong-question/${wqId}/practice`, method: 'POST', data: {} })
+      this.setData({
+        practice: {
+          id: data.id,
+          wrongQuestionId: data.wrongQuestionId,
+          question: data.question || '',
+          options: this.normalizeOptions(data.options),
+          answer: data.answer || '',
+          analysis: data.analysis || ''
+        },
+        practiceAnalysisHtml: mdToHtml(data.analysis || '')
+      })
+    } catch (err) {
+      this.setData({ practiceFailed: true, practice: null })
+    } finally {
+      this.setData({ practiceLoading: false })
+    }
+  },
+
+  // ---------- AI 讲解 ----------
+
+  /** 复习弹窗内发起 AI 讲解 */
+  async explainWrong() {
+    const item = this.data.reviewItem
+    if (!item || this.data.explainLoading) return
+    this.setData({ showExplain: true, explainLoading: true, explainFailed: false, explainHtml: '' })
+    try {
+      const data = await request({ url: `/wrong-question/${item.id}/explain`, method: 'POST', data: {} })
+      this._explainRaw = getAiAnswer(data) || ''
+      this.setData({ explainHtml: mdToHtml(this._explainRaw) })
+    } catch (err) {
+      this.setData({ explainFailed: true })
+    } finally {
+      this.setData({ explainLoading: false })
+    }
+  },
+
+  closeExplain() {
+    this.setData({ showExplain: false, explainHtml: '', explainFailed: false })
+  },
+
+  retryExplain() {
+    this.explainWrong()
+  },
+
+  copyExplain() {
+    const text = md2plain(this.data.explainHtml ? this._explainRaw : '')
     wx.setClipboardData({
-      data: this.data.quizContent,
+      data: text,
       success() {
         wx.showToast({ title: '已复制', icon: 'success' })
       }
     })
+  },
+
+  // ---------- AI 复习计划 ----------
+
+  /** 今日复习弹窗内生成复习计划 */
+  async generatePlan() {
+    if (this.data.planLoading) return
+    this.setData({ showPlan: true, planLoading: true, planFailed: false, planHtml: '' })
+    try {
+      const planParams = {}
+      if (this.data.activeSubject) planParams.subject = this.data.activeSubject
+      const data = await request({
+        url: '/wrong-question/review-plan',
+        method: 'POST',
+        data: planParams
+      })
+      this._planRaw = getAiAnswer(data) || ''
+      this.setData({ planHtml: mdToHtml(this._planRaw) })
+    } catch (err) {
+      this.setData({ planFailed: true })
+    } finally {
+      this.setData({ planLoading: false })
+    }
+  },
+
+  closePlan() {
+    this.setData({ showPlan: false, planHtml: '', planFailed: false })
+  },
+
+  retryPlan() {
+    this.generatePlan()
+  },
+
+  copyPlan() {
+    const text = md2plain(this.data.planHtml ? this._planRaw : '')
+    wx.setClipboardData({
+      data: text,
+      success() {
+        wx.showToast({ title: '已复制', icon: 'success' })
+      }
+    })
+  },
+
+  // ---------- 薄弱点 ----------
+
+  /** 加载薄弱点报告 */
+  async openWeak() {
+    this.setData({ showWeak: true })
+    try {
+      const data = await request({ url: '/wrong-question/weak-points' })
+      this.setData({
+        weak: {
+          knowledgePoints: (data && data.knowledgePoints) || [],
+          errorReasons: (data && data.errorReasons) || []
+        }
+      })
+    } catch (e) {
+      this.setData({ weak: { knowledgePoints: [], errorReasons: [] } })
+    }
+  },
+
+  closeWeak() {
+    this.setData({ showWeak: false })
   },
 
   // ---------- 快速收录（学科可选） ----------
@@ -365,7 +577,6 @@ Page({
       })
       wx.showToast({ title: '已收录，正在智能整理…', icon: 'success' })
       this.setData({ showAdd: false })
-      // fire-and-forget：AI 智能整理（失败仅标记，不影响收录）
       if (data && data.id) {
         request({ url: `/wrong-question/${data.id}/analyze`, method: 'POST', data: {} }).catch(() => {})
       }

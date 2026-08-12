@@ -1,4 +1,12 @@
 <view class="page">
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <input class="search-input" placeholder="搜索动态…" value="{{keyword}}"
+           bindinput="onSearchInput" bindconfirm="onSearch" confirm-type="search" />
+    <view class="search-btn" bindtap="onSearch">搜索</view>
+    <view wx:if="{{keyword}}" class="search-clear" bindtap="onClearSearch">清除</view>
+  </view>
+
   <view wx:for="{{list}}" wx:key="id" class="post-card">
     <view class="post-header" bindtap="goDetail" data-id="{{item.id}}">
       <image wx:if="{{item.avatar}}" class="avatar" src="{{item.avatar}}" mode="aspectFill" />

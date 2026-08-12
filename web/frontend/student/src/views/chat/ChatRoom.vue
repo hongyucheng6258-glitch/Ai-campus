@@ -20,7 +20,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, MoreFilled } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -51,6 +51,10 @@ async function command(value) {
   if (value === 'hide') { await hideConversation(id); router.push('/chat') }
   else if (value === 'block') { await ElMessageBox.confirm('拉黑后双方将不能继续发送新消息，仍可查看历史。', '确认拉黑', { type: 'warning' }); await blockChatUser(conversation.value.peerUserId); ElMessage.success('已拉黑该用户') }
 }
+watch(() => messages.value.map((item) => `${item.id || item.clientMessageId}:${item.sendState || ''}`).join('|'), () => {
+  scrollBottom()
+})
+
 onMounted(async () => {
   loading.value = true
   chatStore.activeConversationId = id
