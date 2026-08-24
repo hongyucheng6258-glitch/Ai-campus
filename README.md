@@ -2,7 +2,7 @@
 
 > **开发状态：已完成开发** — 全部功能模块已开发完成并通过测试，可部署使用。
 
-AI校园综合服务平台是一套面向高校学生的综合服务系统，提供校园信息服务、AI学习辅助、活动组队、闲置物品互换、失物招领、校园动态、私信沟通和后台管理等功能。
+AI校园综合服务平台是一套面向高校学生的综合服务系统，集成校园信息服务、AI 学习辅助、活动组队、闲置物品互换、失物招领、校园动态、私信沟通和后台管理等功能。平台通过 DeepSeek AI 接口提供智能对话、代码修复、PDF 学习问答、错题分析与题目生成等能力，同时内置 AI 内容审核机制，对用户发布内容进行自动安全过滤。
 
 项目包含 Web 学生端、Web 管理后台、微信小程序和 Spring Boot 后端服务，适合作为校园综合服务平台的课程设计或毕业设计项目基础。
 
@@ -17,10 +17,10 @@ AI校园综合服务平台是一套面向高校学生的综合服务系统，提
 - 失物招领信息发布、浏览和详情查看
 - 校园动态广场、动态发布、详情、评论和点赞
 - 站内消息和未读消息提醒
-- 学生之间的私信会话和实时聊天
+- 学生之间的私信会话和实时聊天（含发送频率限制）
 - AI 对话、代码修复、PDF 学习问答和大纲生成
 - 错题本、错题分析、薄弱点分析、复习计划和题目生成
-- 错题拍照 OCR 识别录入
+- 错题拍照 OCR 识别录入（Tesseract.js）
 - 全局搜索（活动、闲置、失物招领、校园动态）
 - 维护模式提示页面（系统维护期间自动展示）
 
@@ -38,7 +38,7 @@ AI校园综合服务平台是一套面向高校学生的综合服务系统，提
 
 ### 微信小程序
 
-微信小程序与学生端保持主要功能一致，支持首页、消息、个人中心、AI 学习中心、活动组队、闲置互换、失物招领、校园动态和私信等功能。
+微信小程序与学生端保持主要功能一致，支持首页、消息、个人中心、AI 学习中心（AI 对话、代码修复、PDF 问答、大纲生成、错题本）、活动组队、闲置互换、失物招领、校园动态和私信等功能，并内置 Markdown 渲染组件用于 AI 回复展示。
 
 ## 技术栈
 
@@ -49,13 +49,14 @@ AI校园综合服务平台是一套面向高校学生的综合服务系统，提
 - Spring MVC
 - Spring Validation
 - Spring WebSocket
+- Spring Scheduling（定时任务：活动状态自动同步）
 - MyBatis-Plus 3.5.7
 - MySQL 8
 - Redis
-- JWT
-- MinIO
+- JWT 双重校验（签名 + 角色声明）
+- MinIO（图片兼容接口，已改为数据库 Base64 存储）
 - PDFBox
-- OkHttp SSE
+- OkHttp SSE（AI 流式响应）
 - DeepSeek OpenAI 兼容接口
 - Hutool
 - Lombok
@@ -71,7 +72,7 @@ AI校园综合服务平台是一套面向高校学生的综合服务系统，提
 - ECharts
 - Markdown It
 - WangEditor
-- Tesseract.js
+- Tesseract.js（OCR 文字识别）
 
 ### 小程序
 
@@ -88,9 +89,15 @@ Ai-campus/
 ├── miniprogram/
 │   └── frontend/                 # 微信小程序前端
 │       ├── components/           # 通用组件
-│       ├── pages/                # 基础页面
+│       ├── pages/                # 基础页面（首页、消息、个人中心）
 │       ├── pages-activity/       # 活动组队
 │       ├── pages-ai/             # AI 学习中心
+│       │   ├── chat/            #   AI 对话
+│       │   ├── code-fix/        #   代码修复
+│       │   ├── home/            #   AI 首页
+│       │   ├── outline/         #   大纲生成
+│       │   ├── pdf/             #   PDF 学习问答
+│       │   └── wrong/           #   错题本
 │       ├── pages-chat/           # 私信聊天
 │       ├── pages-idle/           # 闲置互换
 │       ├── pages-lostfound/      # 失物招领
@@ -100,7 +107,20 @@ Ai-campus/
 │
 ├── web/
 │   ├── backend/                  # Spring Boot 后端
-│   │   ├── src/main/java/        # Java 源码
+│   │   ├── src/main/java/com/campus/platform/
+│   │   │   ├── aigateway/       #   AI 服务网关与配置
+│   │   │   ├── chat/             #   聊天服务（限流、会话）
+│   │   │   ├── common/           #   公共工具
+│   │   │   ├── config/           #   配置类（WebMvc、系统配置）
+│   │   │   ├── controller/       #   控制器（含 admin 子包）
+│   │   │   ├── dto/              #   数据传输对象
+│   │   │   ├── entity/           #   实体类
+│   │   │   ├── interceptor/      #   拦截器（JWT、维护模式）
+│   │   │   ├── mapper/           #   MyBatis-Plus Mapper
+│   │   │   ├── service/          #   业务逻辑层
+│   │   │   ├── task/             #   定时任务（活动状态同步）
+│   │   │   ├── utils/            #   工具类
+│   │   │   └── vo/               #   视图对象
 │   │   ├── src/main/resources/   # 配置、数据库脚本和敏感词文件
 │   │   ├── src/test/             # 后端测试
 │   │   └── pom.xml               # Maven 配置
@@ -121,15 +141,27 @@ Ai-campus/
 - npm
 - MySQL 8
 - Redis 6 或更高版本
-- MinIO
+- MinIO（可选，图片已改为数据库存储）
 - 微信开发者工具（开发小程序时需要）
 
 ## 数据库初始化
 
-1. 创建数据库 `ai_campus_platform`。
+1. 创建数据库 `ai_campus_platform`（字符集 `utf8mb4`）。
 2. 执行 `web/backend/src/main/resources/db/schema.sql` 初始化表结构。
-3. 如果使用错题本、AI 内容审核、系统配置等新增功能，根据实际数据库版本依次执行对应的迁移脚本（`migrate_v5` 至 `migrate_v7`）。
+3. 根据实际数据库版本依次执行迁移脚本：
+
+```text
+migrate_v2_wrongbook.sql              # 错题本表
+migrate_v3_wrongbook_analyze.sql      # 错题分析与薄弱点
+migrate_v4_wrongbook_generated.sql    # 生成题与复习
+migrate_v5_images_to_db.sql           # 图片迁移至数据库 Base64
+migrate_v6_all_uploads_to_db.sql      # 全部上传文件迁移至数据库
+migrate_v7_system_config.sql          # 系统配置表
+```
+
 4. 开发测试环境可以按需执行 `reset_and_testdata.sql` 中的测试数据脚本。
+
+> MySQL 需调大 `max_allowed_packet`（建议 128MB），因为图片以 Base64 入库。
 
 数据库连接信息建议通过环境变量配置，不要把真实密码提交到仓库：
 
@@ -234,7 +266,7 @@ npm test
 3. 确认后端服务已经启动，并且小程序开发环境允许访问本地接口。
 4. 编译并预览小程序页面。
 
-小程序页面按功能划分为多个分包，包括 AI 学习中心、闲置互换、活动组队、失物招领、私信和校园动态。
+小程序页面按功能划分为多个分包，包括 AI 学习中心（对话、代码修复、PDF 问答、大纲生成、错题本）、闲置互换、活动组队、失物招领、私信和校园动态。
 
 ## 配置说明
 
@@ -267,11 +299,15 @@ web/backend/src/main/resources/application.yml
 | `SIGNIN_SECRET` | 活动签到签名密钥 |
 | `TRUSTED_ORIGINS` | REST 和 WebSocket 可信来源列表 |
 
+AI 密钥支持两种配置方式：通过环境变量 `AI_API_KEY` 设置，或在管理后台「AI 配置」页面在线修改（数据库 `ai_config` 表，优先级高于环境变量）。
+
 ## 安全说明
 
 生产环境部署前请替换所有数据库、对象存储、JWT、签到和第三方服务密钥。真实密钥应通过环境变量、密钥管理服务或服务器安全配置注入，不应写入源码、提交记录或前端构建产物。
 
 请同时限制 MySQL、Redis 和 MinIO 的网络访问范围，并为管理后台启用 HTTPS。
+
+后端 JWT 拦截器同时校验签名和角色声明，防止学生 Token 访问管理端接口。
 
 ## 测试
 
