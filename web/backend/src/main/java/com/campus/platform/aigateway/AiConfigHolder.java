@@ -68,7 +68,11 @@ public class AiConfigHolder {
         }
         return switch (key) {
             case "base_url" -> defaultBaseUrl;
-            case "api_key" -> System.getenv("AI_API_KEY") != null ? System.getenv("AI_API_KEY") : defaultApiKey;
+            case "api_key" -> {
+                String apiKey = System.getenv("AI_API_KEY");
+                if (StrUtil.isBlank(apiKey)) apiKey = System.getenv("DEEPSEEK_API_KEY");
+                yield StrUtil.isBlank(apiKey) ? defaultApiKey : apiKey;
+            }
             case "model_name" -> System.getenv("AI_MODEL") != null ? System.getenv("AI_MODEL") : defaultModel;
             case "temperature" -> String.valueOf(defaultTemperature);
             case "max_tokens" -> String.valueOf(defaultMaxTokens);

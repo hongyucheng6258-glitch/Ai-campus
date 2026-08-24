@@ -3,7 +3,20 @@
 </template>
 
 <script setup>
-// 根组件：仅承载路由出口
+import { onMounted } from 'vue'
+import request from './api/request'
+
+// 根组件：获取站点配置，动态设置页面标题
+onMounted(async () => {
+  try {
+    const cfg = await request.get('/site/config', { silent: true })
+    if (cfg?.siteName) {
+      document.title = cfg.siteName
+    }
+  } catch (e) {
+    // 忽略，使用默认标题
+  }
+})
 </script>
 
 <style>

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.campus.platform.common.BizException;
 import com.campus.platform.common.Constants;
 import com.campus.platform.common.ResultCode;
+import com.campus.platform.config.SystemConfigHolder;
 import com.campus.platform.dto.AdminLoginDTO;
 import com.campus.platform.dto.LoginDTO;
 import com.campus.platform.dto.RegisterDTO;
@@ -38,6 +39,7 @@ public class AuthService {
     private final AdminMapper adminMapper;
     private final JwtUtils jwtUtils;
     private final WxUtils wxUtils;
+    private final SystemConfigHolder systemConfigHolder;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -45,6 +47,9 @@ public class AuthService {
      * Web 注册（学号+密码+昵称）。
      */
     public LoginVO register(RegisterDTO dto) {
+        if (!systemConfigHolder.isRegisterEnabled()) {
+            throw new BizException(ResultCode.FORBIDDEN, "当前已关闭注册，请联系管理员");
+        }
         Long count = userMapper.selectCount(new LambdaQueryWrapper<User>()
                 .eq(User::getStudentNo, dto.getStudentNo()));
         if (count > 0) {
@@ -54,7 +59,8 @@ public class AuthService {
         user.setStudentNo(dto.getStudentNo());
         user.setNickname(dto.getNickname());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        user.setStatus(Constants.USER_STATUS_NORMAL);
+        // 新用户默认状态从系统配置读取（0正常 1禁用），管理端可在线调整
+        user.setStatus(systemConfigHolder.getInt("user_default_status", Constants.USER_STATUS_NORMAL));
         user.setLastLoginTime(LocalDateTime.now());
         userMapper.insert(user);
         return buildLoginVO(user);
@@ -86,6 +92,9 @@ public class AuthService {
         User user = userMapper.selectOne(new LambdaQueryWrapper<User>()
                 .eq(User::getOpenid, openid));
         if (user == null) {
+            if (!systemConfigHolder.isRegisterEnabled()) {
+                throw new BizException(ResultCode.FORBIDDEN, "当前已关闭新用户注册，请联系管理员");
+            }
             // 自动建号（无密码，后续可绑定学号合并）
             user = new User();
             user.setOpenid(openid);

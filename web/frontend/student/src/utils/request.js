@@ -57,6 +57,12 @@ request.interceptors.response.use(
       window.dispatchEvent(new Event('auth-expired'))
       if (router.currentRoute.value.path !== '/login') router.push('/login')
     }
+    // 维护模式：503 跳转到维护页面
+    if (error.response?.status === 503 || biz?.code === 503) {
+      if (router.currentRoute.value.path !== '/maintenance') {
+        router.push('/maintenance')
+      }
+    }
     error.code = biz?.code ?? error.response?.status ?? -1
     error.message = message
     return Promise.reject(error)

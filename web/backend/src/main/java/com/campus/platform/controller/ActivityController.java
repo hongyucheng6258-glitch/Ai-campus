@@ -1,8 +1,11 @@
 package com.campus.platform.controller;
 
+import com.campus.platform.common.BizException;
 import com.campus.platform.common.PageResult;
 import com.campus.platform.common.R;
+import com.campus.platform.common.ResultCode;
 import com.campus.platform.common.UserContext;
+import com.campus.platform.config.SystemConfigHolder;
 import com.campus.platform.dto.ActivityPublishDTO;
 import com.campus.platform.dto.MemberHandleDTO;
 import com.campus.platform.dto.SigninDTO;
@@ -23,9 +26,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ActivityController {
     private final ActivityService activityService;
+    private final SystemConfigHolder systemConfigHolder;
 
     @PostMapping
     public R<Activity> publish(@Valid @RequestBody ActivityPublishDTO dto) {
+        if (!systemConfigHolder.isActivityPublishEnabled()) {
+            throw new BizException(ResultCode.FORBIDDEN, "当前已关闭活动发布，请联系管理员");
+        }
         return R.ok(activityService.publish(UserContext.getUid(), dto));
     }
 

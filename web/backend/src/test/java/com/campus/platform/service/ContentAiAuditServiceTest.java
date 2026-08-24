@@ -3,13 +3,15 @@ package com.campus.platform.service;
 import com.campus.platform.common.Constants;
 import com.campus.platform.aigateway.AiConfigHolder;
 import com.campus.platform.aigateway.AiGatewayService;
+import com.campus.platform.config.SystemConfigHolder;
 import com.campus.platform.entity.LostFound;
 import com.campus.platform.mapper.LostFoundMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -25,9 +27,17 @@ class ContentAiAuditServiceTest {
     @Mock
     private LostFoundMapper lostFoundMapper;
 
+    private SystemConfigHolder mockConfig(boolean aiEnabled) {
+        SystemConfigHolder config = mock(SystemConfigHolder.class);
+        when(config.isAiAuditEnabled()).thenReturn(aiEnabled);
+        when(config.getAuditHighRiskWords()).thenReturn(List.of("转账", "押金", "银行卡", "刷单", "兼职返利", "加微信", "二维码", "代充", "账号交易"));
+        when(config.getAuditMediumRiskWords()).thenReturn(List.of("悬赏", "收费", "校外", "联系我", "手机号", "群聊", "购买"));
+        return config;
+    }
+
     @Test
     void lowRiskContentShouldAutoPassAndRecordAiDecision() {
-        ContentAiAuditService service = new ContentAiAuditService(lostFoundMapper, null, null, null, null, null);
+        ContentAiAuditService service = new ContentAiAuditService(lostFoundMapper, null, null, null, null, null, mockConfig(false));
 
         LostFound content = new LostFound();
         content.setId(1L);
@@ -43,7 +53,7 @@ class ContentAiAuditServiceTest {
 
     @Test
     void highRiskContentShouldRemainPendingForManualReview() {
-        ContentAiAuditService service = new ContentAiAuditService(lostFoundMapper, null, null, null, null, null);
+        ContentAiAuditService service = new ContentAiAuditService(lostFoundMapper, null, null, null, null, null, mockConfig(false));
 
         LostFound content = new LostFound();
         content.setId(2L);
@@ -59,14 +69,12 @@ class ContentAiAuditServiceTest {
 
     @Test
     void aiFailureShouldFallbackToRuleAndAutoPassLowRisk() {
-        // AI 配置了但调用失败：规则判 LOW 的内容应直接放行，避免永久停在待审核
         AiGatewayService gateway = mock(AiGatewayService.class);
         AiConfigHolder holder = mock(AiConfigHolder.class);
-        when(holder.get("audit_enabled")).thenReturn("true");
         when(holder.getApiKey()).thenReturn("sk-real-key");
         when(gateway.internalChat(anyLong(), anyString(), anyString(), anyMap()))
                 .thenThrow(new RuntimeException("AI down"));
-        ContentAiAuditService service = new ContentAiAuditService(lostFoundMapper, null, null, null, gateway, holder);
+        ContentAiAuditService service = new ContentAiAuditService(lostFoundMapper, null, null, null, gateway, holder, mockConfig(true));
 
         LostFound content = new LostFound();
         content.setId(3L);
@@ -80,14 +88,12 @@ class ContentAiAuditServiceTest {
 
     @Test
     void aiFailureShouldKeepRuleInterceptionForHighRisk() {
-        // AI 调用失败但内容命中本地高风险词：仍保持待审核（人工复核）
         AiGatewayService gateway = mock(AiGatewayService.class);
         AiConfigHolder holder = mock(AiConfigHolder.class);
-        when(holder.get("audit_enabled")).thenReturn("true");
         when(holder.getApiKey()).thenReturn("sk-real-key");
         when(gateway.internalChat(anyLong(), anyString(), anyString(), anyMap()))
                 .thenThrow(new RuntimeException("AI down"));
-        ContentAiAuditService service = new ContentAiAuditService(lostFoundMapper, null, null, null, gateway, holder);
+        ContentAiAuditService service = new ContentAiAuditService(lostFoundMapper, null, null, null, gateway, holder, mockConfig(true));
 
         LostFound content = new LostFound();
         content.setId(4L);

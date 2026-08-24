@@ -1,8 +1,11 @@
 package com.campus.platform.controller;
 
+import com.campus.platform.common.BizException;
 import com.campus.platform.common.PageResult;
 import com.campus.platform.common.R;
+import com.campus.platform.common.ResultCode;
 import com.campus.platform.common.UserContext;
+import com.campus.platform.config.SystemConfigHolder;
 import com.campus.platform.dto.AppointDTO;
 import com.campus.platform.dto.AppointHandleDTO;
 import com.campus.platform.dto.IdlePublishDTO;
@@ -22,9 +25,13 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class IdleController {
     private final IdleService idleService;
+    private final SystemConfigHolder systemConfigHolder;
 
     @PostMapping
     public R<IdleItem> publish(@Valid @RequestBody IdlePublishDTO dto) {
+        if (!systemConfigHolder.isIdlePublishEnabled()) {
+            throw new BizException(ResultCode.FORBIDDEN, "当前已关闭闲置发布，请联系管理员");
+        }
         return R.ok(idleService.publish(UserContext.getUid(), dto));
     }
 

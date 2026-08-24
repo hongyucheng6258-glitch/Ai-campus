@@ -53,7 +53,7 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   DataAnalysis, User, Checked, Warning, Bell,
-  Cpu, Document, Setting, Fold, Expand
+  Cpu, Document, Setting, Tools, Fold, Expand
 } from '@element-plus/icons-vue'
 import { useAdminStore } from '../store/admin'
 
@@ -70,7 +70,8 @@ const allMenus = [
   { path: '/notice', title: '公告管理', icon: Bell },
   { path: '/ai/config', title: 'AI配置', icon: Cpu },
   { path: '/ai/logs', title: 'AI日志', icon: Document },
-  { path: '/system', title: '系统管理', icon: Setting, superOnly: true }
+  { path: '/system/config', title: '系统配置', icon: Tools, superOnly: true },
+  { path: '/system', title: '管理员管理', icon: Setting, superOnly: true }
 ]
 const menus = computed(() =>
   allMenus.filter((m) => !m.superOnly || adminStore.isSuper)

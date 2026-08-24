@@ -18,6 +18,12 @@ const routes = [
     meta: { public: true }
   },
   {
+    path: '/maintenance',
+    name: 'Maintenance',
+    component: () => import('../views/Maintenance.vue'),
+    meta: { public: true }
+  },
+  {
     path: '/',
     component: () => import('../layout/MainLayout.vue'),
     children: [

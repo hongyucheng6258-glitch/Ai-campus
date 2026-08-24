@@ -36,7 +36,13 @@ request.interceptors.response.use(
     return Promise.reject(new Error(res.message || '请求失败'))
   },
   (error) => {
-    ElMessage.error(error.message || '网络异常')
+    const status = error.response?.status
+    if (status === 401 || status === 403) {
+      localStorage.removeItem('admin_token')
+      localStorage.removeItem('admin_info')
+      if (router.currentRoute.value.path !== '/login') router.push('/login')
+    }
+    ElMessage.error(error.response?.data?.message || error.message || '网络异常')
     return Promise.reject(error)
   }
 )

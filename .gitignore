@@ -11,6 +11,14 @@ Thumbs.db
 .reasonix/
 reasonix.toml
 
+# Local non-source directories and files
+deploy/
+docs/
+javap_output/
+代码审查报告.html
+功能截图/
+论文图表/
+
 # Build outputs and dependencies
 **/target/
 **/dist/
@@ -41,17 +49,8 @@ _backup_*/
 database-backups/
 javap_output/
 
-# QA runtime outputs and reports may contain JWTs, account data or API responses
-docs/qa/tokens.json
-docs/qa/ctx*.json
-docs/qa/r*.json
-docs/qa/*报告*.md
-docs/冒烟验收报告.md
-
 # Local documents containing environment-specific credentials or runtime evidence
 overview.md
-deploy/部署说明.md
-docs/测试报告.md
 
 # Local generated/shareable reports
 *.html.zip

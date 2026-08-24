@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import com.campus.platform.aigateway.AiConfigHolder;
 import com.campus.platform.aigateway.AiGatewayService;
 import com.campus.platform.common.Constants;
+import com.campus.platform.config.SystemConfigHolder;
 import com.campus.platform.entity.Activity;
 import com.campus.platform.entity.IdleItem;
 import com.campus.platform.entity.LostFound;
@@ -34,6 +35,7 @@ public class ContentAiAuditService {
     private final PostMapper postMapper;
     private final AiGatewayService aiGatewayService;
     private final AiConfigHolder aiConfigHolder;
+    private final SystemConfigHolder systemConfigHolder;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public ContentAiAuditService(LostFoundMapper lostFoundMapper,
@@ -41,13 +43,15 @@ public class ContentAiAuditService {
                                  ActivityMapper activityMapper,
                                  PostMapper postMapper,
                                  AiGatewayService aiGatewayService,
-                                 AiConfigHolder aiConfigHolder) {
+                                 AiConfigHolder aiConfigHolder,
+                                 SystemConfigHolder systemConfigHolder) {
         this.lostFoundMapper = lostFoundMapper;
         this.idleItemMapper = idleItemMapper;
         this.activityMapper = activityMapper;
         this.postMapper = postMapper;
         this.aiGatewayService = aiGatewayService;
         this.aiConfigHolder = aiConfigHolder;
+        this.systemConfigHolder = systemConfigHolder;
     }
 
     public void audit(String type, Object content, Long userId, String title, String body) {
@@ -103,13 +107,14 @@ public class ContentAiAuditService {
 
     private AiAuditResult ruleDecision(String title, String body) {
         String text = StrUtil.nullToEmpty(title) + " " + StrUtil.nullToEmpty(body);
-        String[] highRiskWords = {"转账", "押金", "银行卡", "刷单", "兼职返利", "加微信", "二维码", "代充", "账号交易"};
+        // 高/中风险词从系统配置读取（管理端可在线修改，即时生效）
+        List<String> highRiskWords = systemConfigHolder.getAuditHighRiskWords();
         for (String word : highRiskWords) {
             if (text.contains(word)) {
                 return new AiAuditResult("HIGH", 85, "命中高风险规则：" + word, List.of("交易风险"));
             }
         }
-        String[] mediumRiskWords = {"悬赏", "收费", "校外", "联系我", "手机号", "群聊", "购买"};
+        List<String> mediumRiskWords = systemConfigHolder.getAuditMediumRiskWords();
         for (String word : mediumRiskWords) {
             if (text.contains(word)) {
                 return new AiAuditResult("MEDIUM", 50, "命中需复核规则：" + word, List.of("人工复核"));
@@ -120,9 +125,10 @@ public class ContentAiAuditService {
 
     private boolean aiEnabled() {
         if (aiConfigHolder == null || aiGatewayService == null) return false;
-        String enabled = aiConfigHolder.get("audit_enabled");
+        // AI 审核开关从系统配置读取（管理端可在线切换）
+        if (!systemConfigHolder.isAiAuditEnabled()) return false;
         String key = aiConfigHolder.getApiKey();
-        return "true".equalsIgnoreCase(enabled) && StrUtil.isNotBlank(key) && !key.contains("xxx");
+        return StrUtil.isNotBlank(key) && !key.contains("xxx");
     }
 
     private String buildAuditText(String type, String title, String body) {

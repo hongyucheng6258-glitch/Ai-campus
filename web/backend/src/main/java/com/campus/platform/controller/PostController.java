@@ -1,8 +1,11 @@
 package com.campus.platform.controller;
 
+import com.campus.platform.common.BizException;
 import com.campus.platform.common.PageResult;
 import com.campus.platform.common.R;
+import com.campus.platform.common.ResultCode;
 import com.campus.platform.common.UserContext;
+import com.campus.platform.config.SystemConfigHolder;
 import com.campus.platform.dto.CommentDTO;
 import com.campus.platform.dto.PostPublishDTO;
 import com.campus.platform.entity.Post;
@@ -19,9 +22,13 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class PostController {
     private final PostService postService;
+    private final SystemConfigHolder systemConfigHolder;
 
     @PostMapping
     public R<Post> publish(@Valid @RequestBody PostPublishDTO dto) {
+        if (!systemConfigHolder.isPostPublishEnabled()) {
+            throw new BizException(ResultCode.FORBIDDEN, "当前已关闭动态发布，请联系管理员");
+        }
         return R.ok(postService.publish(UserContext.getUid(), dto));
     }
 

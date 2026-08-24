@@ -20,6 +20,7 @@ import com.campus.platform.chat.websocket.ChatRealtimePublisher;
 import com.campus.platform.common.BizException;
 import com.campus.platform.common.Constants;
 import com.campus.platform.common.ResultCode;
+import com.campus.platform.config.SystemConfigHolder;
 import com.campus.platform.entity.Report;
 import com.campus.platform.entity.UploadResource;
 import com.campus.platform.entity.User;
@@ -48,6 +49,7 @@ public class ChatService {
     private final ChatRealtimePublisher realtimePublisher;
     private final UploadResourceService uploadResourceService;
     private final ChatContextValidator contextValidator;
+    private final SystemConfigHolder systemConfigHolder;
     private final ChatRateLimiter rateLimiter;
 
     @Transactional
@@ -102,6 +104,13 @@ public class ChatService {
         ChatMessage duplicate = messageMapper.findBySenderAndClientMessageId(senderId, dto.getClientMessageId());
         if (duplicate != null) return duplicate;
         rateLimiter.checkSend(senderId);
+        // 私信长度校验（从系统配置读取，管理端可在线调整）
+        if ("text".equals(dto.getMessageType()) && dto.getContent() != null) {
+            int maxLen = systemConfigHolder.getChatMessageMaxLength();
+            if (dto.getContent().length() > maxLen) {
+                throw new BizException(ResultCode.BAD_REQUEST, "消息内容不能超过 " + maxLen + " 字");
+            }
+        }
         ChatConversation conversation = requireMemberForUpdate(conversationId, senderId);
         Long receiverId = conversation.getUser1Id().equals(senderId) ? conversation.getUser2Id() : conversation.getUser1Id();
         if (blockMapper.countEitherDirection(senderId, receiverId) > 0) {

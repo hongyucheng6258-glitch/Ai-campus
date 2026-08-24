@@ -24,14 +24,15 @@ const routes = [
       { path: 'notice/edit/:id?', name: 'NoticeEdit', component: () => import('../views/notice/NoticeEdit.vue'), meta: { title: '公告编辑' } },
       { path: 'ai/config', name: 'AiConfig', component: () => import('../views/ai/AiConfig.vue'), meta: { title: 'AI配置' } },
       { path: 'ai/logs', name: 'AiLogs', component: () => import('../views/ai/AiLogs.vue'), meta: { title: 'AI日志' } },
-      { path: 'system', name: 'AdminList', component: () => import('../views/system/AdminList.vue'), meta: { title: '系统管理', superOnly: true } }
+      { path: 'system/config', name: 'SystemConfig', component: () => import('../views/system/SystemConfig.vue'), meta: { title: '系统配置', superOnly: true } },
+      { path: 'system', name: 'AdminList', component: () => import('../views/system/AdminList.vue'), meta: { title: '管理员管理', superOnly: true } }
     ]
   },
   { path: '/:pathMatch(.*)*', redirect: '/dashboard' }
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory('/admin/'),
   routes
 })
 

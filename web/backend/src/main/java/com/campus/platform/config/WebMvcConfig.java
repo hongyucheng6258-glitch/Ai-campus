@@ -2,6 +2,7 @@ package com.campus.platform.config;
 
 import com.campus.platform.interceptor.AdminInterceptor;
 import com.campus.platform.interceptor.JwtInterceptor;
+import com.campus.platform.interceptor.MaintenanceInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -25,12 +26,18 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     private final JwtInterceptor jwtInterceptor;
     private final AdminInterceptor adminInterceptor;
+    private final MaintenanceInterceptor maintenanceInterceptor;
 
     @Value("${security.trusted-origins:http://localhost:5173,http://127.0.0.1:5173}")
     private String[] trustedOrigins;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        // 维护模式拦截器：最先执行，开启时学生端API全部返回503（管理端不受影响）
+        registry.addInterceptor(maintenanceInterceptor)
+                .addPathPatterns("/api/**")
+                .excludePathPatterns("/api/admin/**", "/error", "/favicon.ico");
+
         // 管理端拦截器：仅校验 /api/admin/** 且 role=admin
         registry.addInterceptor(adminInterceptor)
                 .addPathPatterns("/api/admin/**")
@@ -51,6 +58,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/api/notice/list",
                         "/api/post/list",
                         "/api/home/aggregate",
+                        "/api/site/config",
                         "/error",
                         "/favicon.ico"
                 );
