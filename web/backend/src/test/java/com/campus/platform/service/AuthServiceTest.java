@@ -3,6 +3,7 @@ package com.campus.platform.service;
 import com.campus.platform.common.BizException;
 import com.campus.platform.common.Constants;
 import com.campus.platform.common.ResultCode;
+import com.campus.platform.config.SystemConfigHolder;
 import com.campus.platform.dto.AdminLoginDTO;
 import com.campus.platform.dto.LoginDTO;
 import com.campus.platform.dto.RegisterDTO;
@@ -38,6 +39,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import org.junit.jupiter.api.BeforeEach;
+
 /**
  * 认证服务测试（对应 PRD A1/A2/A3/A5 + 架构设计难点4「双登录体系统一用户」）。
  *
@@ -52,9 +55,17 @@ class AuthServiceTest {
     @Mock private AdminMapper adminMapper;
     @Mock private JwtUtils jwtUtils;
     @Mock private WxUtils wxUtils;
+    @Mock private SystemConfigHolder systemConfigHolder;
 
     @InjectMocks
     private AuthService authService;
+
+    @BeforeEach
+    void setUpSystemConfigDefaults() {
+        when(systemConfigHolder.isRegisterEnabled()).thenReturn(true);
+        when(systemConfigHolder.getInt("user_default_status", Constants.USER_STATUS_NORMAL))
+                .thenReturn(Constants.USER_STATUS_NORMAL);
+    }
 
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 

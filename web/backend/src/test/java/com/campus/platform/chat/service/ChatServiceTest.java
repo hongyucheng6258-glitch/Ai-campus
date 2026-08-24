@@ -14,11 +14,13 @@ import com.campus.platform.chat.mapper.ChatMessageMapper;
 import com.campus.platform.chat.mapper.UserBlockMapper;
 import com.campus.platform.chat.websocket.ChatRealtimePublisher;
 import com.campus.platform.common.BizException;
+import com.campus.platform.config.SystemConfigHolder;
 import com.campus.platform.entity.UploadResource;
 import com.campus.platform.entity.User;
 import com.campus.platform.mapper.ReportMapper;
 import com.campus.platform.mapper.UserMapper;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,6 +31,7 @@ import org.springframework.dao.DuplicateKeyException;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class ChatServiceTest {
@@ -44,9 +47,15 @@ class ChatServiceTest {
     @Mock private ChatRealtimePublisher realtimePublisher;
     @Mock private UploadResourceService uploadResourceService;
     @Mock private ChatContextValidator contextValidator;
+    @Mock private SystemConfigHolder systemConfigHolder;
     @Mock private ChatRateLimiter rateLimiter;
 
     @InjectMocks private ChatService chatService;
+
+    @BeforeEach
+    void setUpSystemConfigDefaults() {
+        lenient().when(systemConfigHolder.getChatMessageMaxLength()).thenReturn(2000);
+    }
 
     @BeforeAll
     static void initializeMybatisPlusLambdaMetadata() {

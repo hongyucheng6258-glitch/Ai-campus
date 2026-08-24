@@ -17,6 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,9 +30,9 @@ class ContentAiAuditServiceTest {
 
     private SystemConfigHolder mockConfig(boolean aiEnabled) {
         SystemConfigHolder config = mock(SystemConfigHolder.class);
-        when(config.isAiAuditEnabled()).thenReturn(aiEnabled);
-        when(config.getAuditHighRiskWords()).thenReturn(List.of("转账", "押金", "银行卡", "刷单", "兼职返利", "加微信", "二维码", "代充", "账号交易"));
-        when(config.getAuditMediumRiskWords()).thenReturn(List.of("悬赏", "收费", "校外", "联系我", "手机号", "群聊", "购买"));
+        lenient().when(config.isAiAuditEnabled()).thenReturn(aiEnabled);
+        lenient().when(config.getAuditHighRiskWords()).thenReturn(List.of("转账", "押金", "银行卡", "刷单", "兼职返利", "加微信", "二维码", "代充", "账号交易"));
+        lenient().when(config.getAuditMediumRiskWords()).thenReturn(List.of("悬赏", "收费", "校外", "联系我", "手机号", "群聊", "购买"));
         return config;
     }
 
