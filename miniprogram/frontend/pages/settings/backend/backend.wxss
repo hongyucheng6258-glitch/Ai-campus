@@ -22,6 +22,58 @@
   line-height: 1.6;
 }
 
+.presets {
+  margin-top: 28rpx;
+}
+
+.preset-label,
+.input-label {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #26332f;
+  margin-bottom: 16rpx;
+}
+
+.preset-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.preset-item {
+  padding: 20rpx 24rpx;
+  border-radius: 16rpx;
+  background: #f5f1e9;
+  border: 2rpx solid transparent;
+  transition: all 0.2s;
+}
+
+.preset-item.active {
+  background: #e8f3ef;
+  border-color: #236b5d;
+}
+
+.preset-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #26332f;
+}
+
+.preset-item.active .preset-name {
+  color: #236b5d;
+}
+
+.preset-url {
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  color: #8c939d;
+  word-break: break-all;
+}
+
+.input-label {
+  margin-top: 28rpx;
+}
+
 .input {
   box-sizing: border-box;
   width: 100%;

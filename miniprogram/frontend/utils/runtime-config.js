@@ -1,5 +1,13 @@
 const STORAGE_KEY = 'api_base_url'
-const DEFAULT_BASE_URL = 'http://192.168.10.105:8080/api'
+const DEFAULT_BASE_URL = 'http://43.143.248.211/api'
+
+// 预设环境列表，供设置页面快速选择
+const PRESET_ENVIRONMENTS = [
+  { label: '生产环境（已部署）', value: 'http://43.143.248.211/api' },
+  { label: '本地开发', value: 'http://127.0.0.1:8080/api' },
+  { label: '局域网调试', value: 'http://192.168.10.105:8080/api' }
+]
+
 const LEGACY_BASE_URLS = new Set([
   'http://127.0.0.1:8080/api',
   'http://192.168.12.30:8080/api'
@@ -65,6 +73,7 @@ function resetApiBaseUrl() {
 
 module.exports = {
   DEFAULT_BASE_URL,
+  PRESET_ENVIRONMENTS,
   STORAGE_KEY,
   getApiBaseUrl,
   normalizeBaseUrl,

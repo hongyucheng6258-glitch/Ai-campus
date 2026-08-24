@@ -1,5 +1,6 @@
 const {
   DEFAULT_BASE_URL,
+  PRESET_ENVIRONMENTS,
   getApiBaseUrl,
   normalizeBaseUrl,
   resetApiBaseUrl,
@@ -9,21 +10,35 @@ const {
 Page({
   data: {
     apiBaseUrl: DEFAULT_BASE_URL,
+    presets: PRESET_ENVIRONMENTS,
+    activePreset: -1,
     saving: false
   },
 
   onShow() {
-    this.setData({ apiBaseUrl: getApiBaseUrl() })
+    const current = getApiBaseUrl()
+    const activeIndex = PRESET_ENVIRONMENTS.findIndex(p => p.value === current)
+    this.setData({ apiBaseUrl: current, activePreset: activeIndex })
   },
 
   onInput(e) {
-    this.setData({ apiBaseUrl: e.detail.value })
+    const value = e.detail.value
+    const activeIndex = PRESET_ENVIRONMENTS.findIndex(p => p.value === value)
+    this.setData({ apiBaseUrl: value, activePreset: activeIndex })
+  },
+
+  selectPreset(e) {
+    const index = e.currentTarget.dataset.index
+    const preset = PRESET_ENVIRONMENTS[index]
+    if (!preset) return
+    this.setData({ apiBaseUrl: preset.value, activePreset: index })
   },
 
   save() {
     if (this.data.saving) return
     const apiBaseUrl = normalizeBaseUrl(this.data.apiBaseUrl)
-    this.setData({ saving: true, apiBaseUrl })
+    const activeIndex = PRESET_ENVIRONMENTS.findIndex(p => p.value === apiBaseUrl)
+    this.setData({ saving: true, apiBaseUrl, activePreset: activeIndex })
     try {
       const saved = setApiBaseUrl(apiBaseUrl)
       this.setData({ apiBaseUrl: saved })
@@ -38,7 +53,8 @@ Page({
   reset() {
     if (this.data.saving) return
     const apiBaseUrl = resetApiBaseUrl()
-    this.setData({ apiBaseUrl })
+    const activeIndex = PRESET_ENVIRONMENTS.findIndex(p => p.value === apiBaseUrl)
+    this.setData({ apiBaseUrl, activePreset: activeIndex })
     wx.showToast({ title: '已恢复默认', icon: 'success' })
   }
 })
