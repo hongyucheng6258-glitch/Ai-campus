@@ -35,7 +35,7 @@
         <div class="post-content">{{ p.content }}</div>
         <div v-if="p.imageList?.length" class="post-images">
           <el-image v-for="img in p.imageList" :key="img" :src="img" fit="contain"
-                    class="post-img" :preview-src-list="p.imageList" lazy />
+                    class="post-img" :preview-src-list="p.imageList" />
         </div>
         <div class="post-ops">
           <span class="op" :class="{ liked: p.liked }" @click="toggleLike(p)">

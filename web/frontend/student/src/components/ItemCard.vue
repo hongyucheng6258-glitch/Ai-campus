@@ -2,7 +2,7 @@
   <!-- 通用内容卡片：封面图 + 标题 + 摘要 + 底部信息（闲置/活动/失物列表复用） -->
   <el-card class="item-card" shadow="hover" @click="$emit('click')">
     <div class="cover" v-if="cover">
-      <el-image :src="cover" fit="cover" class="cover-img" lazy />
+      <el-image :src="cover" fit="cover" class="cover-img" />
       <span v-if="$slots.badge" class="cover-badge"><slot name="badge" /></span>
     </div>
     <div class="cover placeholder" v-else>

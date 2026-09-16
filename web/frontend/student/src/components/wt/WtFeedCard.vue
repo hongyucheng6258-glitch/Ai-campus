@@ -17,7 +17,7 @@ defineEmits(['action'])
 <template>
   <div class="wt-feed-card" :class="{ 'wt-feed-card--compact': compact }">
     <div class="wt-feed-card__thumb">
-      <img v-if="image" :src="image" alt="" loading="lazy" />
+      <img v-if="image" :src="image" alt="" />
       <slot v-else name="thumb" />
     </div>
     <div class="wt-feed-card__body">
