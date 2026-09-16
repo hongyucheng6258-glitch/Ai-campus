@@ -1,5 +1,6 @@
 package com.campus.platform.module.lostfound.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -31,6 +32,7 @@ public class LostFoundPublishDTO {
 
     private String location;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime happenTime;
 
     private String contact;
