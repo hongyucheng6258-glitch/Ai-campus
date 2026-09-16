@@ -2,6 +2,7 @@
   <WtPageHeader title="校园动态" subtitle="同学们都在聊些什么" eyebrow="同辈圈" />
 
   <div class="square">
+    <div class="square-main">
     <div class="post-search">
       <el-input v-model="keyword" placeholder="搜索校园动态…" clearable @keyup.enter="search" @clear="search">
         <template #append><el-button @click="search">搜索</el-button></template>
@@ -41,6 +42,7 @@
             {{ p.liked ? '❤️' : '🤍' }} {{ p.likeCount }}
           </span>
           <span class="op" @click="toggleComments(p)">💬 {{ p.commentCount }}</span>
+          <span class="op" @click="sharePost(p)">🔗 分享</span>
         </div>
         <!-- 评论区 -->
         <div v-if="expandedPostId === p.id" class="comment-area">
@@ -51,6 +53,33 @@
     </div>
     <el-pagination v-model:current-page="pageNum" :total="total" :page-size="10"
                    layout="prev, pager, next" @current-change="load" />
+    </div>
+
+    <!-- 右栏：热门话题 + 热门动态 -->
+    <aside class="square-rail">
+      <div v-if="hotTopics.length" class="rail-card card card-hover">
+        <div class="rail-title">🔥 热门话题</div>
+        <div class="topic-list">
+          <button v-for="(t, i) in hotTopics" :key="t.tag" type="button" class="topic-row" @click="searchTopic(t.tag)">
+            <span class="topic-rank" :class="{ top: i < 3 }">{{ i + 1 }}</span>
+            <span class="topic-tag"># {{ t.tag }}</span>
+            <span class="topic-count">{{ t.count }} 讨论</span>
+          </button>
+        </div>
+      </div>
+      <div v-if="hotPosts.length" class="rail-card card card-hover">
+        <div class="rail-title">🔥 热门动态</div>
+        <div class="hot-list">
+          <button v-for="p in hotPosts" :key="p.id" type="button" class="hot-row" @click="openPost(p)">
+            <el-avatar :size="30" :src="p.avatar">{{ p.nickname?.charAt(0) }}</el-avatar>
+            <div class="hot-main">
+              <div class="hot-text">{{ p.content }}</div>
+              <div class="hot-meta">❤️ {{ p.likeCount }} · 💬 {{ p.commentCount }}</div>
+            </div>
+          </button>
+        </div>
+      </div>
+    </aside>
 
     <!-- 举报弹窗 -->
     <el-dialog v-model="reportVisible" title="举报该动态" width="440px">
@@ -70,7 +99,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import WtPageHeader from '../../components/wt/WtPageHeader.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
@@ -100,6 +129,49 @@ const reportVisible = ref(false)
 const reportReasonType = ref('违规')
 const reportReason = ref('')
 const reportTarget = ref(null)
+
+/** 热门话题：从动态内容提取 #标签 并按出现次数聚合 */
+const hotTopics = computed(() => {
+  const counter = new Map()
+  for (const p of list.value) {
+    const tags = String(p.content || '').match(/#([\u4e00-\u9fa5A-Za-z0-9]+)/g) || []
+    for (const raw of tags) {
+      const tag = raw.slice(1)
+      counter.set(tag, (counter.get(tag) || 0) + 1)
+    }
+  }
+  return [...counter.entries()]
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5)
+})
+
+/** 热门动态：按互动量（赞+评论）排序 Top3 */
+const hotPosts = computed(() =>
+  [...list.value]
+    .sort((a, b) => (b.likeCount || 0) + (b.commentCount || 0) - (a.likeCount || 0) - (a.commentCount || 0))
+    .slice(0, 3)
+)
+
+function searchTopic(tag) {
+  keyword.value = tag
+  search()
+}
+
+function openPost(p) {
+  expandedPostId.value = p.id
+  if (!commentMap.value[p.id]) reloadComments(p)
+}
+
+async function sharePost(p) {
+  const url = `${location.origin}${location.pathname}#/social?post=${p.id}`
+  try {
+    await navigator.clipboard.writeText(url)
+    ElMessage.success('链接已复制，快去分享吧')
+  } catch {
+    ElMessage.info(`动态链接：${url}`)
+  }
+}
 
 function search() {
   pageNum.value = 1
@@ -195,6 +267,137 @@ watch(
 </script>
 
 <style scoped>
+.square {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: var(--s-5);
+  align-items: start;
+}
+.square-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  min-width: 0;
+}
+.square-rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  position: sticky;
+  top: var(--s-6);
+}
+.rail-card {
+  padding: var(--s-5);
+}
+.rail-title {
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  margin-bottom: var(--s-3);
+}
+.topic-list {
+  display: flex;
+  flex-direction: column;
+}
+.topic-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: 9px 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  font-family: inherit;
+  border-bottom: 1px dashed var(--line);
+}
+.topic-row:last-child {
+  border-bottom: none;
+}
+.topic-row:hover .topic-tag {
+  color: var(--brand-strong);
+}
+.topic-rank {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--r-pill);
+  display: grid;
+  place-items: center;
+  font-size: var(--fs-cap);
+  font-weight: 700;
+  background: var(--surface-3);
+  color: var(--ink-3);
+  flex: none;
+}
+.topic-rank.top {
+  background: var(--gold-soft);
+  color: var(--gold-strong);
+}
+.topic-tag {
+  flex: 1;
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+  transition: color .15s;
+}
+.topic-count {
+  font-size: var(--fs-cap);
+  color: var(--ink-3);
+}
+.hot-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.hot-row {
+  display: flex;
+  gap: var(--s-3);
+  align-items: center;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  padding: 0;
+  width: 100%;
+}
+.hot-main {
+  min-width: 0;
+}
+.hot-text {
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hot-meta {
+  font-size: var(--fs-cap);
+  color: var(--ink-3);
+  margin-top: 2px;
+}
+
+/* 头像渐变（对齐原型 user-avatar） */
+.post-card :deep(.el-avatar) {
+  background: linear-gradient(135deg, var(--brand) 0%, var(--accent) 100%);
+  color: #fff;
+  font-weight: 600;
+}
+.square-rail :deep(.el-avatar) {
+  background: linear-gradient(135deg, var(--brand) 0%, var(--accent) 100%);
+  color: #fff;
+  font-weight: 600;
+  flex: none;
+}
+
+@media (max-width: 1080px) {
+  .square {
+    grid-template-columns: 1fr;
+  }
+  .square-rail {
+    position: static;
+  }
+}
 .post-search { width: min(420px, 100%); margin-bottom: 16px; }
 .publish-box {
   margin-bottom: 16px;

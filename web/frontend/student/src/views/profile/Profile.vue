@@ -2,22 +2,28 @@
   <WtPageHeader title="个人中心" subtitle="管理你的资料与发布" eyebrow="我的" />
 
   <div class="profile">
-    <!-- 资料卡 -->
-    <el-card class="profile-card">
-      <div class="base">
-        <el-avatar :size="72" :src="user?.avatar">{{ user?.nickname?.charAt(0) }}</el-avatar>
-        <div class="base-info">
-          <h3>{{ user?.nickname }}</h3>
-          <p>学号：{{ user?.studentNo || '未绑定' }}　手机：{{ user?.phone || '未填写' }}</p>
-          <p class="bio">{{ user?.bio || '这个人很懒，什么都没写' }}</p>
+    <!-- 渐变 Banner（对齐原型 profile-banner） -->
+    <div class="profile-banner">
+      <el-avatar :size="96" :src="user?.avatar" class="banner-avatar">{{ user?.nickname?.charAt(0) }}</el-avatar>
+      <div class="banner-info">
+        <h3>{{ user?.nickname }}</h3>
+        <p class="banner-id">学号 {{ user?.studentNo || '未绑定' }} · {{ user?.phone ? '手机 ' + user?.phone : '未绑定手机' }}</p>
+        <div class="banner-tags">
+          <span v-if="user?.avatar" class="banner-tag tag-brand">已设头像</span>
+          <span v-if="user?.phone" class="banner-tag tag-success">手机已绑定</span>
+          <span v-if="user?.bio" class="banner-tag tag-info">已写简介</span>
         </div>
+      </div>
+      <div class="banner-ops">
         <el-button @click="editVisible = true">编辑资料</el-button>
         <el-button @click="pwdVisible = true">修改密码</el-button>
       </div>
-    </el-card>
+    </div>
 
-    <!-- 我的数据 Tab -->
-    <el-card style="margin-top: 16px">
+    <div class="profile-grid">
+    <!-- 左栏：我的数据 Tab -->
+    <div class="profile-main">
+    <el-card>
       <el-tabs v-model="tab">
         <el-tab-pane label="我的闲置" name="idle">
           <el-table :data="myIdle" size="small">
@@ -51,6 +57,36 @@
         </el-tab-pane>
       </el-tabs>
     </el-card>
+    </div>
+
+    <!-- 右栏：真实数据统计 -->
+    <aside class="profile-rail">
+      <div class="rail-card card">
+        <div class="rail-title">我的数据</div>
+        <div class="rail-stat">
+          <span>我的闲置</span><b>{{ myIdle.length }}</b>
+        </div>
+        <div class="rail-stat">
+          <span>累计错题</span><b>{{ wrongStatsData.total ?? 0 }}</b>
+        </div>
+        <div class="rail-stat">
+          <span>AI 会话</span><b>{{ conversationCount }}</b>
+        </div>
+      </div>
+      <div class="rail-card card">
+        <div class="rail-title">学习进度</div>
+        <div class="rail-stat">
+          <span>待复习</span><b>{{ wrongStatsData.pending ?? 0 }}</b>
+        </div>
+        <div class="rail-stat">
+          <span>已掌握</span><b>{{ wrongStatsData.mastered ?? 0 }}</b>
+        </div>
+        <div class="rail-stat">
+          <span>本周复习</span><b>{{ wrongStatsData.weekReviewCount ?? 0 }}</b>
+        </div>
+      </div>
+    </aside>
+    </div>
 
     <!-- 编辑资料弹窗 -->
     <el-dialog v-model="editVisible" title="编辑资料" width="440px">
@@ -97,11 +133,15 @@ import UploadImg from '../../components/UploadImg.vue'
 import { useUserStore } from '../../store/user'
 import * as userApi from '../../api/user'
 import { myIdle as fetchMyIdle, offlineIdle as apiOfflineIdle } from '../../api/idle'
+import { wrongStats } from '../../api/wrong'
+import { listConversations } from '../../api/chat'
 
 const userStore = useUserStore()
 const user = computed(() => userStore.userInfo)
 const tab = ref('idle')
 const myIdle = ref([])
+const wrongStatsData = ref({ total: 0, pending: 0, mastered: 0, weekReviewCount: 0 })
+const conversationCount = ref(0)
 const editVisible = ref(false)
 const pwdVisible = ref(false)
 const saving = ref(false)
@@ -119,6 +159,13 @@ onMounted(async () => {
   })
   avatarList.value = user.value?.avatar ? [user.value.avatar] : []
   loadMyIdle()
+  try {
+    wrongStatsData.value = await wrongStats()
+  } catch { /* 未登录等场景静默 */ }
+  try {
+    const convs = await listConversations()
+    conversationCount.value = Array.isArray(convs) ? convs.length : (convs?.list?.length || 0)
+  } catch { /* 静默 */ }
 })
 
 async function loadMyIdle() {
@@ -163,6 +210,138 @@ async function savePassword() {
 </script>
 
 <style scoped>
+.profile {
+  min-width: 0;
+}
+
+/* 渐变 Banner（对齐原型） */
+.profile-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--s-6);
+  padding: var(--s-7);
+  border-radius: var(--r-xl);
+  background: linear-gradient(120deg, var(--brand) 0%, var(--brand-strong) 70%, oklch(32% 0.11 168) 100%);
+  color: #fff;
+  margin-bottom: var(--s-5);
+  position: relative;
+  overflow: hidden;
+}
+.profile-banner::after {
+  content: "";
+  position: absolute;
+  right: -60px;
+  top: -80px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.14) 0%, transparent 70%);
+}
+.banner-avatar {
+  border: 3px solid rgba(255, 255, 255, 0.35);
+  background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+  color: var(--brand-strong);
+  font-weight: 600;
+  font-size: 2rem;
+  flex: none;
+  z-index: 1;
+}
+.banner-info {
+  flex: 1;
+  min-width: 0;
+  z-index: 1;
+}
+.banner-info h3 {
+  font-family: var(--font-display);
+  font-size: var(--fs-h1);
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+.banner-id {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: var(--fs-sm);
+  margin-bottom: var(--s-3);
+}
+.banner-tags {
+  display: flex;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
+.banner-tag {
+  padding: 3px 12px;
+  border-radius: var(--r-pill);
+  font-size: var(--fs-cap);
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+.banner-ops {
+  display: flex;
+  gap: var(--s-2);
+  z-index: 1;
+}
+.banner-ops :deep(.el-button) {
+  border-radius: var(--r-pill);
+}
+
+/* 两栏 */
+.profile-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: var(--s-5);
+  align-items: start;
+}
+.profile-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+.profile-rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  position: sticky;
+  top: var(--s-6);
+}
+.rail-card {
+  padding: var(--s-5);
+}
+.rail-title {
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  margin-bottom: var(--s-3);
+  color: var(--ink);
+}
+.rail-stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 0;
+  border-bottom: 1px dashed var(--line);
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+}
+.rail-stat:last-child {
+  border-bottom: none;
+}
+.rail-stat b {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  color: var(--brand-strong);
+}
+
+@media (max-width: 1080px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+  .profile-rail {
+    position: static;
+  }
+  .profile-banner {
+    flex-wrap: wrap;
+  }
+}<style scoped>
 .base {
   display: flex;
   gap: 16px;

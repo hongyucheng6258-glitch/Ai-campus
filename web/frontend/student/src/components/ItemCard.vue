@@ -3,9 +3,11 @@
   <el-card class="item-card" shadow="hover" @click="$emit('click')">
     <div class="cover" v-if="cover">
       <el-image :src="cover" fit="cover" class="cover-img" lazy />
+      <span v-if="$slots.badge" class="cover-badge"><slot name="badge" /></span>
     </div>
     <div class="cover placeholder" v-else>
       <el-icon :size="36" color="var(--ink-3)"><Picture /></el-icon>
+      <span v-if="$slots.badge" class="cover-badge"><slot name="badge" /></span>
     </div>
     <div class="body">
       <div class="title">{{ title }}</div>
@@ -44,16 +46,24 @@ const timeText = computed(() => fromNow(props.time))
   padding: 0;
 }
 .cover {
+  position: relative;
   width: 100%;
-  height: 160px;
+  aspect-ratio: 4 / 3;
   background: var(--surface-2);
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 .cover-img {
   width: 100%;
   height: 100%;
+}
+.cover-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
 }
 .body {
   padding: 12px;
@@ -62,9 +72,12 @@ const timeText = computed(() => fromNow(props.time))
   font-size: 15px;
   font-weight: 600;
   color: var(--ink);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  min-height: 2.6em;
+  line-height: 1.3;
 }
 .desc {
   font-size: 13px;

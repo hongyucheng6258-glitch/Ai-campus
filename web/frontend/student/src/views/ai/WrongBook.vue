@@ -1,16 +1,23 @@
 <template>
-  <WtPageHeader title="我的错题本" subtitle="快速收录 · 智能复习 · AI 辅助，逐个击破" eyebrow="AI 学习" />
-
   <div class="wrongbook">
-    <!-- 顶部数据概览 -->
-    <el-row :gutter="16" class="stats">
-      <el-col :span="6" v-for="s in statCards" :key="s.label">
-        <div class="stat-card" :class="s.cls">
-          <div class="stat-num">{{ s.value }}</div>
-          <div class="stat-label">{{ s.label }}</div>
+    <!-- 渐变 Banner（对齐原型 wrong-banner，含统计 + 勋章） -->
+    <div class="wrong-banner">
+      <div class="banner-left">
+        <h1>我的错题本</h1>
+        <p>快速收录 · 智能复习 · AI 辅助，逐个击破</p>
+        <div class="banner-stats">
+          <div><b>{{ stats.total ?? 0 }}</b><span>错题总数</span></div>
+          <div><b>{{ stats.pending ?? 0 }}</b><span>待复习</span></div>
+          <div><b>{{ stats.mastered ?? 0 }}</b><span>已掌握</span></div>
+          <div><b>{{ stats.weekReviewCount ?? 0 }}</b><span>本周复习</span></div>
         </div>
-      </el-col>
-    </el-row>
+      </div>
+      <div class="medal-row">
+        <div class="medal" :class="{ on: (stats.total ?? 0) > 0 }">🏅 收录达人<small>累计错题 &gt; 0</small></div>
+        <div class="medal" :class="{ on: (stats.weekReviewCount ?? 0) > 0 }">🎯 复习坚持<small>本周有复习</small></div>
+        <div class="medal" :class="{ on: (stats.mastered ?? 0) > 0 }">🤖 AI 掌握<small>已掌握 &gt; 0</small></div>
+      </div>
+    </div>
 
     <!-- 中间操作区 -->
     <div class="actions">
@@ -237,13 +244,6 @@ const editForm = reactive({
   difficulty: '', knowledgePoints: '', note: ''
 })
 
-const statCards = computed(() => [
-  { label: '错题总数', value: stats.value.total, cls: 'c-total' },
-  { label: '待复习', value: stats.value.pending, cls: 'c-pending' },
-  { label: '已掌握', value: stats.value.mastered, cls: 'c-mastered' },
-  { label: '本周复习次数', value: stats.value.weekReviewCount, cls: 'c-week' }
-])
-
 onMounted(() => {
   load()
   loadSubjects()
@@ -396,6 +396,103 @@ async function remove(wq) {
 </script>
 
 <style scoped>
+.wrongbook {
+  min-width: 0;
+}
+
+/* 渐变 Banner（对齐原型） */
+.wrong-banner {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-6);
+  flex-wrap: wrap;
+  padding: var(--s-7);
+  border-radius: var(--r-xl);
+  background: linear-gradient(120deg, oklch(36% 0.11 250) 0%, var(--info) 55%, var(--brand) 130%);
+  color: #fff;
+  margin-bottom: var(--s-5);
+}
+.wrong-banner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url('/images/wrong-bg.jpg') center/cover;
+  opacity: 0.35;
+  mix-blend-mode: overlay;
+}
+.banner-left {
+  position: relative;
+  z-index: 1;
+}
+.banner-left h1 {
+  font-family: var(--font-display);
+  font-size: var(--fs-h1);
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+.banner-left p {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: var(--fs-sm);
+  margin-bottom: var(--s-5);
+}
+.banner-stats {
+  display: flex;
+  gap: var(--s-6);
+  flex-wrap: wrap;
+}
+.banner-stats div b {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 600;
+  display: block;
+  line-height: 1.1;
+}
+.banner-stats div span {
+  font-size: var(--fs-cap);
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.03em;
+}
+
+/* 勋章行 */
+.medal-row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+.medal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 108px;
+  padding: var(--s-4) var(--s-3);
+  border-radius: var(--r-lg);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(6px);
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  filter: grayscale(1);
+  opacity: 0.65;
+  transition: all .2s var(--ease-out);
+}
+.medal small {
+  font-weight: 500;
+  font-size: var(--fs-cap);
+  color: rgba(255, 255, 255, 0.75);
+}
+.medal.on {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  filter: none;
+  opacity: 1;
+  transform: translateY(-2px);
+}<style scoped>
 .wrongbook {
   padding: 0 4px;
 }

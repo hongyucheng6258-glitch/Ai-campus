@@ -7,9 +7,10 @@
       <el-input v-model="keyword" placeholder="搜索闲置物品…" clearable style="width: 280px" @keyup.enter="search" @clear="search">
         <template #append><el-button @click="search">搜索</el-button></template>
       </el-input>
-      <el-select v-model="category" placeholder="全部分类" clearable style="width: 140px" @change="search">
-        <el-option v-for="c in categories" :key="c" :label="c" :value="c" />
-      </el-select>
+      <div class="chips">
+        <span class="chip" :class="{ active: !category }" @click="selectCategory('')">全部</span>
+        <span v-for="c in categories" :key="c" class="chip" :class="{ active: category === c }" @click="selectCategory(c)">{{ c }}</span>
+      </div>
       <div class="spacer" />
       <el-button @click="$router.push('/idle/appointments')">我的预约</el-button>
       <el-button type="primary" @click="goPublish">＋ 发布闲置</el-button>
@@ -26,6 +27,9 @@
         :time="item.createTime"
         @click="$router.push(`/idle/detail/${item.id}`)"
       >
+        <template #badge>
+          <span class="badge-tag" :class="badgeCls(item.status)">{{ badgeText(item.status) }}</span>
+        </template>
         <template #footer>
           <div class="card-footer">
             <el-tag v-if="item.category" size="small">{{ item.category }}</el-tag>
@@ -65,6 +69,20 @@ const list = ref([])
 const pageNum = ref(1)
 const total = ref(0)
 const loading = ref(false)
+
+function selectCategory(c) {
+  category.value = c
+  search()
+}
+
+const IDLE_TAG = ['tag-brand', 'tag-warning', 'tag-neutral', 'tag-error']
+const IDLE_TEXT = ['在架', '已预约', '已完成', '已下架']
+function badgeCls(s) {
+  return IDLE_TAG[s ?? 0] || 'tag-neutral'
+}
+function badgeText(s) {
+  return IDLE_TEXT[s ?? 0] || '在架'
+}
 
 function search() {
   pageNum.value = 1
@@ -109,17 +127,57 @@ watch(
   display: flex;
   gap: 12px;
   margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
 }
 .spacer {
   flex: 1;
 }
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   min-width: 0;
   margin-bottom: 16px;
 }
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.chip {
+  padding: 6px 14px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: all .18s var(--ease-out);
+}
+.chip:hover {
+  border-color: var(--brand-line);
+}
+.chip.active {
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+  border-color: var(--brand-line);
+}
+.badge-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: var(--r-pill);
+  font-size: var(--fs-cap);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.tag-brand { background: var(--brand-soft); color: var(--brand-strong); }
+.tag-warning { background: var(--warning-soft); color: var(--gold-strong); }
+.tag-neutral { background: var(--surface-3); color: var(--ink-2); }
+.tag-error { background: var(--error-soft); color: var(--error); }
 .card-footer {
   display: flex;
   justify-content: space-between;

@@ -38,6 +38,24 @@
   --error:      oklch(58% 0.18 25);
   --error-soft: oklch(95% 0.05 25);
 
+  /* —— 信息蓝（AI / 科技感 / 链接）【v2】 —— */
+  --info:        oklch(55% 0.09 230);
+  --info-strong: oklch(47% 0.1 230);
+  --info-ink:    oklch(99% 0.02 230);
+  --info-soft:   oklch(95% 0.035 230);
+  --info-line:   oklch(86% 0.06 230);
+
+  /* —— 成就金（勋章 / 积分 / 打卡）【v2】 —— */
+  --gold:        oklch(75% 0.13 75);
+  --gold-strong: oklch(58% 0.13 75);
+  --gold-soft:   oklch(96% 0.055 75);
+  --gold-line:   oklch(88% 0.08 75);
+
+  /* —— 典雅紫（身份徽章 / 特殊标识）【v2】 —— */
+  --purple:        oklch(45% 0.13 290);
+  --purple-soft:   oklch(95% 0.04 290);
+  --purple-line:   oklch(87% 0.06 290);
+
   /* —— 间距（4pt 基准） —— */
   --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:24px;
   --s-6:32px; --s-7:48px; --s-8:64px; --s-9:96px;
@@ -64,21 +82,22 @@
 }
 
 :root[data-theme="dark"] {
-  --paper:        oklch(15% 0.012 95);
-  --surface:      oklch(20% 0.012 95);
-  --surface-2:    oklch(24% 0.012 95);
-  --surface-3:    oklch(28% 0.012 95);
-  --ink:          oklch(93% 0.01 95);
-  --ink-2:        oklch(76% 0.012 95);
-  --ink-3:        oklch(60% 0.012 95);
-  --line:         oklch(33% 0.014 95);
-  --line-strong:  oklch(40% 0.014 95);
+  /* —— 暖化：色相 95 → 90，暗色更温润 —— */
+  --paper:        oklch(16% 0.014 90);
+  --surface:      oklch(21% 0.014 90);
+  --surface-2:    oklch(25% 0.014 90);
+  --surface-3:    oklch(29% 0.016 90);
+  --ink:          oklch(93% 0.01 90);
+  --ink-2:        oklch(76% 0.012 90);
+  --ink-3:        oklch(60% 0.012 90);
+  --line:         oklch(33% 0.014 90);
+  --line-strong:  oklch(40% 0.014 90);
 
-  --brand:        oklch(72% 0.12 168);
-  --brand-strong: oklch(64% 0.12 168);
+  --brand:        oklch(75% 0.12 168);
+  --brand-strong: oklch(66% 0.12 168);
   --brand-ink:    oklch(18% 0.04 168);
-  --brand-soft:   oklch(26% 0.06 168);
-  --brand-line:   oklch(38% 0.08 168);
+  --brand-soft:   oklch(27% 0.06 168);
+  --brand-line:   oklch(39% 0.08 168);
 
   --accent:        oklch(74% 0.16 48);
   --accent-strong: oklch(66% 0.16 48);
@@ -92,6 +111,22 @@
   --warning-soft: oklch(27% 0.07 75);
   --error:      oklch(68% 0.17 25);
   --error-soft: oklch(27% 0.07 25);
+
+  /* —— v2 新增三色（暗色适配） —— */
+  --info:        oklch(70% 0.1 230);
+  --info-strong: oklch(78% 0.09 230);
+  --info-ink:    oklch(16% 0.04 230);
+  --info-soft:   oklch(28% 0.06 230);
+  --info-line:   oklch(40% 0.07 230);
+
+  --gold:        oklch(80% 0.13 75);
+  --gold-strong: oklch(85% 0.1 75);
+  --gold-soft:   oklch(29% 0.06 75);
+  --gold-line:   oklch(41% 0.08 75);
+
+  --purple:        oklch(68% 0.13 290);
+  --purple-soft:   oklch(28% 0.06 290);
+  --purple-line:   oklch(40% 0.07 290);
 
   --shadow-sm: 0 1px 2px oklch(0% 0 0 / .3), 0 1px 3px oklch(0% 0 0 / .25);
   --shadow-md: 0 6px 16px oklch(0% 0 0 / .4);

@@ -2,18 +2,30 @@
   <WtPageHeader title="校园公告" subtitle="学校与平台的重要通知" eyebrow="资讯" />
 
   <div class="notice-list">
-    <el-card>
-      <template #header><h3>📢 校园公告</h3></template>
-      <div v-loading="loading">
-        <div v-for="n in list" :key="n.id" class="notice-item" @click="$router.push(`/notice/detail/${n.id}`)">
+    <div v-loading="loading" class="list-page">
+      <div
+        v-for="n in list"
+        :key="n.id"
+        class="notice-card card card-hover"
+        @click="$router.push(`/notice/detail/${n.id}`)"
+      >
+        <span class="tag tag-brand">公告</span>
+        <div class="notice-main">
           <div class="n-title">{{ n.title }}</div>
-          <div class="n-time">{{ formatTime(n.publishTime) }}</div>
+          <div class="n-meta">校园平台 · {{ formatTime(n.publishTime) }}</div>
         </div>
-        <EmptyBox v-if="!loading && !list.length" description="暂无公告" />
+        <span class="n-arrow">→</span>
       </div>
-      <el-pagination v-model:current-page="pageNum" :total="total" :page-size="10"
-                     layout="prev, pager, next" style="margin-top: 16px" @current-change="load" />
-    </el-card>
+      <EmptyBox v-if="!loading && !list.length" description="暂无公告" />
+      <el-pagination
+        v-model:current-page="pageNum"
+        :total="total"
+        :page-size="10"
+        layout="prev, pager, next"
+        style="margin-top: 16px"
+        @current-change="load"
+      />
+    </div>
   </div>
 </template>
 
@@ -44,22 +56,53 @@ onMounted(load)
 </script>
 
 <style scoped>
-.notice-item {
+.notice-list {
+  min-width: 0;
+}
+.list-page {
   display: flex;
-  justify-content: space-between;
-  padding: 14px 8px;
-  border-bottom: 1px solid #f0f0f0;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.notice-card {
+  display: flex;
+  gap: var(--s-4);
+  align-items: center;
   cursor: pointer;
 }
-.notice-item:hover {
-  background: var(--surface-2);
+.notice-card .tag {
+  flex: none;
+}
+.notice-main {
+  flex: 1;
+  min-width: 0;
 }
 .n-title {
-  font-size: 14px;
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--ink);
 }
-.n-time {
-  font-size: 12px;
+.n-meta {
+  font-size: var(--fs-cap);
   color: var(--ink-3);
 }
+.n-arrow {
+  font-size: var(--fs-cap);
+  color: var(--ink-3);
+  flex: none;
+}
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: var(--r-pill);
+  font-size: var(--fs-cap);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.tag-brand { background: var(--brand-soft); color: var(--brand-strong); }
 </style>

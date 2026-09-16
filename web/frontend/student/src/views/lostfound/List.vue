@@ -3,11 +3,11 @@
 
   <div class="lf-list">
     <div class="toolbar">
-      <el-radio-group v-model="type" @change="search">
-        <el-radio-button :value="undefined">全部</el-radio-button>
-        <el-radio-button :value="0">🔍 失物</el-radio-button>
-        <el-radio-button :value="1">📦 招领</el-radio-button>
-      </el-radio-group>
+      <div class="chips">
+        <span class="chip" :class="{ active: type === undefined }" @click="selectType(undefined)">全部</span>
+        <span class="chip" :class="{ active: type === 0 }" @click="selectType(0)">寻物</span>
+        <span class="chip" :class="{ active: type === 1 }" @click="selectType(1)">招领</span>
+      </div>
       <el-input v-model="keyword" placeholder="搜索…" clearable style="width: 240px" @keyup.enter="search" @clear="search">
         <template #append><el-button @click="search">搜索</el-button></template>
       </el-input>
@@ -25,11 +25,11 @@
         :time="lf.createTime"
         @click="$router.push(`/lostfound/detail/${lf.id}`)"
       >
+        <template #badge>
+          <span class="badge-tag" :class="lf.type === 0 ? 'tag-error' : 'tag-success'">{{ lf.type === 0 ? '寻物' : '招领' }}</span>
+        </template>
         <template #footer>
           <div class="card-footer">
-            <el-tag size="small" :type="lf.type === 0 ? 'danger' : 'success'">
-              {{ lf.type === 0 ? '失物' : '招领' }}
-            </el-tag>
             <span>📍 {{ lf.location || '未知地点' }}</span>
           </div>
         </template>
@@ -60,6 +60,11 @@ const list = ref([])
 const pageNum = ref(1)
 const total = ref(0)
 const loading = ref(false)
+
+function selectType(t) {
+  type.value = t
+  search()
+}
 
 function search() {
   pageNum.value = 1
@@ -101,16 +106,54 @@ watch(
   display: flex;
   gap: 12px;
   margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
 }
 .spacer {
   flex: 1;
 }
 .grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   margin-bottom: 16px;
 }
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.chip {
+  padding: 6px 14px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: all .18s var(--ease-out);
+}
+.chip:hover {
+  border-color: var(--brand-line);
+}
+.chip.active {
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+  border-color: var(--brand-line);
+}
+.badge-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: var(--r-pill);
+  font-size: var(--fs-cap);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.tag-error { background: var(--error-soft); color: var(--error); }
+.tag-success { background: var(--success-soft); color: var(--success); }
 .card-footer {
   display: flex;
   justify-content: space-between;

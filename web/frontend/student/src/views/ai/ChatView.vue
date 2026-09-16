@@ -56,6 +56,11 @@
           <span v-else class="pdf-tip">上传文本型PDF后可针对文档内容提问</span>
         </div>
 
+        <!-- 快捷问题（对齐原型 quick-prompts，空会话时展示） -->
+        <div v-if="!messages.length && tab !== 'pdf'" class="quick-prompts">
+          <span v-for="q in quickPrompts" :key="q" class="quick-prompt" @click="askQuick(q)">{{ q }}</span>
+        </div>
+
         <!-- 消息区 -->
         <div ref="msgBox" class="ai-chat">
           <ChatBubble
@@ -206,6 +211,19 @@ async function onSessionCmd(cmd, s) {
 }
 
 /** 发送问题：chat/pdf 共用；chat 走 SSE 流式，pdf 走一次性返回 */
+const quickPrompts = [
+  '帮我梳理一下高数期末的复习重点',
+  '这道编程题为什么会报错？帮我看看',
+  '怎么规划一周的英语四六级备考？',
+  '帮我生成一份论文写作大纲',
+  '解释一下 TCP 三次握手的过程'
+]
+
+function askQuick(q) {
+  question.value = q
+  send()
+}
+
 async function send() {
   const q = question.value.trim()
   if (!q || asking.value) return
@@ -318,6 +336,29 @@ function scrollBottom() {
 </script>
 
 <style scoped>
+.quick-prompts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-bottom: var(--s-4);
+}
+.quick-prompt {
+  padding: 8px 14px;
+  border-radius: var(--r-pill);
+  background: var(--info-soft);
+  color: var(--info-strong);
+  border: 1px solid var(--info-line);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s var(--ease-out);
+}
+.quick-prompt:hover {
+  background: var(--info);
+  color: var(--info-ink);
+  border-color: var(--info);
+  transform: translateY(-1px);
+}<style scoped>
 .ai-page { height: 100%; }
 .ai-layout {
   display: grid;

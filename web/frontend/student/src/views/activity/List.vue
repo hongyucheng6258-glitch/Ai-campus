@@ -6,9 +6,10 @@
       <el-input v-model="keyword" placeholder="搜索活动…" clearable style="width: 280px" @keyup.enter="search" @clear="search">
         <template #append><el-button @click="search">搜索</el-button></template>
       </el-input>
-      <el-select v-model="category" placeholder="全部分类" clearable style="width: 140px" @change="search">
-        <el-option v-for="c in categories" :key="c" :label="c" :value="c" />
-      </el-select>
+      <div class="chips">
+        <span class="chip" :class="{ active: !category }" @click="selectCategory('')">全部</span>
+        <span v-for="c in categories" :key="c" class="chip" :class="{ active: category === c }" @click="selectCategory(c)">{{ c }}</span>
+      </div>
       <div class="spacer" />
       <el-button @click="$router.push('/activity/my-signup')">我的报名</el-button>
       <el-button type="primary" @click="goPublish">＋ 发布活动</el-button>
@@ -24,10 +25,13 @@
         :time="a.createTime"
         @click="$router.push(`/activity/detail/${a.id}`)"
       >
+        <template #badge>
+          <span class="badge-tag" :class="statusCls(a.displayStatus)">{{ a.displayStatusText || ['报名中', '已满', '已结束', '已下架'][a.status] || '报名中' }}</span>
+        </template>
         <template #footer>
           <div class="card-footer">
             <span>📍 {{ a.location || '地点待定' }}</span>
-            <span class="act-status" :class="statusCls(a.displayStatus)">
+            <span class="act-status" :class="badgeCls(a.displayStatus)">
               {{ a.displayStatusText || ['报名中', '已满', '已结束', '已下架'][a.status] || '报名中' }}
             </span>
           </div>
@@ -75,9 +79,19 @@ function statusCls(s) {
   return ['st-signing', 'st-full', 'st-closed', 'st-closed', 'st-closed', 'st-off'][s ?? 0] || 'st-closed'
 }
 
+const STATUS_TAG = { 'st-signing': 'tag-brand', 'st-full': 'tag-warning', 'st-closed': 'tag-neutral', 'st-off': 'tag-error' }
+function badgeCls(s) {
+  return STATUS_TAG[statusCls(s)] || 'tag-neutral'
+}
+
 function formatTime(t) {
   if (!t) return ''
   return String(t).slice(0, 16)
+}
+
+function selectCategory(c) {
+  category.value = c
+  search()
 }
 
 function search() {
@@ -120,16 +134,56 @@ watch(
   display: flex;
   gap: 12px;
   margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
 }
 .spacer {
   flex: 1;
 }
 .grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   margin-bottom: 16px;
 }
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.chip {
+  padding: 6px 14px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: all .18s var(--ease-out);
+}
+.chip:hover {
+  border-color: var(--brand-line);
+}
+.chip.active {
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+  border-color: var(--brand-line);
+}
+.badge-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: var(--r-pill);
+  font-size: var(--fs-cap);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.tag-brand { background: var(--brand-soft); color: var(--brand-strong); }
+.tag-warning { background: var(--warning-soft); color: var(--gold-strong); }
+.tag-neutral { background: var(--surface-3); color: var(--ink-2); }
+.tag-error { background: var(--error-soft); color: var(--error); }
 .card-footer {
   display: flex;
   justify-content: space-between;
@@ -142,16 +196,8 @@ watch(
 .act-status {
   font-weight: 600;
 }
-.st-signing {
-  color: #67c23a;
-}
-.st-full {
-  color: #e6a23c;
-}
-.st-closed {
-  color: #909399;
-}
-.st-off {
-  color: #f56c6c;
-}
+.st-signing { color: var(--success); }
+.st-full { color: var(--warning); }
+.st-closed { color: var(--ink-3); }
+.st-off { color: var(--error); }
 </style>

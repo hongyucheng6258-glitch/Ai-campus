@@ -2,26 +2,33 @@
   <WtPageHeader title="消息中心" subtitle="来自平台与同学的提醒" eyebrow="我的" />
 
   <div class="message-center">
-    <button class="private-entry" @click="router.push('/chat')">
-      <span class="private-icon">私</span>
-      <span><b>同学私信</b><small>查看一对一会话、图片与未读消息</small></span>
-      <el-badge :value="chatStore.unreadTotal" :hidden="!chatStore.unreadTotal" />
-      <span>进入 →</span>
-    </button>
-    <el-card>
-      <template #header>
-        <div class="head">
-          <h3>🔔 消息中心</h3>
-          <el-button size="small" @click="readAll">全部已读</el-button>
-        </div>
-      </template>
-      <el-tabs v-model="type" @tab-change="search">
-        <el-tab-pane label="全部" name="" />
-        <el-tab-pane label="系统通知" name="system" />
-        <el-tab-pane label="互动消息" name="interact" />
-        <el-tab-pane label="审核结果" name="audit" />
-      </el-tabs>
-      <div v-loading="loading">
+    <!-- 左栏：消息类型列表 -->
+    <aside class="msg-sidebar card">
+      <div class="msg-sidebar-title">消息中心</div>
+      <button
+        v-for="t in msgTypes"
+        :key="t.value"
+        type="button"
+        class="msg-side-item"
+        :class="{ active: type === t.value }"
+        @click="selectType(t.value)"
+      >
+        <span>{{ t.label }}</span>
+        <el-badge v-if="t.badge !== undefined" :value="t.badge" :hidden="!t.badge" />
+      </button>
+      <button type="button" class="msg-side-item private" @click="router.push('/chat')">
+        <span>私信会话</span>
+        <el-badge :value="chatStore.unreadTotal" :hidden="!chatStore.unreadTotal" />
+      </button>
+    </aside>
+
+    <!-- 右栏：消息详情 -->
+    <div class="msg-detail">
+      <div class="msg-detail-head">
+        <h3>{{ currentLabel }}</h3>
+        <el-button size="small" @click="readAll">全部已读</el-button>
+      </div>
+      <div v-loading="loading" class="msg-list">
         <div
           v-for="m in list"
           :key="m.id"
@@ -42,12 +49,12 @@
       </div>
       <el-pagination v-model:current-page="pageNum" :total="total" :page-size="10"
                      layout="prev, pager, next" style="margin-top: 16px" @current-change="load" />
-    </el-card>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import WtPageHeader from '../../components/wt/WtPageHeader.vue'
 import { useRouter } from 'vue-router'
 import { listMessage, markRead, markAllRead } from '../../api/message'
@@ -66,6 +73,20 @@ const total = ref(0)
 const loading = ref(false)
 
 const iconOf = (t) => ({ system: '📢', interact: '💬', audit: '✅' }[t] || '📩')
+
+const msgTypes = computed(() => [
+  { label: '全部', value: '', badge: messageStore.unread },
+  { label: '系统通知', value: 'system', badge: undefined },
+  { label: '互动消息', value: 'interact', badge: undefined },
+  { label: '审核结果', value: 'audit', badge: undefined }
+])
+
+const currentLabel = computed(() => msgTypes.value.find((t) => t.value === type.value)?.label || '全部')
+
+function selectType(t) {
+  type.value = t
+  search()
+}
 
 function search() {
   pageNum.value = 1
@@ -107,14 +128,79 @@ onMounted(load)
 </script>
 
 <style scoped>
-.private-entry { width:100%; display:grid; grid-template-columns:auto 1fr auto auto; gap:14px; align-items:center; margin-bottom:16px; padding:18px 20px; border:1px solid var(--line); border-radius:18px; background:linear-gradient(135deg,var(--brand-soft),var(--surface)); color:var(--ink-2); text-align:left; cursor:pointer; }
-.private-entry b,.private-entry small { display:block; } .private-entry b { color:var(--ink); font-size:16px; } .private-entry small { margin-top:4px; color:var(--ink-3); }
-.private-icon { width:42px; height:42px; display:grid; place-items:center; border-radius:14px; color:var(--brand-ink); background:var(--brand-strong); font-family:var(--font-display); font-weight:700; }
-.head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.message-center {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: var(--s-5);
+  align-items: start;
 }
+.msg-sidebar {
+  padding: var(--s-4);
+  position: sticky;
+  top: var(--s-6);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.msg-sidebar-title {
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  padding: 4px 10px 10px;
+  color: var(--ink);
+}
+.msg-side-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2);
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: var(--r-md);
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+  text-align: left;
+  transition: all .15s var(--ease-out);
+}
+.msg-side-item:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+.msg-side-item.active {
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+  font-weight: 600;
+}
+.msg-side-item.private {
+  margin-top: var(--s-2);
+  border-top: 1px solid var(--line);
+  border-radius: 0 0 var(--r-md) var(--r-md);
+  padding-top: var(--s-3);
+}
+.msg-detail {
+  min-width: 0;
+}
+.msg-detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--s-4);
+}
+.msg-detail-head h3 {
+  font-family: var(--font-display);
+  font-size: var(--fs-h2);
+  font-weight: 600;
+  margin: 0;
+}
+.msg-list {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: var(--s-3) var(--s-5);
+}<style scoped>
 .msg-item {
   display: flex;
   gap: 12px;
