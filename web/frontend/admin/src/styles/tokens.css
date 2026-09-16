@@ -1,87 +1,150 @@
 /* ============================================================
-   梧桐校园 · 设计 Token（管理后台复用学生端同一套）
-   暖色编辑风 · 梧桐绿(品牌) + 暖珊瑚(强调) · 中性带暖意 · OKLCH
+   梧桐校园 · 管理端设计 Token（升级版）
+   暖色编辑风 · 梧桐绿(品牌·深) + 暖珊瑚(强调) + 信息蓝 + 成就金 + 典雅紫
+   主色较学生端深一档（L45%），更严肃；信息密度更高。明/暗双主题。
+   对齐 ui-prototype/admin.html 设计体系。
    ============================================================ */
 :root {
-  --paper:        oklch(98% 0.012 95);
+  /* —— 中性 / 表面（暖奶油调） —— */
+  --paper:        oklch(97.5% 0.012 95);
   --surface:      oklch(100% 0 0);
-  --surface-2:    oklch(97% 0.01 95);
+  --surface-2:    oklch(96.5% 0.01 95);
   --surface-3:    oklch(94% 0.012 95);
-  --ink:          oklch(26% 0.02 95);
-  --ink-2:        oklch(45% 0.02 95);
-  --ink-3:        oklch(62% 0.015 95);
+  --ink:          oklch(25% 0.02 95);
+  --ink-2:        oklch(44% 0.02 95);
+  --ink-3:        oklch(61% 0.015 95);
   --line:         oklch(90% 0.012 95);
   --line-strong:  oklch(83% 0.014 95);
 
-  --brand:        oklch(53% 0.12 168);
-  --brand-strong: oklch(45% 0.12 168);
+  /* —— 品牌：梧桐绿（管理端 · 深一档） —— */
+  --brand:        oklch(45% 0.12 168);
+  --brand-strong: oklch(38% 0.12 168);
+  --brand-deep:   oklch(32% 0.11 168);
   --brand-ink:    oklch(99% 0.02 168);
-  --brand-soft:   oklch(95% 0.045 168);
-  --brand-line:   oklch(86% 0.07 168);
+  --brand-soft:   oklch(94% 0.04 168);
+  --brand-line:   oklch(85% 0.07 168);
 
+  /* —— 强调：暖珊瑚（能量 / 高亮） —— */
   --accent:        oklch(68% 0.17 48);
   --accent-strong: oklch(60% 0.17 48);
   --accent-ink:    oklch(99% 0.02 48);
-  --accent-soft:   oklch(95% 0.06 48);
+  --accent-soft:   oklch(95% 0.05 48);
   --accent-line:   oklch(87% 0.09 48);
 
-  --success:    oklch(58% 0.13 150);
-  --success-soft: oklch(95% 0.05 150);
-  --warning:    oklch(72% 0.15 75);
+  /* —— 信息蓝（AI / 链接 / 提示） —— */
+  --info:        oklch(55% 0.09 230);
+  --info-strong: oklch(47% 0.1 230);
+  --info-ink:    oklch(99% 0.02 230);
+  --info-soft:   oklch(94% 0.035 230);
+  --info-line:   oklch(85% 0.06 230);
+
+  /* —— 成就金（勋章 / 积分 / 预警） —— */
+  --gold:        oklch(75% 0.13 75);
+  --gold-strong: oklch(58% 0.13 75);
+  --gold-soft:   oklch(96% 0.055 75);
+  --gold-line:   oklch(88% 0.08 75);
+
+  /* —— 典雅紫（角色 / 权限） —— */
+  --purple:        oklch(45% 0.13 290);
+  --purple-strong: oklch(38% 0.13 290);
+  --purple-soft:   oklch(95% 0.04 290);
+  --purple-line:   oklch(87% 0.06 290);
+
+  /* —— 语义色 —— */
+  --success:      oklch(58% 0.13 150);
+  --success-soft: oklch(95% 0.045 150);
+  --warning:      oklch(70% 0.15 75);
   --warning-soft: oklch(96% 0.06 75);
-  --error:      oklch(58% 0.18 25);
-  --error-soft: oklch(95% 0.05 25);
+  --error:        oklch(58% 0.18 25);
+  --error-soft:   oklch(95% 0.045 25);
 
+  /* —— 深色侧栏（管理端特征，双主题恒定） —— */
+  --side-bg:  linear-gradient(180deg, oklch(26% 0.035 168) 0%, oklch(21% 0.028 168) 100%);
+  --side-ink: oklch(90% 0.02 168);
+  --side-ink-3: oklch(66% 0.025 168);
+  --side-line: oklch(100% 0 0 / .08);
+  --side-active: oklch(45% 0.12 168 / .28);
+  --side-hover: oklch(100% 0 0 / .06);
+
+  /* —— 间距（4pt 基准） —— */
   --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:24px;
-  --s-6:32px; --s-7:48px; --s-8:64px; --s-9:96px;
+  --s-6:32px; --s-7:48px; --s-8:64px;
 
-  --r-xs:6px; --r-sm:10px; --r-md:14px; --r-lg:20px; --r-xl:28px; --r-pill:999px;
+  /* —— 圆角（管理端更硬朗） —— */
+  --r-xs:6px; --r-sm:8px; --r-md:10px; --r-lg:14px; --r-xl:20px; --r-pill:999px;
 
+  /* —— 字体 —— */
   --font-sans: "Plus Jakarta Sans","PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
   --font-display: "Fraunces","Songti SC",Georgia,serif;
+  --font-mono: ui-monospace,"SF Mono","Cascadia Code",Consolas,monospace;
 
-  --fs-display:2.5rem; --fs-h1:1.75rem; --fs-h2:1.375rem; --fs-h3:1.125rem;
-  --fs-body:1rem; --fs-sm:0.875rem; --fs-xs:0.75rem; --fs-cap:0.6875rem;
+  /* —— 字阶（管理端紧凑） —— */
+  --fs-h1:1.375rem; --fs-h2:1.125rem; --fs-h3:1rem;
+  --fs-body:0.9rem; --fs-sm:0.8125rem; --fs-xs:0.75rem; --fs-cap:0.6875rem;
 
-  --shadow-sm: 0 1px 2px oklch(26% 0.02 95 / .06), 0 1px 3px oklch(26% 0.02 95 / .05);
-  --shadow-md: 0 6px 16px oklch(26% 0.02 95 / .08);
-  --shadow-lg: 0 18px 40px oklch(26% 0.02 95 / .12);
+  /* —— 阴影（克制） —— */
+  --shadow-sm: 0 1px 2px oklch(25% 0.02 95 / .05), 0 1px 3px oklch(25% 0.02 95 / .04);
+  --shadow-md: 0 4px 12px oklch(25% 0.02 95 / .07);
+  --shadow-lg: 0 14px 32px oklch(25% 0.02 95 / .11);
 
   --ease-out: cubic-bezier(0.16,1,0.3,1);
-  --ease-quart: cubic-bezier(0.25,1,0.5,1);
 }
 
 :root[data-theme="dark"] {
-  --paper:        oklch(15% 0.012 95);
-  --surface:      oklch(20% 0.012 95);
-  --surface-2:    oklch(24% 0.012 95);
-  --surface-3:    oklch(28% 0.012 95);
-  --ink:          oklch(93% 0.01 95);
-  --ink-2:        oklch(76% 0.012 95);
-  --ink-3:        oklch(60% 0.012 95);
-  --line:         oklch(33% 0.014 95);
-  --line-strong:  oklch(40% 0.014 95);
+  --paper:        oklch(16% 0.014 90);
+  --surface:      oklch(21% 0.014 90);
+  --surface-2:    oklch(25% 0.014 90);
+  --surface-3:    oklch(29% 0.016 90);
+  --ink:          oklch(93% 0.01 90);
+  --ink-2:        oklch(76% 0.012 90);
+  --ink-3:        oklch(60% 0.012 90);
+  --line:         oklch(33% 0.014 90);
+  --line-strong:  oklch(41% 0.014 90);
 
-  --brand:        oklch(72% 0.12 168);
-  --brand-strong: oklch(64% 0.12 168);
-  --brand-ink:    oklch(18% 0.04 168);
-  --brand-soft:   oklch(26% 0.06 168);
-  --brand-line:   oklch(38% 0.08 168);
+  --brand:        oklch(70% 0.12 168);
+  --brand-strong: oklch(62% 0.12 168);
+  --brand-deep:   oklch(52% 0.12 168);
+  --brand-ink:    oklch(16% 0.04 168);
+  --brand-soft:   oklch(27% 0.055 168);
+  --brand-line:   oklch(39% 0.08 168);
 
   --accent:        oklch(74% 0.16 48);
   --accent-strong: oklch(66% 0.16 48);
   --accent-ink:    oklch(20% 0.05 48);
-  --accent-soft:   oklch(28% 0.07 48);
+  --accent-soft:   oklch(28% 0.06 48);
   --accent-line:   oklch(40% 0.09 48);
 
-  --success:    oklch(70% 0.13 150);
-  --success-soft: oklch(26% 0.06 150);
-  --warning:    oklch(78% 0.14 75);
-  --warning-soft: oklch(27% 0.07 75);
-  --error:      oklch(68% 0.17 25);
-  --error-soft: oklch(27% 0.07 25);
+  --info:        oklch(70% 0.1 230);
+  --info-strong: oklch(62% 0.1 230);
+  --info-ink:    oklch(16% 0.04 230);
+  --info-soft:   oklch(27% 0.06 230);
+  --info-line:   oklch(39% 0.07 230);
+
+  --gold:        oklch(80% 0.13 75);
+  --gold-strong: oklch(70% 0.13 75);
+  --gold-soft:   oklch(28% 0.06 75);
+  --gold-line:   oklch(40% 0.08 75);
+
+  --purple:        oklch(68% 0.13 290);
+  --purple-strong: oklch(60% 0.13 290);
+  --purple-soft:   oklch(27% 0.06 290);
+  --purple-line:   oklch(39% 0.07 290);
+
+  --success:      oklch(70% 0.13 150);
+  --success-soft: oklch(27% 0.055 150);
+  --warning:      oklch(78% 0.14 75);
+  --warning-soft: oklch(28% 0.065 75);
+  --error:        oklch(68% 0.17 25);
+  --error-soft:   oklch(27% 0.06 25);
+
+  --side-bg:  linear-gradient(180deg, oklch(24% 0.032 168) 0%, oklch(19% 0.026 168) 100%);
+  --side-ink: oklch(90% 0.02 168);
+  --side-ink-3: oklch(64% 0.025 168);
+  --side-line: oklch(100% 0 0 / .07);
+  --side-active: oklch(70% 0.12 168 / .22);
+  --side-hover: oklch(100% 0 0 / .05);
 
   --shadow-sm: 0 1px 2px oklch(0% 0 0 / .3), 0 1px 3px oklch(0% 0 0 / .25);
-  --shadow-md: 0 6px 16px oklch(0% 0 0 / .4);
-  --shadow-lg: 0 18px 40px oklch(0% 0 0 / .5);
+  --shadow-md: 0 4px 12px oklch(0% 0 0 / .38);
+  --shadow-lg: 0 14px 32px oklch(0% 0 0 / .5);
 }

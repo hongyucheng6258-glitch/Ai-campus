@@ -18,7 +18,12 @@ const routes = [
     children: [
       { path: 'dashboard', name: 'Dashboard', component: () => import('../views/dashboard/Dashboard.vue'), meta: { title: '数据大屏' } },
       { path: 'user', name: 'UserList', component: () => import('../views/user/UserList.vue'), meta: { title: '用户管理' } },
-      { path: 'audit', name: 'AuditQueue', component: () => import('../views/audit/AuditQueue.vue'), meta: { title: '内容审核' } },
+      { path: 'audit/activity', name: 'ActivityAudit', component: () => import('../views/audit/AuditModule.vue'), props: { type: 'activity' }, meta: { title: '活动审核' } },
+{ path: 'audit/idle', name: 'IdleAudit', component: () => import('../views/audit/AuditModule.vue'), props: { type: 'idle' }, meta: { title: '闲置审核' } },
+{ path: 'audit/lostfound', name: 'LostFoundAudit', component: () => import('../views/audit/AuditModule.vue'), props: { type: 'lostfound' }, meta: { title: '失物招领审核' } },
+{ path: 'audit/post', name: 'PostAudit', component: () => import('../views/audit/AuditModule.vue'), props: { type: 'post' }, meta: { title: '动态审核' } },
+{ path: 'audit', redirect: '/audit/activity' },
+{ path: 'ai/audit', name: 'AiContentAudit', component: () => import('../views/ai/AiContentAudit.vue'), meta: { title: 'AI 内容审核' } },
       { path: 'report', name: 'ReportList', component: () => import('../views/report/ReportList.vue'), meta: { title: '举报处理' } },
       { path: 'notice', name: 'NoticeManage', component: () => import('../views/notice/NoticeManage.vue'), meta: { title: '公告管理' } },
       { path: 'notice/edit/:id?', name: 'NoticeEdit', component: () => import('../views/notice/NoticeEdit.vue'), meta: { title: '公告编辑' } },

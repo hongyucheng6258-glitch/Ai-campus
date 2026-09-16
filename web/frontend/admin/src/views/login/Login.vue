@@ -15,6 +15,12 @@
             <img class="captcha-img" :src="captchaImage" title="看不清？点击刷新" @click="loadCaptcha" />
           </div>
         </el-form-item>
+        <el-form-item>
+          <div class="login-row">
+            <el-checkbox v-model="remember">记住此设备</el-checkbox>
+            <a class="forgot" @click.prevent>忘记密码？</a>
+          </div>
+        </el-form-item>
         <el-button type="primary" class="submit" :loading="loading" @click="submit">登 录</el-button>
       </el-form>
       <div class="tip">初始账号：admin / admin123（请登录后及时修改）</div>
@@ -34,6 +40,7 @@ const router = useRouter()
 const adminStore = useAdminStore()
 const loading = ref(false)
 const captchaImage = ref('')
+const remember = ref(false)
 const form = reactive({ username: '', password: '', captchaId: '', captchaCode: '' })
 
 async function loadCaptcha() {
@@ -52,6 +59,11 @@ async function submit() {
   try {
     // 登录前清理旧管理端状态，避免旧 Token 影响登录请求或路由判断
     adminStore.logout()
+    if (remember.value) {
+      localStorage.setItem('admin_remember_username', form.username)
+    } else {
+      localStorage.removeItem('admin_remember_username')
+    }
     const res = await adminLogin(form)
     adminStore.loginSuccess(res.token, res.adminInfo)
     ElMessage.success('登录成功')
@@ -64,7 +76,14 @@ async function submit() {
   }
 }
 
-onMounted(loadCaptcha)
+onMounted(() => {
+  const saved = localStorage.getItem('admin_remember_username')
+  if (saved) {
+    form.username = saved
+    remember.value = true
+  }
+  loadCaptcha()
+})
 </script>
 
 <style scoped>
@@ -106,6 +125,18 @@ onMounted(loadCaptcha)
   cursor: pointer;
   flex-shrink: 0;
   background: #f5f7fa;
+}
+.login-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-size: var(--fs-sm);
+}
+.login-row .forgot {
+  color: var(--brand-strong);
+  font-weight: 600;
+  cursor: pointer;
 }
 .submit {
   width: 100%;
