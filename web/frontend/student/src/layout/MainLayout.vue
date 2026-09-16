@@ -59,7 +59,10 @@
             <option value="post">动态</option>
           </select>
           <div class="search-input">
-            <WtIcon name="search" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
             <input
               v-model="keyword"
               type="search"

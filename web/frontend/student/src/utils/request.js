@@ -16,7 +16,7 @@ const request = axios.create({
 
 request.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
-  const isAuthRequest = /^\/auth\/(login|register|wx-login)$/.test(config.url || '')
+  const isAuthRequest = /^\/auth\/(login|register)$/.test(config.url || '')
   if (token && !isAuthRequest) {
     config.headers.Authorization = `Bearer ${token}`
   } else if (isAuthRequest && config.headers?.Authorization) {

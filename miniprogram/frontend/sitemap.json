@@ -1,9 +1,0 @@
-{
-  "desc": "sitemap 配置（默认允许索引）",
-  "rules": [
-    {
-      "action": "allow",
-      "page": "*"
-    }
-  ]
-}

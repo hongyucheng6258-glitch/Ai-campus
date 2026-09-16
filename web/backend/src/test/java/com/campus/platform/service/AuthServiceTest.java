@@ -7,14 +7,11 @@ import com.campus.platform.config.SystemConfigHolder;
 import com.campus.platform.dto.AdminLoginDTO;
 import com.campus.platform.dto.LoginDTO;
 import com.campus.platform.dto.RegisterDTO;
-import com.campus.platform.dto.WxBindDTO;
-import com.campus.platform.dto.WxLoginDTO;
 import com.campus.platform.entity.Admin;
 import com.campus.platform.entity.User;
 import com.campus.platform.mapper.AdminMapper;
 import com.campus.platform.mapper.UserMapper;
 import com.campus.platform.utils.JwtUtils;
-import com.campus.platform.utils.WxUtils;
 import com.campus.platform.vo.AdminLoginVO;
 import com.campus.platform.vo.LoginVO;
 import org.junit.jupiter.api.DisplayName;
@@ -42,19 +39,18 @@ import static org.mockito.Mockito.when;
 import org.junit.jupiter.api.BeforeEach;
 
 /**
- * 认证服务测试（对应 PRD A1/A2/A3/A5 + 架构设计难点4「双登录体系统一用户」）。
+ * 认证服务测试（对应 PRD A1/A5）。
  *
- * 核心验证点：Web 密码登录与小程序 code2session 两端签发同一套 JWT（role=student）。
+ * 核心验证点：Web 密码登录签发 student JWT；管理员独立签发 admin JWT。
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-@DisplayName("认证服务-双登录体系")
+@DisplayName("认证服务")
 class AuthServiceTest {
 
     @Mock private UserMapper userMapper;
     @Mock private AdminMapper adminMapper;
     @Mock private JwtUtils jwtUtils;
-    @Mock private WxUtils wxUtils;
     @Mock private SystemConfigHolder systemConfigHolder;
 
     @InjectMocks
@@ -184,7 +180,7 @@ class AuthServiceTest {
         }
 
         @Test
-        @DisplayName("小程序自动建号的账号（password=null）不得被空密码登录绕过")
+        @DisplayName("无密码账号（password=null）不得被空密码登录绕过")
         void login_shouldRejectNullPasswordAccount() {
             User user = buildUser(1L, "2021001", null, Constants.USER_STATUS_NORMAL);
             when(userMapper.selectOne(any())).thenReturn(user);
@@ -196,180 +192,6 @@ class AuthServiceTest {
             assertThatThrownBy(() -> authService.login(dto))
                     .isInstanceOf(BizException.class)
                     .hasMessage("学号或密码错误");
-        }
-    }
-
-    // ==================== A2 小程序登录 ====================
-
-    @Nested
-    @DisplayName("A2 小程序 code2session 登录")
-    class WxAuth {
-
-        @Test
-        @DisplayName("openid 不存在应自动建号，并签发与 Web 同一套 student JWT")
-        void wxLogin_shouldAutoCreateUser() {
-            when(wxUtils.code2session("CODE")).thenReturn("oXyz1234567890abc");
-            when(userMapper.selectOne(any())).thenReturn(null);
-            when(jwtUtils.generate(any(), eq(Constants.ROLE_STUDENT))).thenReturn("TOKEN_STUDENT");
-
-            WxLoginDTO dto = new WxLoginDTO();
-            dto.setCode("CODE");
-
-            LoginVO vo = authService.wxLogin(dto);
-
-            ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
-            verify(userMapper).insert(captor.capture());
-            User created = captor.getValue();
-
-            assertThat(created.getOpenid()).isEqualTo("oXyz1234567890abc");
-            assertThat(created.getNickname()).isEqualTo("微信用户890abc");
-            assertThat(created.getStatus()).isEqualTo(Constants.USER_STATUS_NORMAL);
-            assertThat(created.getPassword()).isNull();
-            // 关键一致性：小程序与 Web 签发同一角色的 JWT
-            assertThat(vo.getToken()).isEqualTo("TOKEN_STUDENT");
-            verify(jwtUtils).generate(any(), eq(Constants.ROLE_STUDENT));
-        }
-
-        @Test
-        @DisplayName("openid 已存在应复用原账号，不重复建号")
-        void wxLogin_shouldReuseExistingUser() {
-            User existing = buildUser(9L, "2021009", null, Constants.USER_STATUS_NORMAL);
-            existing.setOpenid("oExisting");
-            when(wxUtils.code2session("CODE")).thenReturn("oExisting");
-            when(userMapper.selectOne(any())).thenReturn(existing);
-            when(jwtUtils.generate(eq(9L), eq(Constants.ROLE_STUDENT))).thenReturn("TOKEN_9");
-
-            WxLoginDTO dto = new WxLoginDTO();
-            dto.setCode("CODE");
-
-            LoginVO vo = authService.wxLogin(dto);
-
-            verify(userMapper, never()).insert(any(User.class));
-            verify(userMapper).updateById(existing);
-            assertThat(vo.getToken()).isEqualTo("TOKEN_9");
-        }
-
-        @Test
-        @DisplayName("被禁用户走小程序登录同样应被 403 拦截")
-        void wxLogin_shouldRejectBannedUser() {
-            User banned = buildUser(9L, null, null, Constants.USER_STATUS_BANNED);
-            banned.setOpenid("oBanned");
-            when(wxUtils.code2session("CODE")).thenReturn("oBanned");
-            when(userMapper.selectOne(any())).thenReturn(banned);
-
-            WxLoginDTO dto = new WxLoginDTO();
-            dto.setCode("CODE");
-
-            assertThatThrownBy(() -> authService.wxLogin(dto))
-                    .isInstanceOf(BizException.class)
-                    .hasFieldOrPropertyWithValue("code", ResultCode.FORBIDDEN.getCode());
-        }
-
-        @Test
-        @DisplayName("短 openid 生成昵称不得数组越界")
-        void wxLogin_shouldHandleShortOpenid() {
-            when(wxUtils.code2session("CODE")).thenReturn("abc");
-            when(userMapper.selectOne(any())).thenReturn(null);
-            when(jwtUtils.generate(any(), anyString())).thenReturn("T");
-
-            WxLoginDTO dto = new WxLoginDTO();
-            dto.setCode("CODE");
-
-            authService.wxLogin(dto);
-
-            ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
-            verify(userMapper).insert(captor.capture());
-            assertThat(captor.getValue().getNickname()).isEqualTo("微信用户abc");
-        }
-    }
-
-    // ==================== A3 账号合并绑定 ====================
-
-    @Nested
-    @DisplayName("A3 小程序绑定学号（账号合并）")
-    class WxBind {
-
-        @Test
-        @DisplayName("学号已存在且密码正确应转移 openid 并保留临时账号")
-        void wxBind_shouldMergeIntoExistingWebAccount() {
-            User current = buildUser(100L, null, null, Constants.USER_STATUS_NORMAL);
-            current.setOpenid("oTemp");
-            User target = buildUser(1L, "2021001", encoder.encode("123456"), Constants.USER_STATUS_NORMAL);
-
-            when(userMapper.selectById(100L)).thenReturn(current);
-            when(userMapper.selectOne(any())).thenReturn(target);
-            when(jwtUtils.generate(eq(1L), eq(Constants.ROLE_STUDENT))).thenReturn("TOKEN_MERGED");
-
-            WxBindDTO dto = new WxBindDTO();
-            dto.setStudentNo("2021001");
-            dto.setPassword("123456");
-            dto.setPhone("13800138000");
-
-            LoginVO vo = authService.wxBind(100L, dto);
-
-            assertThat(target.getOpenid()).isEqualTo("oTemp");
-            assertThat(target.getPhone()).isEqualTo("13800138000");
-            verify(userMapper).clearOpenidById(100L);
-            verify(userMapper).updateById(target);
-            verify(userMapper, never()).deleteById(100L);
-            // 合并后返回的是主账号的 token
-            assertThat(vo.getToken()).isEqualTo("TOKEN_MERGED");
-        }
-
-        @Test
-        @DisplayName("学号已存在但密码错误应拒绝合并（防账号劫持）")
-        void wxBind_shouldRejectMergeWithWrongPassword() {
-            User current = buildUser(100L, null, null, Constants.USER_STATUS_NORMAL);
-            current.setOpenid("oTemp");
-            User target = buildUser(1L, "2021001", encoder.encode("correct"), Constants.USER_STATUS_NORMAL);
-
-            when(userMapper.selectById(100L)).thenReturn(current);
-            when(userMapper.selectOne(any())).thenReturn(target);
-
-            WxBindDTO dto = new WxBindDTO();
-            dto.setStudentNo("2021001");
-            dto.setPassword("wrong");
-
-            assertThatThrownBy(() -> authService.wxBind(100L, dto))
-                    .isInstanceOf(BizException.class)
-                    .hasMessageContaining("请输入正确的账号密码");
-
-            // 绝不能把 openid 挂到别人账号上
-            verify(userMapper, never()).updateById(target);
-            verify(userMapper, never()).deleteById(anyLong());
-        }
-
-        @Test
-        @DisplayName("学号未被占用应直接补录到当前账号")
-        void wxBind_shouldFillStudentNoWhenNotTaken() {
-            User current = buildUser(100L, null, null, Constants.USER_STATUS_NORMAL);
-            current.setOpenid("oTemp");
-
-            when(userMapper.selectById(100L)).thenReturn(current);
-            when(userMapper.selectOne(any())).thenReturn(null);
-            when(jwtUtils.generate(eq(100L), eq(Constants.ROLE_STUDENT))).thenReturn("TOKEN_100");
-
-            WxBindDTO dto = new WxBindDTO();
-            dto.setStudentNo("2021999");
-
-            authService.wxBind(100L, dto);
-
-            assertThat(current.getStudentNo()).isEqualTo("2021999");
-            verify(userMapper).updateById(current);
-            verify(userMapper, never()).deleteById(anyLong());
-        }
-
-        @Test
-        @DisplayName("当前用户不存在应返回 401")
-        void wxBind_shouldRejectWhenCurrentUserMissing() {
-            when(userMapper.selectById(100L)).thenReturn(null);
-
-            WxBindDTO dto = new WxBindDTO();
-            dto.setStudentNo("2021999");
-
-            assertThatThrownBy(() -> authService.wxBind(100L, dto))
-                    .isInstanceOf(BizException.class)
-                    .hasFieldOrPropertyWithValue("code", ResultCode.UNAUTHORIZED.getCode());
         }
     }
 

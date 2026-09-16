@@ -1,8 +1,0 @@
-{
-  "navigationBarTitleText": "失物招领",
-  "enablePullDownRefresh": true,
-  "backgroundTextStyle": "dark",
-  "usingComponents": {
-    "item-card": "../../components/item-card/item-card"
-  }
-}

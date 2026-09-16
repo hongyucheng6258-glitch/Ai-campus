@@ -18,14 +18,13 @@ SET NAMES utf8mb4;
 
 -- ---------------- 3.1 账号与基础 ----------------
 
--- 用户表（Web账号密码 + 小程序openid 双登录体系）
+-- 用户表（Web账号密码登录）
 CREATE TABLE IF NOT EXISTS `user` (
   `id`              BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
   `student_no`      VARCHAR(20)  DEFAULT NULL COMMENT '学号（注册必填，仅格式校验）',
   `nickname`        VARCHAR(32)  NOT NULL DEFAULT '' COMMENT '昵称',
-  `password`        VARCHAR(100) DEFAULT NULL COMMENT 'BCrypt密码，小程序自动建号可为空',
-  `phone`           VARCHAR(11)  DEFAULT NULL COMMENT '手机号，账号合并绑定用',
-  `openid`          VARCHAR(64)  DEFAULT NULL COMMENT '微信openid',
+  `password`        VARCHAR(100) DEFAULT NULL COMMENT 'BCrypt密码',
+  `phone`           VARCHAR(11)  DEFAULT NULL COMMENT '手机号',
   `avatar`          MEDIUMTEXT DEFAULT NULL COMMENT '头像（base64 data URI）',
   `gender`          TINYINT      NOT NULL DEFAULT 0 COMMENT '0未知 1男 2女',
   `bio`             VARCHAR(255) DEFAULT NULL COMMENT '个人简介',
@@ -35,7 +34,6 @@ CREATE TABLE IF NOT EXISTS `user` (
   `update_time`     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_student_no` (`student_no`),
-  UNIQUE KEY `uk_openid` (`openid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
 
 -- 管理员表

@@ -4,7 +4,7 @@
 
 AI校园综合服务平台是一套面向高校学生的综合服务系统，集成校园信息服务、AI 学习辅助、活动组队、闲置物品互换、失物招领、校园动态、私信沟通和后台管理等功能。平台通过 DeepSeek AI 接口提供智能对话、代码修复、PDF 学习问答、错题分析与题目生成等能力，同时内置 AI 内容审核机制，对用户发布内容进行自动安全过滤。
 
-项目包含 Web 学生端、Web 管理后台、微信小程序和 Spring Boot 后端服务，适合作为校园综合服务平台的课程设计或毕业设计项目基础。
+项目包含 Web 学生端、Web 管理后台和 Spring Boot 后端服务，适合作为校园综合服务平台的课程设计或毕业设计项目基础。
 
 ## 功能模块
 
@@ -35,10 +35,6 @@ AI校园综合服务平台是一套面向高校学生的综合服务系统，集
 - AI 配置、调用日志和平台统计信息查看
 - 系统配置管理（站点名称、维护模式开关、注册开关等）
 - 管理员账号管理
-
-### 微信小程序
-
-微信小程序与学生端保持主要功能一致，支持首页、消息、个人中心、AI 学习中心（AI 对话、代码修复、PDF 问答、大纲生成、错题本）、活动组队、闲置互换、失物招领、校园动态和私信等功能，并内置 Markdown 渲染组件用于 AI 回复展示。
 
 ## 技术栈
 
@@ -74,37 +70,10 @@ AI校园综合服务平台是一套面向高校学生的综合服务系统，集
 - WangEditor
 - Tesseract.js（OCR 文字识别）
 
-### 小程序
-
-- 微信小程序原生开发
-- JavaScript
-- WXML
-- WXSS
-- 微信小程序分包加载
-
 ## 项目结构
 
 ```text
 Ai-campus/
-├── miniprogram/
-│   └── frontend/                 # 微信小程序前端
-│       ├── components/           # 通用组件
-│       ├── pages/                # 基础页面（首页、消息、个人中心）
-│       ├── pages-activity/       # 活动组队
-│       ├── pages-ai/             # AI 学习中心
-│       │   ├── chat/            #   AI 对话
-│       │   ├── code-fix/        #   代码修复
-│       │   ├── home/            #   AI 首页
-│       │   ├── outline/         #   大纲生成
-│       │   ├── pdf/             #   PDF 学习问答
-│       │   └── wrong/           #   错题本
-│       ├── pages-chat/           # 私信聊天
-│       ├── pages-idle/           # 闲置互换
-│       ├── pages-lostfound/      # 失物招领
-│       ├── pages-post/           # 校园动态
-│       ├── utils/                # 工具函数与测试
-│       └── app.json              # 小程序页面配置
-│
 ├── web/
 │   ├── backend/                  # Spring Boot 后端
 │   │   ├── src/main/java/com/campus/platform/
@@ -142,7 +111,6 @@ Ai-campus/
 - MySQL 8
 - Redis 6 或更高版本
 - MinIO（可选，图片已改为数据库存储）
-- 微信开发者工具（开发小程序时需要）
 
 ## 数据库初始化
 
@@ -203,7 +171,7 @@ java -jar target/platform-server.jar
 http://localhost:8080/api
 ```
 
-AI 接口需要配置 `AI_API_KEY`。微信小程序登录需要配置 `WX_APPID` 和 `WX_SECRET`。MinIO、JWT 和活动签到密钥也应在部署环境中通过环境变量覆盖默认值。
+AI 接口需要配置 `AI_API_KEY`。MinIO、JWT 和活动签到密钥也应在部署环境中通过环境变量覆盖默认值。
 
 ## 学生端启动
 
@@ -259,15 +227,6 @@ npm run build
 npm test
 ```
 
-## 小程序启动
-
-1. 使用微信开发者工具打开 `miniprogram/frontend`。
-2. 根据本地环境修改请求地址和运行时配置。
-3. 确认后端服务已经启动，并且小程序开发环境允许访问本地接口。
-4. 编译并预览小程序页面。
-
-小程序页面按功能划分为多个分包，包括 AI 学习中心（对话、代码修复、PDF 问答、大纲生成、错题本）、闲置互换、活动组队、失物招领、私信和校园动态。
-
 ## 配置说明
 
 后端主配置文件为：
@@ -293,8 +252,6 @@ web/backend/src/main/resources/application.yml
 | `AI_BASE_URL` | AI 服务地址 |
 | `AI_API_KEY` | AI 服务密钥 |
 | `AI_MODEL` | AI 模型名称 |
-| `WX_APPID` | 微信小程序 AppID |
-| `WX_SECRET` | 微信小程序 Secret |
 | `JWT_SECRET` | JWT 签名密钥 |
 | `SIGNIN_SECRET` | 活动签到签名密钥 |
 | `TRUSTED_ORIGINS` | REST 和 WebSocket 可信来源列表 |
@@ -337,4 +294,4 @@ mvn test
 
 ## 部署说明
 
-详细的部署步骤请参阅根目录的 [部署说明.md](部署说明.md)，包含数据库、Redis、后端、学生端、管理端、小程序的完整部署流程和常见问题排查。
+详细的部署步骤请参阅根目录的 [部署说明.md](部署说明.md)，包含数据库、Redis、后端、学生端、管理端的完整部署流程和常见问题排查。

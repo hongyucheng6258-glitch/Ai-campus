@@ -9,7 +9,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 用户表：Web 账号密码 + 小程序 openid 双登录体系共用。
+ * 用户表：Web 账号密码登录。
  */
 @Data
 @TableName("user")
@@ -27,11 +27,9 @@ public class User {
     @JsonIgnore
     private String password;
 
-    /** 手机号，用于账号合并绑定 */
+    /** 手机号 */
     private String phone;
 
-    /** 微信 openid（唯一） */
-    private String openid;
 
     private String avatar;
 

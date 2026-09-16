@@ -1,6 +1,5 @@
 package com.campus.platform.service;
 
-import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.campus.platform.common.BizException;
 import com.campus.platform.common.Constants;
@@ -9,14 +8,11 @@ import com.campus.platform.config.SystemConfigHolder;
 import com.campus.platform.dto.AdminLoginDTO;
 import com.campus.platform.dto.LoginDTO;
 import com.campus.platform.dto.RegisterDTO;
-import com.campus.platform.dto.WxBindDTO;
-import com.campus.platform.dto.WxLoginDTO;
 import com.campus.platform.entity.Admin;
 import com.campus.platform.entity.User;
 import com.campus.platform.mapper.AdminMapper;
 import com.campus.platform.mapper.UserMapper;
 import com.campus.platform.utils.JwtUtils;
-import com.campus.platform.utils.WxUtils;
 import com.campus.platform.vo.AdminLoginVO;
 import com.campus.platform.vo.LoginVO;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +23,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
 /**
- * 认证服务：Web注册/登录、小程序 wx.login 自动建号、账号合并绑定、管理员登录。
- * 双登录体系统一用户（架构设计 1.1 难点4），两端发同一套 JWT（claims: uid, role）。
+ * 认证服务：Web 注册/登录、管理员登录。
+ * 统一签发 student JWT（claims: uid, role）。
  */
 @Slf4j
 @Service
@@ -38,7 +34,6 @@ public class AuthService {
     private final UserMapper userMapper;
     private final AdminMapper adminMapper;
     private final JwtUtils jwtUtils;
-    private final WxUtils wxUtils;
     private final SystemConfigHolder systemConfigHolder;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
@@ -82,71 +77,6 @@ public class AuthService {
         user.setLastLoginTime(LocalDateTime.now());
         userMapper.updateById(user);
         return buildLoginVO(user);
-    }
-
-    /**
-     * 小程序登录：code 换 openid，不存在则自动建号。
-     */
-    public LoginVO wxLogin(WxLoginDTO dto) {
-        String openid = wxUtils.code2session(dto.getCode());
-        User user = userMapper.selectOne(new LambdaQueryWrapper<User>()
-                .eq(User::getOpenid, openid));
-        if (user == null) {
-            if (!systemConfigHolder.isRegisterEnabled()) {
-                throw new BizException(ResultCode.FORBIDDEN, "当前已关闭新用户注册，请联系管理员");
-            }
-            // 自动建号（无密码，后续可绑定学号合并）
-            user = new User();
-            user.setOpenid(openid);
-            user.setNickname("微信用户" + openid.substring(Math.max(0, openid.length() - 6)));
-            user.setStatus(Constants.USER_STATUS_NORMAL);
-            userMapper.insert(user);
-        }
-        if (Constants.USER_STATUS_BANNED == user.getStatus()) {
-            throw new BizException(ResultCode.FORBIDDEN, "账号已被禁用，请联系管理员");
-        }
-        user.setLastLoginTime(LocalDateTime.now());
-        userMapper.updateById(user);
-        return buildLoginVO(user);
-    }
-
-    /**
-     * 小程序绑定学号/手机号（A3 账号合并）：
-     * 若学号已存在 Web 账号且密码校验通过 → 把当前 openid 合并到该账号，保留临时账号避免关联数据删除异常；
-     * 若学号不存在 → 直接给当前账号补学号。
-     */
-    public LoginVO wxBind(Long uid, WxBindDTO dto) {
-        User current = userMapper.selectById(uid);
-        if (current == null) {
-            throw new BizException(ResultCode.UNAUTHORIZED);
-        }
-        User target = userMapper.selectOne(new LambdaQueryWrapper<User>()
-                .eq(User::getStudentNo, dto.getStudentNo()));
-        if (target != null && !target.getId().equals(uid)) {
-            // 合并到已有 Web 账号：需校验该账号密码
-            if (StrUtil.isBlank(dto.getPassword()) || target.getPassword() == null
-                    || !passwordEncoder.matches(dto.getPassword(), target.getPassword())) {
-                throw new BizException(ResultCode.BAD_REQUEST, "该学号已有账号，请输入正确的账号密码完成绑定");
-            }
-            String openid = current.getOpenid();
-            // 先释放临时账号的 openid，避免唯一索引冲突，再绑定到 Web 账号。
-            // 临时账号可能已有消息/会话等关联数据，因此不能直接物理删除。
-            userMapper.clearOpenidById(uid);
-            target.setOpenid(openid);
-            if (StrUtil.isNotBlank(dto.getPhone())) {
-                target.setPhone(dto.getPhone());
-            }
-            target.setLastLoginTime(LocalDateTime.now());
-            userMapper.updateById(target);
-            return buildLoginVO(target);
-        }
-        // 学号未被占用：直接补到当前账号
-        current.setStudentNo(dto.getStudentNo());
-        if (StrUtil.isNotBlank(dto.getPhone())) {
-            current.setPhone(dto.getPhone());
-        }
-        userMapper.updateById(current);
-        return buildLoginVO(current);
     }
 
     /**

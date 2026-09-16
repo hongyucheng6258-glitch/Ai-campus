@@ -1,8 +1,0 @@
-{
-  "navigationBarTitleText": "活动组队",
-  "enablePullDownRefresh": true,
-  "backgroundTextStyle": "dark",
-  "usingComponents": {
-    "item-card": "../../components/item-card/item-card"
-  }
-}

@@ -89,12 +89,6 @@ ai:
   retry-times: 2
   rate-limit-per-day: 50                 # 每用户每日 AI 调用上限
 
-# ---- 微信小程序（code2session 换 openid） ----
-wx:
-  miniapp:
-    appid: ${WX_APPID:wx-placeholder-appid}
-    secret: ${WX_SECRET:wx-placeholder-secret}
-
 # ---- 活动签到二维码 HMAC 密钥 ----
 signin:
   secret: ${SIGNIN_SECRET:campus-activity-signin-hmac-secret}

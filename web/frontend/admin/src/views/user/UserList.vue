@@ -13,16 +13,10 @@
     <el-table :data="list" v-loading="loading">
       <el-table-column prop="id" label="ID" width="70" />
       <el-table-column prop="studentNo" label="学号" width="120">
-        <template #default="{ row }">{{ row.studentNo || '（小程序用户）' }}</template>
+        <template #default="{ row }">{{ row.studentNo || '—' }}</template>
       </el-table-column>
       <el-table-column prop="nickname" label="昵称" width="130" />
       <el-table-column prop="phone" label="手机号" width="120" />
-      <el-table-column label="来源" width="90">
-        <template #default="{ row }">
-          <el-tag v-if="row.openid" size="small" type="success">小程序</el-tag>
-          <el-tag v-else size="small">Web</el-tag>
-        </template>
-      </el-table-column>
       <el-table-column label="最近登录" width="170">
         <template #default="{ row }">{{ formatTime(row.lastLoginTime) || '从未登录' }}</template>
       </el-table-column>

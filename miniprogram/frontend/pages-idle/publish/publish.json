@@ -1,6 +1,0 @@
-{
-  "navigationBarTitleText": "发布闲置",
-  "usingComponents": {
-    "upload-grid": "../../components/upload-grid/upload-grid"
-  }
-}
