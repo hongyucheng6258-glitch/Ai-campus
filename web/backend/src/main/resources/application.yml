@@ -45,6 +45,12 @@ spring:
     date-format: yyyy-MM-dd HH:mm:ss   # 共享约定：时间统一格式
     time-zone: Asia/Shanghai
 
+# ---- 图形验证码（登录前验证） ----
+platform:
+  captcha:
+    enabled: true          # false 时跳过验证（自动化测试/本地联调）
+    expire-seconds: 300    # 验证码有效期（秒）
+
 # ---- MyBatis-Plus ----
 mybatis-plus:
   configuration:

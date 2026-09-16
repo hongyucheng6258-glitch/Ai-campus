@@ -53,6 +53,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/api/admin/**",
                         "/api/auth/register",
                         "/api/auth/login",
+                        "/api/auth/captcha",
                         "/api/assets/**",
                         "/api/idle/list",
                         "/api/activity/list",

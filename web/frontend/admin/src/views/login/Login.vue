@@ -9,6 +9,12 @@
         <el-form-item>
           <el-input v-model="form.password" type="password" placeholder="密码" show-password :prefix-icon="Lock" />
         </el-form-item>
+        <el-form-item>
+          <div class="captcha-row">
+            <el-input v-model="form.captchaCode" placeholder="验证码" maxlength="4" @keyup.enter="submit" />
+            <img class="captcha-img" :src="captchaImage" title="看不清？点击刷新" @click="loadCaptcha" />
+          </div>
+        </el-form-item>
         <el-button type="primary" class="submit" :loading="loading" @click="submit">登 录</el-button>
       </el-form>
       <div class="tip">初始账号：admin / admin123（请登录后及时修改）</div>
@@ -17,21 +23,29 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { User, Lock } from '@element-plus/icons-vue'
-import { adminLogin } from '../../api/auth'
+import { adminLogin, getCaptcha } from '../../api/auth'
 import { useAdminStore } from '../../store/admin'
 
 const router = useRouter()
 const adminStore = useAdminStore()
 const loading = ref(false)
-const form = reactive({ username: '', password: '' })
+const captchaImage = ref('')
+const form = reactive({ username: '', password: '', captchaId: '', captchaCode: '' })
+
+async function loadCaptcha() {
+  const data = await getCaptcha()
+  form.captchaId = data.captchaId
+  captchaImage.value = data.image
+  form.captchaCode = ''
+}
 
 async function submit() {
-  if (!form.username || !form.password) {
-    ElMessage.warning('请输入账号和密码')
+  if (!form.username || !form.password || !form.captchaCode) {
+    ElMessage.warning('请输入账号、密码和验证码')
     return
   }
   loading.value = true
@@ -42,10 +56,15 @@ async function submit() {
     adminStore.loginSuccess(res.token, res.adminInfo)
     ElMessage.success('登录成功')
     router.push('/dashboard')
+  } catch (e) {
+    // 登录失败（验证码错误/过期/账号密码错误）自动刷新验证码
+    loadCaptcha()
   } finally {
     loading.value = false
   }
 }
+
+onMounted(loadCaptcha)
 </script>
 
 <style scoped>
@@ -72,6 +91,21 @@ async function submit() {
   text-align: center;
   margin-bottom: 24px;
   color: var(--brand);
+}
+.captcha-row {
+  display: flex;
+  width: 100%;
+  gap: 10px;
+  align-items: center;
+}
+.captcha-img {
+  width: 110px;
+  height: 40px;
+  border: 1px solid var(--line, #dcdfe6);
+  border-radius: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+  background: #f5f7fa;
 }
 .submit {
   width: 100%;

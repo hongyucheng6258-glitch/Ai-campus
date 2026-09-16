@@ -10,6 +10,12 @@
         <el-form-item prop="password">
           <el-input v-model="form.password" type="password" placeholder="密码" show-password :prefix-icon="Lock" />
         </el-form-item>
+        <el-form-item prop="captchaCode">
+          <div class="captcha-row">
+            <el-input v-model="form.captchaCode" placeholder="验证码" maxlength="4" @keyup.enter="submit" />
+            <img class="captcha-img" :src="captchaImage" title="看不清？点击刷新" @click="loadCaptcha" />
+          </div>
+        </el-form-item>
         <el-button type="primary" class="submit" :loading="loading" @click="submit">登 录</el-button>
       </el-form>
       <div class="links">
@@ -20,11 +26,11 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { User, Lock } from '@element-plus/icons-vue'
-import { login } from '../../api/auth'
+import { login, getCaptcha } from '../../api/auth'
 import { useUserStore } from '../../store/user'
 
 const router = useRouter()
@@ -32,10 +38,19 @@ const route = useRoute()
 const userStore = useUserStore()
 const formRef = ref()
 const loading = ref(false)
-const form = reactive({ studentNo: '', password: '' })
+const captchaImage = ref('')
+const form = reactive({ studentNo: '', password: '', captchaId: '', captchaCode: '' })
 const rules = {
   studentNo: [{ required: true, message: '请输入学号', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+  captchaCode: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
+}
+
+async function loadCaptcha() {
+  const data = await getCaptcha()
+  form.captchaId = data.captchaId
+  captchaImage.value = data.image
+  form.captchaCode = ''
 }
 
 async function submit() {
@@ -46,10 +61,15 @@ async function submit() {
     userStore.loginSuccess(res.token, res.userInfo)
     ElMessage.success('登录成功')
     router.push(route.query.redirect || '/')
+  } catch (e) {
+    // 登录失败（验证码错误/过期/账号密码错误）自动刷新验证码
+    loadCaptcha()
   } finally {
     loading.value = false
   }
 }
+
+onMounted(loadCaptcha)
 </script>
 
 <style scoped>
@@ -75,6 +95,21 @@ async function submit() {
   color: var(--ink-3);
   font-size: 13px;
   margin: 8px 0 24px;
+}
+.captcha-row {
+  display: flex;
+  width: 100%;
+  gap: 10px;
+  align-items: center;
+}
+.captcha-img {
+  width: 110px;
+  height: 40px;
+  border: 1px solid var(--line, #dcdfe6);
+  border-radius: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+  background: #f5f7fa;
 }
 .submit {
   width: 100%;
