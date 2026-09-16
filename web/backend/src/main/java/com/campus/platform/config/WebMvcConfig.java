@@ -1,5 +1,8 @@
 package com.campus.platform.config;
 
+import com.campus.platform.module.idle.controller.IdleController;
+import com.campus.platform.module.post.controller.PostController;
+
 import com.campus.platform.interceptor.AdminInterceptor;
 import com.campus.platform.interceptor.JwtInterceptor;
 import com.campus.platform.interceptor.MaintenanceInterceptor;

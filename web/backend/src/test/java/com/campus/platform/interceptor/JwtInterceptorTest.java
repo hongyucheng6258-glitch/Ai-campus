@@ -1,5 +1,7 @@
 package com.campus.platform.interceptor;
 
+import com.campus.platform.module.admin.service.AdminUserService;
+
 import com.campus.platform.common.Constants;
 import com.campus.platform.common.UserContext;
 import com.campus.platform.utils.JwtUtils;

@@ -1,8 +1,8 @@
 package com.campus.platform.config;
 
 import cn.hutool.core.util.StrUtil;
-import com.campus.platform.entity.SystemConfig;
-import com.campus.platform.mapper.SystemConfigMapper;
+import com.campus.platform.module.site.entity.SystemConfig;
+import com.campus.platform.module.site.mapper.SystemConfigMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
