@@ -96,7 +96,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { auditAll, auditList, auditPass, auditReject } from '../../api/audit'
 import { formatTime } from '../../utils/date'
@@ -112,7 +112,7 @@ const CFG = {
   lostfound: { title: '失物招领审核', desc: '失物招领信息审核 · 真实性校验', icon: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>' },
   post: { title: '动态审核', desc: '校园动态发布审核 · 社区内容治理', icon: '<path d="M21 11.5a8.5 8.5 0 0 1-12.5 7.5L3 21l2-5.5A8.5 8.5 0 1 1 21 11.5z"/>' }
 }
-const cfg = CFG[props.type] || CFG.idle
+const cfg = computed(() => CFG[props.type] || CFG.idle)
 const sourceText = { manual: '人工', ai: 'AI 自动', ai_manual: 'AI+人工' }
 
 const viewMode = ref('all')
@@ -192,7 +192,13 @@ async function reject() {
   }
 }
 
-onMounted(load)
+function resetAndLoad() {
+  pageNum.value = 1
+  imageErrors.value = {}
+  load()
+}
+onMounted(resetAndLoad)
+watch(() => props.type, resetAndLoad)
 </script>
 
 <style scoped>
