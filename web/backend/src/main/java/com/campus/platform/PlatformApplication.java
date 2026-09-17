@@ -13,7 +13,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableAsync
 @EnableScheduling
 @SpringBootApplication
-@MapperScan({"com.campus.platform.mapper", "com.campus.platform.module.*.mapper"})
+@MapperScan("com.campus.platform.module.*.mapper")
 public class PlatformApplication {
 
     public static void main(String[] args) {
