@@ -50,7 +50,7 @@
           <button class="icon-btn" title="切换主题" @click="toggleTheme">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
           </button>
-          <button class="icon-btn" title="通知">
+          <button class="icon-btn" title="待办通知" @click="goNotice">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
             <span class="badge-dot">{{ totalPending }}</span>
           </button>
@@ -181,6 +181,26 @@ function onKeydown(e) {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
     e.preventDefault()
     searchRef.value?.focus()
+  }
+}
+
+function goNotice() {
+  // 按待办数排序的跳转优先级（counts 含 report/ai）
+  const order = [
+    { k: 'report', to: '/report' },
+    { k: 'activity', to: '/admin/audit/activity' },
+    { k: 'idle', to: '/admin/audit/idle' },
+    { k: 'lostfound', to: '/admin/audit/lostfound' },
+    { k: 'post', to: '/admin/audit/post' },
+    { k: 'ai', to: '/admin/ai/audit' },
+  ]
+  const top = order.reduce((best, it) =>
+    (Number(counts.value[it.k]) || 0) > (Number(counts.value[best.k]) || 0) ? it : best, order[0])
+  if (Number(counts.value[top.k]) > 0) {
+    router.push(top.to)
+  } else {
+    // 无待办时进入举报中心（含各分类待办入口）
+    router.push('/report')
   }
 }
 
