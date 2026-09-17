@@ -93,6 +93,9 @@ public final class Constants {
     public static final String SCENE_CAMPUS_GUIDE = "campus_guide";     // AI校园向导-业务数据问答
     public static final String SCENE_LOST_MATCH = "lost_match";         // 失物招领-AI智能匹配
     public static final String SCENE_IDLE_ESTIMATE = "idle_estimate";   // 闲置交易-AI智能估价
+    public static final String SCENE_PARTNER_MATCH = "partner_match";   // 学习搭子-AI匹配
+    public static final String SCENE_QA_ANSWER = "qa_answer";           // 校园互助-AI参考回答
+    public static final String SCENE_ACTIVITY_RECOMMEND = "activity_recommend"; // 活动-AI智能推荐
 
     /** 错题掌握状态 */
     public static final int WQ_STATUS_PENDING = 0;      // 待复习

@@ -15,6 +15,31 @@
       <el-button type="primary" @click="goPublish">＋ 发布活动</el-button>
     </div>
 
+    <!-- AI 智能推荐 -->
+    <div class="rec-block">
+      <div class="rec-head">
+        <b>✨ AI 智能推荐</b>
+        <span>基于你的报名偏好，为你挑选最合适的活动</span>
+        <el-button size="small" type="success" plain :loading="recLoading" @click="loadRecommend">
+          {{ recList.length ? '重新推荐' : '给我推荐' }}
+        </el-button>
+      </div>
+      <div v-if="recList.length" class="rec-grid">
+        <div v-for="r in recList" :key="r.id" class="rec-card" @click="$router.push(`/activity/detail/${r.id}`)">
+          <div class="rec-card__top">
+            <b>{{ r.title }}</b>
+            <span class="rec-cat">{{ r.category }}</span>
+          </div>
+          <p class="rec-reason">💡 {{ r.reason }}</p>
+          <div class="rec-meta">
+            <span>🕐 {{ formatTime(r.startTime) }}</span>
+            <span>📍 {{ r.location || '地点待定' }}</span>
+            <span>{{ r.memberCount }} 人已报名</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="grid" v-loading="loading">
       <ItemCard
         v-for="a in list"
@@ -60,7 +85,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import ItemCard from '../../components/ItemCard.vue'
 import EmptyBox from '../../components/EmptyBox.vue'
-import { listActivity } from '../../api/activity'
+import { listActivity, recommendActivity } from '../../api/activity'
 import { useUserStore } from '../../store/user'
 
 const route = useRoute()
@@ -73,6 +98,27 @@ const list = ref([])
 const pageNum = ref(1)
 const total = ref(0)
 const loading = ref(false)
+const recList = ref([])
+const recLoading = ref(false)
+
+/** AI 智能推荐 */
+async function loadRecommend() {
+  if (!userStore.isLoggedIn) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
+  recLoading.value = true
+  try {
+    const res = await recommendActivity()
+    recList.value = Array.isArray(res) ? res : (res.list || [])
+    if (!recList.value.length) ElMessage.info('暂时没有合适的推荐，稍后再来试试')
+  } catch (e) {
+    ElMessage.error(e.message || '推荐失败，请稍后重试')
+  } finally {
+    recLoading.value = false
+  }
+}
 
 /** 有效展示状态 → 标签颜色：0报名中 1已满员 2报名已截止 3进行中 4已结束 5已下架 */
 function statusCls(s) {
@@ -200,4 +246,23 @@ watch(
 .st-full { color: var(--warning); }
 .st-closed { color: var(--ink-3); }
 .st-off { color: var(--error); }
+.rec-block {
+  margin-bottom: 20px; padding: 14px 16px; border: 1px dashed var(--brand-line);
+  border-radius: var(--r-md); background: linear-gradient(120deg, var(--brand-soft), #fdfaf3);
+}
+.rec-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.rec-head b { font-size: var(--fs-sm); color: var(--brand-strong); }
+.rec-head span { font-size: var(--fs-cap); color: var(--ink-3); }
+.rec-head .el-button { margin-left: auto; }
+.rec-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.rec-card {
+  padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--r-md);
+  background: var(--surface); cursor: pointer; transition: all .18s var(--ease-out);
+}
+.rec-card:hover { border-color: var(--brand-line); transform: translateY(-2px); }
+.rec-card__top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.rec-card__top b { flex: 1; font-size: var(--fs-cap); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rec-cat { padding: 2px 8px; border-radius: var(--r-pill); background: var(--brand-soft); color: var(--brand-strong); font-size: var(--fs-cap); font-weight: 600; flex-shrink: 0; }
+.rec-reason { margin: 0 0 8px; font-size: var(--fs-cap); color: var(--success-strong, #008a5c); line-height: 1.6; }
+.rec-meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: var(--fs-cap); color: var(--ink-3); }
 </style>

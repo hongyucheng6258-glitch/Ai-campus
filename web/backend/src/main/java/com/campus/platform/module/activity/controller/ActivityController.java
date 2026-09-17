@@ -3,6 +3,8 @@ package com.campus.platform.module.activity.controller;
 import com.campus.platform.module.activity.dto.ActivityPublishDTO;
 import com.campus.platform.module.activity.vo.ActivityDetailVO;
 import com.campus.platform.module.activity.service.ActivityService;
+import com.campus.platform.module.activity.service.ActivityRecommendService;
+import com.campus.platform.module.activity.vo.ActivityRecommendVO;
 import com.campus.platform.module.activity.dto.MemberHandleDTO;
 import com.campus.platform.module.activity.vo.ActivityVO;
 import com.campus.platform.module.activity.dto.SigninDTO;
@@ -27,7 +29,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ActivityController {
     private final ActivityService activityService;
+    private final ActivityRecommendService activityRecommendService;
     private final SystemConfigHolder systemConfigHolder;
+
+    /** 活动 AI 智能推荐 */
+    @PostMapping("/recommend")
+    public R<List<ActivityRecommendVO>> recommend() {
+        return R.ok(activityRecommendService.recommend(UserContext.getUid()));
+    }
 
     @PostMapping
     public R<Activity> publish(@Valid @RequestBody ActivityPublishDTO dto) {

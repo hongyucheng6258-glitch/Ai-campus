@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="portal">
     <!-- ===== Hero ===== -->
     <WtHero
@@ -181,6 +181,8 @@ const entries = [
   { title: '闲置交易', desc: '二手 · 互换', to: '/idle', variant: 2, icon: 'bag' },
   { title: '失物招领', desc: '拾金 · 认领', to: '/lostfound', variant: 3, icon: 'lost' },
   { title: '校园动态', desc: '分享 · 互动', to: '/social', variant: 4, icon: 'chat' },
+  { title: '学习搭子', desc: '一起学 · AI 匹配', to: '/partner', variant: 5, icon: 'spark' },
+  { title: '互助问答', desc: '提问 · 解答', to: '/qa', variant: 6, icon: 'chat' },
   { title: 'AI 学习助手', desc: '错题 · PDF', to: '/ai/chat', variant: 5, icon: 'spark', needLogin: true },
   { title: '消息中心', desc: '通知 · 私信', to: '/message', variant: 6, icon: 'bell', needLogin: true }
 ]

@@ -47,6 +47,14 @@ const routes = [
       { path: 'lostfound', name: 'LostFoundList', component: () => import('../views/lostfound/List.vue'), meta: { public: true } },
       { path: 'lostfound/publish', name: 'LostFoundPublish', component: () => import('../views/lostfound/Publish.vue') },
       { path: 'lostfound/detail/:id', name: 'LostFoundDetail', component: () => import('../views/lostfound/Detail.vue'), meta: { public: true } },
+      // 学习搭子
+      { path: 'partner', name: 'PartnerList', component: () => import('../views/partner/List.vue'), meta: { public: true } },
+      { path: 'partner/publish', name: 'PartnerPublish', component: () => import('../views/partner/Publish.vue') },
+      // 校园互助问答
+      { path: 'qa', name: 'QaList', component: () => import('../views/qa/List.vue'), meta: { public: true } },
+      { path: 'qa/publish', name: 'QaPublish', component: () => import('../views/qa/Publish.vue') },
+      { path: 'qa/my', name: 'QaMy', component: () => import('../views/qa/My.vue') },
+      { path: 'qa/detail/:id', name: 'QaDetail', component: () => import('../views/qa/Detail.vue'), meta: { public: true } },
       // 动态广场
       { path: 'social', name: 'PostSquare', component: () => import('../views/social/PostSquare.vue'), meta: { public: true } },
       // 公告

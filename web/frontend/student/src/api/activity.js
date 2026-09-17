@@ -40,3 +40,8 @@ export function myActivities(params) {
 export function mySignups(params) {
   return request.get('/activity/my/signup', { params })
 }
+
+/** 活动 AI 智能推荐 */
+export function recommendActivity() {
+  return request.post('/activity/recommend', {}, { silent: true, timeout: 120000 })
+}

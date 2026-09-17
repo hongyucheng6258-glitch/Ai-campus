@@ -330,6 +330,26 @@ public class AiGatewayService {
                             + "{\"priceMin\":最低价整数,\"priceMax\":最高价整数,\"reference\":\"行情参考说明(40字内)\","
                             + "\"tip\":\"定价或换物建议(50字内)\",\"sellingPoints\":[\"卖点1\",\"卖点2\",\"卖点3\"]}");
             userContent = sb.toString();
+        } else if (Constants.SCENE_PARTNER_MATCH.equals(scene) && params != null) {
+            // 学习搭子 AI 匹配：候选搭子拼入用户消息
+            userContent = "我的学习搭子需求：科目：" + params.getOrDefault("my_subject", "")
+                    + "\n目标：" + params.getOrDefault("my_goal", "")
+                    + "\n可搭时间：" + params.getOrDefault("my_schedule", "")
+                    + "\n自我介绍：" + params.getOrDefault("my_intro", "")
+                    + "\n\n【候选搭子】\n" + params.getOrDefault("candidates", "")
+                    + "\n\n请综合科目相近度、目标一致性、时间互补性、自我介绍判断哪些候选人最适合，只输出 JSON："
+                    + "{\"matches\":[{\"id\":数字,\"reason\":\"匹配理由（不超过35字）\"}]}，没有合适输出 {\"matches\":[]}，最多选 3 人。";
+        } else if (Constants.SCENE_QA_ANSWER.equals(scene) && params != null) {
+            // 校园互助 AI 参考回答
+            userContent = "校园互助问题：\n【标题】" + params.getOrDefault("q_title", "")
+                    + "\n【详细描述】" + params.getOrDefault("q_content", "")
+                    + "\n\n请以热心学长的口吻给出简洁实用的参考回答（200字内），如果问题需要专业建议，提醒对方向老师或专业人士确认。";
+        } else if (Constants.SCENE_ACTIVITY_RECOMMEND.equals(scene) && params != null) {
+            // 活动智能推荐：报名历史 + 候选活动拼入用户消息
+            userContent = "【我报名过的活动】\n" + params.getOrDefault("my_history", "")
+                    + "\n\n【可报名的候选活动】\n" + params.getOrDefault("candidates", "")
+                    + "\n\n请结合我的报名偏好（类别/主题/时间）、活动热度、时间冲突，推荐最适合我的活动，只输出 JSON："
+                    + "{\"recommends\":[{\"id\":数字,\"reason\":\"推荐理由（不超过40字）\"}]}，最多选 5 个，没有合适输出 {\"recommends\":[]}。";
         }
         messages.add(objectMapper.createObjectNode()
                 .put("role", "user")
@@ -367,6 +387,9 @@ public class AiGatewayService {
             case Constants.SCENE_CAMPUS_GUIDE -> "你是「梧桐校园」的AI校园向导，基于下方实时检索的校园业务数据回答学生问题。\n\n【今日校园数据】\n{campus_data}\n\n回答要求：\n1. 只依据上面提供的校园数据回答，不要编造数据中没有的活动、物品或信息；\n2. 数据没有相关内容时，明确说暂时没有查到，并给出一个可行的建议；\n3. 涉及我的信息时按检索到的报名记录回答；\n4. 用简洁中文回答，条目多用短列表，语气亲切自然，像学长学姐一样。";
             case Constants.SCENE_LOST_MATCH -> "你是校园失物智能匹配助手。学生丢失了物品，下方是拾到记录候选列表，请综合物品名称、特征、关键词、地点、时间判断哪些候选最可能匹配。\n\n【拾到记录候选】\n{candidates}\n\n只输出一个 JSON 对象，不要输出任何其他文字或代码块标记，格式：{\"matches\":[{\"id\":数字,\"reason\":\"匹配理由（不超过30字）\"}]}。没有匹配项时输出 {\"matches\":[]}，最多选 3 条。";
             case Constants.SCENE_IDLE_ESTIMATE -> "你是校园闲置交易估价助手，熟悉二手市场行情。根据学生提供的闲置物品信息给出合理估价。\n要求：\n1. 只输出一个 JSON 对象，不要输出任何其他文字或代码块标记；\n2. priceMin/priceMax 为参考定价区间（元，整数，priceMax >= priceMin）；\n3. reference 简要说明行情依据（参考类似物品的二手成交价）；\n4. tip 给出定价或换物建议（结合学生描述的成色与瑕疵）；\n5. sellingPoints 给出 3 个发布卖点文案（突出物品优势，吸引同学）。";
+            case Constants.SCENE_PARTNER_MATCH -> "你是校园学习搭子匹配助手，擅长撮合学习伙伴。根据学生的科目/目标/时间/自我介绍，从候选搭子中挑选最合适的人选。\n要求：\n1. 只输出一个 JSON 对象，不要输出任何其他文字或代码块标记；\n2. 优先考虑科目相同或相近、目标一致、时间互补的候选人；\n3. 不要匹配自己；\n4. reason 说明为什么适合（科目/目标/时间互补等）；\n5. 格式：{\"matches\":[{\"id\":数字,\"reason\":\"匹配理由\"}]}，最多 3 条。";
+            case Constants.SCENE_QA_ANSWER -> "你是校园互助问答的热心学长，帮助学生解决课程学习、考试、校园生活等问题。回答要简洁实用、条理清晰、语气亲切；涉及健康、法律、金融等专业问题要提醒对方向专业人士确认；不编造事实。";
+            case Constants.SCENE_ACTIVITY_RECOMMEND -> "你是校园活动智能推荐助手，非常了解每个学生的报名偏好。\n要求：\n1. 只输出一个 JSON 对象，不要输出任何其他文字或代码块标记；\n2. 结合学生历史报名活动的类别/主题偏好与候选活动的类别/时间/热度综合判断；\n3. 已报名的活动不要推荐；\n4. reason 说明推荐理由（如与之前报名兴趣一致/时间合适/热度高）；\n5. 格式：{\"recommends\":[{\"id\":数字,\"reason\":\"推荐理由\"}]}，最多 5 条。";
             default -> "你是一个校园AI助手。";
         };
     }
