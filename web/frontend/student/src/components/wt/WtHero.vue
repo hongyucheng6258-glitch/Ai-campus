@@ -22,7 +22,6 @@ function submit() {
 
 <template>
   <section class="wt-hero">
-    <div class="wt-hero__bg" aria-hidden="true"></div>
     <div class="wt-hero__inner">
       <p v-if="greet" class="wt-hero__greet">{{ greet }}</p>
       <h1 v-if="title">{{ title }}</h1>
@@ -59,12 +58,15 @@ function submit() {
 .wt-hero {
   position: relative; overflow: hidden;
   border-radius: var(--r-xl); padding: var(--s-7);
-  background: linear-gradient(135deg, var(--brand-strong), var(--brand) 55%, oklch(60% 0.12 150));
+  background:
+    linear-gradient(100deg,
+      oklch(38% 0.1 168 / .94) 0%,
+      oklch(44% 0.11 168 / .68) 40%,
+      oklch(55% 0.1 168 / .28) 66%,
+      oklch(62% 0.09 168 / .08) 82%,
+      transparent 94%),
+    url('/images/hero-bg.png') center/cover no-repeat;
   color: var(--brand-ink); box-shadow: var(--shadow-lg);
-}
-.wt-hero__bg {
-  position: absolute; right: -60px; top: -60px; width: 280px; height: 280px; border-radius: 50%;
-  background: radial-gradient(circle, oklch(85% 0.1 95 / .35), transparent 70%);
 }
 .wt-hero__inner { position: relative; z-index: 1; }
 .wt-hero__greet { margin: 0; font-size: var(--fs-sm); font-weight: 600; opacity: .85; letter-spacing: .04em; }
@@ -84,8 +86,9 @@ function submit() {
 .wt-hero__spark {
   position: absolute; right: var(--s-7); bottom: var(--s-6); z-index: 1;
   display: inline-flex; align-items: center; gap: 8px;
-  background: oklch(100% 0 0 / .16); border: 1px solid oklch(100% 0 0 / .3);
+  background: oklch(30% 0.06 168 / .72); border: 1px solid oklch(100% 0 0 / .28);
   border-radius: var(--r-pill); padding: 8px 16px; font-size: var(--fs-xs); font-weight: 600;
+  backdrop-filter: blur(4px);
 }
 @media (max-width: 640px) {
   .wt-hero__spark { display: none; }
