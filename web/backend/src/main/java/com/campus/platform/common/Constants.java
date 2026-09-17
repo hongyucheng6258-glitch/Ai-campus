@@ -88,6 +88,8 @@ public final class Constants {
     public static final String SCENE_WRONG_EXPLAIN = "wrong_explain"; // 错题讲解/错因分析
     public static final String SCENE_REVIEW_PLAN = "review_plan";     // 复习计划
     public static final String SCENE_PRACTICE = "practice";           // 同类练习题生成
+    public static final String SCENE_ASSIST_COMPOSE = "assist_compose"; // AI辅助发布-生成草稿
+    public static final String SCENE_ASSIST_POLISH = "assist_polish";   // AI辅助发布-润色/扩写/精简
 
     /** 错题掌握状态 */
     public static final int WQ_STATUS_PENDING = 0;      // 待复习

@@ -5,6 +5,7 @@
     <el-card>
       <template #header><h3>发布失物/招领信息</h3></template>
       <el-alert type="info" :closable="false" title="发布后需管理员审核通过才会公开展示" style="margin-bottom: 16px" />
+      <AiAssistPanel :type="'lostfound'" type-name="失物招领" @fill="applyAssist" />
       <el-form :model="form" label-width="90px" style="max-width: 640px">
         <el-form-item label="类型" required>
           <el-radio-group v-model="form.type">
@@ -45,6 +46,7 @@ import WtPageHeader from '../../components/wt/WtPageHeader.vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import UploadImg from '../../components/UploadImg.vue'
+import AiAssistPanel from '../../components/AiAssistPanel.vue'
 import { publishLostFound, updateLostFound, lostFoundDetail } from '../../api/lostfound'
 
 const router = useRouter()
@@ -70,6 +72,10 @@ onMounted(async () => {
   }
 })
 
+function applyAssist(data) {
+  if (data.title) form.title = data.title
+  if (data.content) form.description = data.content
+}
 async function submit() {
   if (!form.title.trim()) {
     ElMessage.warning('请填写标题')

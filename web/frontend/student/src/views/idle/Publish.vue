@@ -5,6 +5,7 @@
     <el-card>
       <template #header><h3>发布闲置物品</h3></template>
       <el-alert type="info" :closable="false" title="发布后需管理员审核通过才会公开展示" style="margin-bottom: 16px" />
+      <AiAssistPanel :type="'idle'" type-name="闲置" @fill="applyAssist" />
       <el-form :model="form" label-width="90px" style="max-width: 640px">
         <el-form-item label="标题" required>
           <el-input v-model="form.title" maxlength="64" show-word-limit placeholder="如：九成新《数据结构》教材" />
@@ -38,6 +39,7 @@ import WtPageHeader from '../../components/wt/WtPageHeader.vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import UploadImg from '../../components/UploadImg.vue'
+import AiAssistPanel from '../../components/AiAssistPanel.vue'
 import { publishIdle, updateIdle, idleDetail } from '../../api/idle'
 
 const router = useRouter()
@@ -62,6 +64,10 @@ onMounted(async () => {
   }
 })
 
+function applyAssist(data) {
+  if (data.title) form.title = data.title
+  if (data.content) form.description = data.content
+}
 async function submit() {
   if (!form.title.trim()) {
     ElMessage.warning('请填写标题')

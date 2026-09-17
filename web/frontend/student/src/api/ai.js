@@ -62,6 +62,16 @@ export function pdfAsk(data) {
   return request.post('/ai/pdf/ask', data)
 }
 
+/** AI 辅助发布：生成草稿（活动/闲置/失物招领/动态） */
+export function aiAssistCompose(data) {
+  return request.post('/ai/assist/compose', data, { silent: true, timeout: 120000 })
+}
+
+/** AI 辅助发布：润色/扩写/精简 */
+export function aiAssistPolish(data) {
+  return request.post('/ai/assist/polish', data, { silent: true, timeout: 120000 })
+}
+
 /**
  * Web 端 SSE 流式答疑（POST + fetch 流读取，EventSource 不支持 POST/自定义Header）。
  *

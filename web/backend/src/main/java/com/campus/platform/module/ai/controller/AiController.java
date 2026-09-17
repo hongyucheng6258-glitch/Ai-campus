@@ -9,6 +9,9 @@ import com.campus.platform.module.ai.entity.AiMessage;
 import com.campus.platform.module.ai.entity.AiSession;
 import com.campus.platform.module.ai.dto.PdfAskDTO;
 import com.campus.platform.module.ai.dto.QuizDTO;
+import com.campus.platform.module.ai.dto.AssistComposeDTO;
+import com.campus.platform.module.ai.dto.AssistPolishDTO;
+import com.campus.platform.module.ai.service.AiAssistService;
 
 import com.campus.platform.common.PageResult;
 import com.campus.platform.common.R;
@@ -26,6 +29,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AiController {
     private final AiChatService aiChatService;
+    private final AiAssistService aiAssistService;
 
     @PostMapping("/session")
     public R<AiSession> createSession(@Valid @RequestBody SessionCreateDTO dto) {
@@ -96,5 +100,18 @@ public class AiController {
     @PostMapping("/quiz")
     public R<String> quiz(@Valid @RequestBody QuizDTO dto) {
         return R.ok(aiChatService.quiz(UserContext.getUid(), dto));
+    }
+
+
+    /** AI 辅助发布-生成草稿（活动/闲置/失物招领/动态） */
+    @PostMapping("/assist/compose")
+    public R<Map<String, Object>> assistCompose(@Valid @RequestBody AssistComposeDTO dto) {
+        return R.ok(aiAssistService.compose(UserContext.getUid(), dto));
+    }
+
+    /** AI 辅助发布-润色/扩写/精简 */
+    @PostMapping("/assist/polish")
+    public R<String> assistPolish(@Valid @RequestBody AssistPolishDTO dto) {
+        return R.ok(aiAssistService.polish(UserContext.getUid(), dto));
     }
 }

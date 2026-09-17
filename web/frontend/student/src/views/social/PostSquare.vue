@@ -11,6 +11,7 @@
 
     <!-- 发布框 -->
     <el-card class="publish-box" v-if="userStore.isLoggedIn">
+      <AiAssistPanel :type="'post'" type-name="动态" @fill="applyAssist" />
       <el-input v-model="newPost" type="textarea" :rows="3" placeholder="分享校园生活…" maxlength="2000" />
       <div class="publish-ops">
         <UploadImg v-model="newImages" :max="9" />
@@ -107,6 +108,7 @@ import WtPageHeader from '../../components/wt/WtPageHeader.vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import UploadImg from '../../components/UploadImg.vue'
+import AiAssistPanel from '../../components/AiAssistPanel.vue'
 import CommentList from '../../components/CommentList.vue'
 import EmptyBox from '../../components/EmptyBox.vue'
 import { listPost, publishPost, likePost, unlikePost, listComments } from '../../api/post'
@@ -191,6 +193,10 @@ async function load() {
   } finally {
     loading.value = false
   }
+}
+
+function applyAssist(data) {
+  if (data.content) newPost.value = data.content
 }
 
 async function publish() {

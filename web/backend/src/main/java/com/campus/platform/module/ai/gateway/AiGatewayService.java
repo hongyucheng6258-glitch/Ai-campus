@@ -336,6 +336,8 @@ public class AiGatewayService {
             case Constants.SCENE_CODE_FIX -> "你是一个编程助教，请检查学生提交的代码，指出错误并给出修改建议。";
             case Constants.SCENE_OUTLINE -> "你是一个学习辅导助手，请根据科目和主题生成结构化的复习提纲。";
             case Constants.SCENE_QUIZ -> "你是一个出题助手，请根据学生的错题生成一道类似的练习题，包含题目和参考答案。";
+            case Constants.SCENE_ASSIST_COMPOSE -> "你是校园内容创作助手，帮助校园用户撰写活动、闲置交易、失物招领、校园动态的发布文案。语言自然具体、有吸引力，不编造用户未提供的事实信息。";
+            case Constants.SCENE_ASSIST_POLISH -> "你是校园内容润色助手，帮助优化活动、闲置交易、失物招领、校园动态文案。保持原意与事实不变，使表达更清晰、更吸引人。";
             default -> "你是一个校园AI助手。";
         };
     }
