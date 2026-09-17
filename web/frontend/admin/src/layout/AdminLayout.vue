@@ -116,6 +116,12 @@ const navGroups = computed(() => [
     ]
   },
   {
+    label: '内容管理',
+    items: [
+      { to: '/content', label: '内容管理', icon: 'manage' }
+    ]
+  },
+  {
     label: '用户与社区',
     items: [
       { to: '/user', label: '用户管理', icon: 'users' },

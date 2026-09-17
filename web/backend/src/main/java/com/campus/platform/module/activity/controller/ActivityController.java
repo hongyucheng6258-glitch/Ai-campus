@@ -37,6 +37,11 @@ public class ActivityController {
         return R.ok(activityService.publish(UserContext.getUid(), dto));
     }
 
+    @PutMapping("/{id}")
+    public R<Activity> update(@PathVariable Long id, @Valid @RequestBody ActivityPublishDTO dto) {
+        return R.ok(activityService.update(UserContext.getUid(), id, dto));
+    }
+
     @GetMapping("/list")
     public R<PageResult<ActivityVO>> list(
             @RequestParam(required = false) String keyword,

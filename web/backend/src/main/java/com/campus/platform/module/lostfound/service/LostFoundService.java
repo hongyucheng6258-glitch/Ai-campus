@@ -1,12 +1,17 @@
 package com.campus.platform.module.lostfound.service;
 
+import com.campus.platform.module.lostfound.dto.ClaimDTO;
 import com.campus.platform.module.lostfound.dto.LostFoundPublishDTO;
+import com.campus.platform.module.lostfound.entity.LostFoundClaim;
+import com.campus.platform.module.lostfound.mapper.LostFoundClaimMapper;
 import com.campus.platform.module.lostfound.mapper.LostFoundMapper;
+import com.campus.platform.module.lostfound.vo.ClaimVO;
 import com.campus.platform.module.lostfound.vo.LostFoundVO;
 import com.campus.platform.module.lostfound.entity.LostFound;
 
 import com.campus.platform.module.ai.service.ContentAiAuditService;
 import com.campus.platform.module.idle.service.IdleService;
+import com.campus.platform.module.message.service.MessageService;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
@@ -22,6 +27,8 @@ import com.campus.platform.module.user.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * 失物招领服务（C4）：发布→审核→检索→认领标记完成。
  */
@@ -33,6 +40,8 @@ public class LostFoundService {
     private final UserMapper userMapper;
     private final SensitiveWordService sensitiveWordService;
     private final ContentAiAuditService contentAiAuditService;
+    private final LostFoundClaimMapper claimMapper;
+    private final MessageService messageService;
 
     /** 发布（待审核） */
     public LostFound publish(Long userId, LostFoundPublishDTO dto) {
@@ -77,6 +86,162 @@ public class LostFoundService {
         LostFoundVO vo = toVO(lf);
         vo.setIsOwner(isOwner);
         return vo;
+    }
+
+    /** 编辑（仅发布者本人；已完成不可编辑；编辑后重新进入 AI 审核） */
+    public LostFound update(Long userId, Long id, LostFoundPublishDTO dto) {
+        LostFound lf = lostFoundMapper.selectById(id);
+        if (lf == null) {
+            throw new BizException(ResultCode.NOT_FOUND, "信息不存在");
+        }
+        if (!lf.getUserId().equals(userId)) {
+            throw new BizException(ResultCode.FORBIDDEN, "只能编辑自己发布的信息");
+        }
+        if (lf.getStatus() == Constants.LF_DONE) {
+            throw new BizException(ResultCode.BAD_REQUEST, "已完成的失物信息不可编辑");
+        }
+        if (sensitiveWordService.contains(dto.getTitle()) || sensitiveWordService.contains(dto.getDescription())) {
+            throw new BizException(ResultCode.SENSITIVE_WORD);
+        }
+        lf.setType(dto.getType());
+        lf.setTitle(dto.getTitle());
+        lf.setDescription(dto.getDescription());
+        lf.setLocation(dto.getLocation());
+        lf.setHappenTime(dto.getHappenTime());
+        lf.setContact(dto.getContact());
+        lf.setImages(IdleService.toJson(dto.getImages()));
+        lf.setAuditStatus(Constants.AUDIT_PENDING);
+        lf.setAuditReason(null);
+        lostFoundMapper.updateById(lf);
+        contentAiAuditService.audit(Constants.BIZ_LOSTFOUND, lf, userId, dto.getTitle(), dto.getDescription());
+        return lf;
+    }
+
+    /** 申请认领（仅招领信息，失主申请；发布者不能申请自己的） */
+    public LostFoundClaim claim(Long userId, Long lfId, ClaimDTO dto) {
+        LostFound lf = lostFoundMapper.selectById(lfId);
+        if (lf == null || lf.getAuditStatus() != Constants.AUDIT_PASS || lf.getStatus() != Constants.LF_DOING) {
+            throw new BizException(ResultCode.NOT_FOUND, "招领信息不存在或已处理");
+        }
+        if (lf.getType() != 1) {
+            throw new BizException(ResultCode.BAD_REQUEST, "只有招领信息可以申请认领");
+        }
+        if (lf.getUserId().equals(userId)) {
+            throw new BizException(ResultCode.BAD_REQUEST, "不能认领自己发布的招领信息");
+        }
+        Long existed = claimMapper.selectCount(new LambdaQueryWrapper<LostFoundClaim>()
+                .eq(LostFoundClaim::getLostFoundId, lfId)
+                .in(LostFoundClaim::getStatus, 0, 1));
+        if (existed != null && existed > 0) {
+            throw new BizException(ResultCode.DUPLICATE_OPERATION, "该信息已有待处理的认领申请");
+        }
+        LostFoundClaim claim = new LostFoundClaim();
+        claim.setLostFoundId(lfId);
+        claim.setClaimUserId(userId);
+        claim.setMessage(dto == null ? null : dto.getMessage());
+        claim.setContact(dto == null ? null : dto.getContact());
+        claim.setStatus(0);
+        claimMapper.insert(claim);
+        messageService.send(lf.getUserId(), Constants.MSG_INTERACT, "收到新的认领申请",
+                String.format("有人申请认领你发布的「%s」，请及时核实处理。", lf.getTitle()),
+                Constants.BIZ_LOSTFOUND, lfId);
+        return claim;
+    }
+
+    /** 认领申请列表（仅发布者可见） */
+    public List<ClaimVO> claims(Long userId, Long lfId) {
+        LostFound lf = lostFoundMapper.selectById(lfId);
+        if (lf == null) {
+            throw new BizException(ResultCode.NOT_FOUND, "信息不存在");
+        }
+        if (!lf.getUserId().equals(userId)) {
+            throw new BizException(ResultCode.FORBIDDEN, "只能查看自己发布信息的认领申请");
+        }
+        List<LostFoundClaim> list = claimMapper.selectList(new LambdaQueryWrapper<LostFoundClaim>()
+                .eq(LostFoundClaim::getLostFoundId, lfId)
+                .orderByDesc(LostFoundClaim::getId));
+        return list.stream().map(c -> {
+            ClaimVO vo = new ClaimVO();
+            BeanUtil.copyProperties(c, vo);
+            User u = userMapper.selectById(c.getClaimUserId());
+            vo.setClaimNickname(u == null ? "" : u.getNickname());
+            vo.setClaimAvatar(u == null ? null : u.getAvatar());
+            return vo;
+        }).collect(java.util.stream.Collectors.toList());
+    }
+
+    /** 处理认领申请（发布者同意/拒绝；同意后该信息其他待确认申请自动拒绝） */
+    public void handleClaim(Long userId, Long claimId, boolean accept) {
+        LostFoundClaim claim = claimMapper.selectById(claimId);
+        if (claim == null) {
+            throw new BizException(ResultCode.NOT_FOUND, "认领申请不存在");
+        }
+        LostFound lf = lostFoundMapper.selectById(claim.getLostFoundId());
+        if (lf == null || !lf.getUserId().equals(userId)) {
+            throw new BizException(ResultCode.FORBIDDEN, "只有发布者可以处理认领申请");
+        }
+        if (claim.getStatus() != 0) {
+            throw new BizException(ResultCode.DUPLICATE_OPERATION, "该申请已处理");
+        }
+        claim.setStatus(accept ? 1 : 2);
+        claimMapper.updateById(claim);
+        if (accept) {
+            // 同信息其他待确认申请自动拒绝
+            java.util.List<LostFoundClaim> others = claimMapper.selectList(new LambdaQueryWrapper<LostFoundClaim>()
+                    .eq(LostFoundClaim::getLostFoundId, claim.getLostFoundId())
+                    .eq(LostFoundClaim::getStatus, 0)
+                    .ne(LostFoundClaim::getId, claimId));
+            for (LostFoundClaim o : others) {
+                o.setStatus(2);
+                claimMapper.updateById(o);
+            }
+        }
+        messageService.send(claim.getClaimUserId(), Constants.MSG_INTERACT,
+                accept ? "认领申请已通过" : "认领申请未通过",
+                String.format("你对「%s」的认领申请%s。", lf.getTitle(),
+                        accept ? "已通过，请联系发布者线下归还" : "未通过"),
+                Constants.BIZ_LOSTFOUND, claim.getLostFoundId());
+    }
+
+    /** 当前用户对该信息的认领申请（无则返回 null） */
+    public ClaimVO myClaim(Long userId, Long lfId) {
+        LostFoundClaim claim = claimMapper.selectOne(new LambdaQueryWrapper<LostFoundClaim>()
+                .eq(LostFoundClaim::getLostFoundId, lfId)
+                .eq(LostFoundClaim::getClaimUserId, userId)
+                .last("LIMIT 1"));
+        if (claim == null) {
+            return null;
+        }
+        ClaimVO vo = new ClaimVO();
+        BeanUtil.copyProperties(claim, vo);
+        User u = userMapper.selectById(claim.getClaimUserId());
+        vo.setClaimNickname(u == null ? "" : u.getNickname());
+        vo.setClaimAvatar(u == null ? null : u.getAvatar());
+        return vo;
+    }
+
+    /** 失主确认已找回（认领申请者确认；完成后招领信息标记完成） */
+    public void confirmReturn(Long userId, Long claimId) {
+        LostFoundClaim claim = claimMapper.selectById(claimId);
+        if (claim == null) {
+            throw new BizException(ResultCode.NOT_FOUND, "认领申请不存在");
+        }
+        if (!claim.getClaimUserId().equals(userId)) {
+            throw new BizException(ResultCode.FORBIDDEN, "只有认领申请者可以确认找回");
+        }
+        if (claim.getStatus() != 1) {
+            throw new BizException(ResultCode.BAD_REQUEST, "认领申请未处于已同意状态");
+        }
+        claim.setStatus(3);
+        claimMapper.updateById(claim);
+        LostFound lf = lostFoundMapper.selectById(claim.getLostFoundId());
+        if (lf != null) {
+            lf.setStatus(Constants.LF_DONE);
+            lostFoundMapper.updateById(lf);
+            messageService.send(lf.getUserId(), Constants.MSG_INTERACT, "失物已确认找回",
+                    String.format("「%s」已被失主确认找回，感谢你的帮助！", lf.getTitle()),
+                    Constants.BIZ_LOSTFOUND, lf.getId());
+        }
     }
 
     /** 标记完成（仅本人） */

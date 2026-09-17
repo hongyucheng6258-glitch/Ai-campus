@@ -1,5 +1,5 @@
 <template>
-  <WtPageHeader title="发布闲置" subtitle="把闲置好物分享给同学" eyebrow="校园服务" />
+  <WtPageHeader :title="editId ? '编辑闲置' : '发布闲置'" :subtitle="editId ? '修改物品信息，保存后重新进入审核' : '把闲置好物分享给同学'" eyebrow="校园服务" />
 
   <div class="publish">
     <el-card>
@@ -33,17 +33,34 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import WtPageHeader from '../../components/wt/WtPageHeader.vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import UploadImg from '../../components/UploadImg.vue'
-import { publishIdle } from '../../api/idle'
+import { publishIdle, updateIdle, idleDetail } from '../../api/idle'
 
 const router = useRouter()
+const route = useRoute()
+const editId = route.query.id ? Number(route.query.id) : 0
 const categories = ['教材书籍', '数码电子', '生活用品', '运动器材', '服饰鞋包', '其他']
 const form = reactive({ title: '', category: '', description: '', expectItem: '', images: [] })
 const submitting = ref(false)
+
+onMounted(async () => {
+  if (!editId) return
+  try {
+    const d = await idleDetail(editId)
+    form.title = d.title || ''
+    form.category = d.category || ''
+    form.description = d.description || ''
+    form.expectItem = d.expectItem || ''
+    form.images = d.imageList || []
+  } catch (e) {
+    ElMessage.error('加载物品信息失败')
+    router.back()
+  }
+})
 
 async function submit() {
   if (!form.title.trim()) {
@@ -52,9 +69,14 @@ async function submit() {
   }
   submitting.value = true
   try {
-    await publishIdle(form)
-    ElMessage.success('已提交，待管理员审核')
-    router.push('/idle')
+    if (editId) {
+      await updateIdle(editId, form)
+      ElMessage.success('已保存，重新进入审核')
+    } else {
+      await publishIdle(form)
+      ElMessage.success('已提交，待管理员审核')
+    }
+    router.push('/profile')
   } finally {
     submitting.value = false
   }

@@ -83,6 +83,49 @@ public class ActivityService {
         return activity;
     }
 
+    /** 编辑活动（仅发布者本人；已结束不可编辑；编辑后重新进入 AI 审核） */
+    public Activity update(Long userId, Long id, ActivityPublishDTO dto) {
+        Activity activity = activityMapper.selectById(id);
+        if (activity == null) {
+            throw new BizException(ResultCode.NOT_FOUND, "活动不存在");
+        }
+        if (!activity.getUserId().equals(userId)) {
+            throw new BizException(ResultCode.FORBIDDEN, "只能编辑自己发布的活动");
+        }
+        if (activity.getStatus() == Constants.ACTIVITY_ENDED) {
+            throw new BizException(ResultCode.BAD_REQUEST, "已结束的活动不可编辑");
+        }
+        if (sensitiveWordService.contains(dto.getTitle()) || sensitiveWordService.contains(dto.getDescription())) {
+            throw new BizException(ResultCode.SENSITIVE_WORD);
+        }
+        if (dto.getStartTime() != null && dto.getEndTime() != null
+                && dto.getEndTime().isBefore(dto.getStartTime())) {
+            throw new BizException(ResultCode.BAD_REQUEST, "结束时间不能早于开始时间");
+        }
+        if (dto.getSignupDeadline() != null && dto.getStartTime() != null
+                && dto.getSignupDeadline().isAfter(dto.getStartTime())) {
+            throw new BizException(ResultCode.BAD_REQUEST, "报名截止时间不能晚于活动开始时间");
+        }
+        if (dto.getSignupDeadline() != null && dto.getEndTime() != null
+                && dto.getSignupDeadline().isAfter(dto.getEndTime())) {
+            throw new BizException(ResultCode.BAD_REQUEST, "报名截止时间不能晚于活动结束时间");
+        }
+        activity.setTitle(dto.getTitle());
+        activity.setCategory(dto.getCategory());
+        activity.setDescription(dto.getDescription());
+        activity.setLocation(dto.getLocation());
+        activity.setStartTime(dto.getStartTime());
+        activity.setEndTime(dto.getEndTime());
+        activity.setSignupDeadline(dto.getSignupDeadline());
+        activity.setMaxMembers(dto.getMaxMembers());
+        activity.setImages(IdleService.toJson(dto.getImages()));
+        activity.setAuditStatus(Constants.AUDIT_PENDING);
+        activity.setAuditReason(null);
+        activityMapper.updateById(activity);
+        contentAiAuditService.audit(Constants.BIZ_ACTIVITY, activity, userId, dto.getTitle(), dto.getDescription());
+        return activity;
+    }
+
     /** 列表检索（公开，仅审核通过；已结束的活动不展示） */
     public PageResult<ActivityVO> list(String keyword, String category, int pageNum, int pageSize) {
         LocalDateTime now = LocalDateTime.now();

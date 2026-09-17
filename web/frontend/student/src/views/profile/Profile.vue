@@ -42,9 +42,14 @@
             <el-table-column label="状态" width="90">
               <template #default="{ row }">{{ ['在架','已预约','已完成','已下架'][row.status] }}</template>
             </el-table-column>
-            <el-table-column label="操作" width="100">
+            <el-table-column label="操作" width="170">
               <template #default="{ row }">
-                <el-button v-if="row.status !== 3" size="small" link type="danger" @click="offlineIdle(row)">下架</el-button>
+                <template v-if="row.status !== 3 && row.status !== 2">
+                  <el-button size="small" link type="primary" @click="editIdle(row)">编辑</el-button>
+                  <el-button size="small" link type="danger" @click="offlineIdle(row)">下架</el-button>
+                </template>
+                <el-button v-if="row.status === 3" size="small" link type="success" @click="relistIdle(row)">重新上架</el-button>
+                <span v-if="row.status === 2" style="color: var(--ink-3); font-size: 12px">已完成</span>
               </template>
             </el-table-column>
           </el-table>
@@ -132,10 +137,12 @@ import { ElMessage } from 'element-plus'
 import UploadImg from '../../components/UploadImg.vue'
 import { useUserStore } from '../../store/user'
 import * as userApi from '../../api/user'
-import { myIdle as fetchMyIdle, offlineIdle as apiOfflineIdle } from '../../api/idle'
+import { myIdle as fetchMyIdle, offlineIdle as apiOfflineIdle, relistIdle as apiRelistIdle } from '../../api/idle'
+import { useRouter } from 'vue-router'
 import { wrongStats } from '../../api/wrong'
 import { listConversations } from '../../api/chat'
 
+const router = useRouter()
 const userStore = useUserStore()
 const user = computed(() => userStore.userInfo)
 const tab = ref('idle')
@@ -176,6 +183,16 @@ async function loadMyIdle() {
 async function offlineIdle(row) {
   await apiOfflineIdle(row.id)
   ElMessage.success('已下架')
+  loadMyIdle()
+}
+
+function editIdle(row) {
+  router.push(`/idle/publish?id=${row.id}`)
+}
+
+async function relistIdle(row) {
+  await apiRelistIdle(row.id)
+  ElMessage.success('已重新上架')
   loadMyIdle()
 }
 

@@ -1,5 +1,5 @@
 <template>
-  <WtPageHeader title="发布招领" subtitle="帮物品找到它的主人" eyebrow="校园服务" />
+  <WtPageHeader :title="editId ? '编辑信息' : '发布招领'" :subtitle="editId ? '修改信息，保存后重新进入审核' : '帮物品找到它的主人'" eyebrow="校园服务" />
 
   <div class="publish">
     <el-card>
@@ -40,16 +40,35 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import WtPageHeader from '../../components/wt/WtPageHeader.vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import UploadImg from '../../components/UploadImg.vue'
-import { publishLostFound } from '../../api/lostfound'
+import { publishLostFound, updateLostFound, lostFoundDetail } from '../../api/lostfound'
 
 const router = useRouter()
+const route = useRoute()
+const editId = route.query.id ? Number(route.query.id) : 0
 const form = reactive({ type: 0, title: '', description: '', location: '', happenTime: '', contact: '', images: [] })
 const submitting = ref(false)
+
+onMounted(async () => {
+  if (!editId) return
+  try {
+    const d = await lostFoundDetail(editId)
+    form.type = d.type ?? 0
+    form.title = d.title || ''
+    form.description = d.description || ''
+    form.location = d.location || ''
+    form.happenTime = (d.happenTime || '').replace('T', ' ')
+    form.contact = d.contact || ''
+    form.images = d.imageList || []
+  } catch (e) {
+    ElMessage.error('加载信息失败')
+    router.back()
+  }
+})
 
 async function submit() {
   if (!form.title.trim()) {
@@ -58,8 +77,13 @@ async function submit() {
   }
   submitting.value = true
   try {
-    await publishLostFound(form)
-    ElMessage.success('已提交，待管理员审核')
+    if (editId) {
+      await updateLostFound(editId, form)
+      ElMessage.success('已保存，重新进入审核')
+    } else {
+      await publishLostFound(form)
+      ElMessage.success('已提交，待管理员审核')
+    }
     router.push('/lostfound')
   } finally {
     submitting.value = false

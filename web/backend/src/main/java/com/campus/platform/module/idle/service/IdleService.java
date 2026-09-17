@@ -178,6 +178,22 @@ public class IdleService {
         idleItemMapper.updateById(item);
     }
 
+    /** 重新上架（仅本人；需审核通过且非已成交） */
+    public void relist(Long userId, Long id) {
+        IdleItem item = checkOwner(userId, id);
+        if (item.getAuditStatus() != Constants.AUDIT_PASS) {
+            throw new BizException(ResultCode.AUDIT_PENDING, "物品未通过审核，无法上架");
+        }
+        if (item.getStatus() == Constants.IDLE_FINISHED) {
+            throw new BizException(ResultCode.BAD_REQUEST, "已成交的物品不可重新上架");
+        }
+        if (item.getStatus() == Constants.IDLE_ON_SHELF) {
+            throw new BizException(ResultCode.DUPLICATE_OPERATION, "物品已在架上");
+        }
+        item.setStatus(Constants.IDLE_ON_SHELF);
+        idleItemMapper.updateById(item);
+    }
+
     /** 我的发布 */
     public PageResult<IdleItemVO> myList(Long userId, int pageNum, int pageSize) {
         Page<IdleItem> page = idleItemMapper.selectPage(new Page<>(pageNum, pageSize),

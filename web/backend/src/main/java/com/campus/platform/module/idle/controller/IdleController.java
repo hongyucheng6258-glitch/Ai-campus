@@ -77,6 +77,11 @@ public class IdleController {
         idleService.offline(UserContext.getUid(), id);
         return R.ok();
     }
+    @PutMapping("/{id}/relist")
+    public R<Void> relist(@PathVariable Long id) {
+        idleService.relist(UserContext.getUid(), id);
+        return R.ok();
+    }
 
     @PostMapping("/{id}/appoint")
     public R<IdleAppointment> appoint(@PathVariable Long id, @Valid @RequestBody AppointDTO dto) {

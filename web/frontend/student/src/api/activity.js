@@ -5,6 +5,10 @@ export function publishActivity(data) {
   return request.post('/activity', data)
 }
 
+export function updateActivity(id, data) {
+  return request.put(`/activity/${id}`, data)
+}
+
 export function listActivity(params) {
   return request.get('/activity/list', { params })
 }

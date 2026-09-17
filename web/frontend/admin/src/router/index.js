@@ -22,6 +22,7 @@ const routes = [
 { path: 'audit/idle', name: 'IdleAudit', component: () => import('../views/audit/AuditModule.vue'), props: { type: 'idle' }, meta: { title: '闲置审核' } },
 { path: 'audit/lostfound', name: 'LostFoundAudit', component: () => import('../views/audit/AuditModule.vue'), props: { type: 'lostfound' }, meta: { title: '失物招领审核' } },
 { path: 'audit/post', name: 'PostAudit', component: () => import('../views/audit/AuditModule.vue'), props: { type: 'post' }, meta: { title: '动态审核' } },
+      { path: 'content', name: 'ContentManage', component: () => import('../views/content/ContentManage.vue'), meta: { title: '内容管理' } },
 { path: 'audit', redirect: '/audit/activity' },
 { path: 'ai/audit', name: 'AiContentAudit', component: () => import('../views/ai/AiContentAudit.vue'), meta: { title: 'AI 内容审核' } },
       { path: 'report', name: 'ReportList', component: () => import('../views/report/ReportList.vue'), meta: { title: '举报处理' } },

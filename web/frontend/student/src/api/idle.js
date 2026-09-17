@@ -21,6 +21,10 @@ export function offlineIdle(id) {
   return request.delete(`/idle/${id}`)
 }
 
+export function relistIdle(id) {
+  return request.put(`/idle/${id}/relist`)
+}
+
 export function myIdle(params) {
   return request.get('/idle/my', { params })
 }

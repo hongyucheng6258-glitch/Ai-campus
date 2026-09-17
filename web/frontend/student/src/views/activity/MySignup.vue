@@ -41,25 +41,62 @@
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="auditReason" label="驳回理由" min-width="140" show-overflow-tooltip />
+            <el-table-column prop="auditReason" label="驳回理由" min-width="120" show-overflow-tooltip />
             <el-table-column label="报名数" width="90">
               <template #default="{ row }">{{ row.memberCount }}</template>
             </el-table-column>
-            <el-table-column prop="createTime" label="发布时间" width="170" />
+            <el-table-column prop="createTime" label="发布时间" width="150" />
+            <el-table-column label="操作" width="180" fixed="right">
+              <template #default="{ row }">
+                <el-button size="small" :disabled="row.status === 2 || row.status === 3" @click="editActivity(row)">编辑</el-button>
+                <el-button size="small" type="primary" plain :disabled="row.auditStatus !== 1 || row.status === 2 || row.status === 3"
+                           @click="openMembers(row)">报名管理</el-button>
+              </template>
+            </el-table-column>
           </el-table>
           <el-pagination v-model:current-page="pubPage" :total="pubTotal" :page-size="10"
                          layout="prev, pager, next" style="margin-top: 16px" @current-change="loadPublished" />
         </el-tab-pane>
       </el-tabs>
     </el-card>
+
+    <!-- 报名管理弹窗 -->
+    <el-dialog v-model="memberDialog" title="报名管理" width="640px" destroy-on-close>
+      <template v-if="memberActivity">
+        <div style="margin-bottom: 12px; font-weight: 600">{{ memberActivity.title }}</div>
+        <el-table :data="members" v-loading="memberLoading" size="small">
+          <el-table-column prop="nickname" label="报名人" width="110" />
+          <el-table-column prop="remark" label="报名说明" min-width="140" show-overflow-tooltip />
+          <el-table-column prop="createTime" label="报名时间" width="150" />
+          <el-table-column label="状态" width="90">
+            <template #default="{ row }">
+              <el-tag :type="['warning','success','danger'][row.status]">{{ ['待审批','已通过','已拒绝'][row.status] }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="150">
+            <template #default="{ row }">
+              <template v-if="row.status === 0">
+                <el-button size="small" type="success" @click="handleMember(row, true)">同意</el-button>
+                <el-button size="small" type="danger" @click="handleMember(row, false)">拒绝</el-button>
+              </template>
+              <span v-else style="color: var(--ink-3)">已处理</span>
+            </template>
+          </el-table-column>
+        </el-table>
+        <el-empty v-if="!memberLoading && !members.length" description="暂无报名" />
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import WtPageHeader from '../../components/wt/WtPageHeader.vue'
-import { mySignups, myActivities } from '../../api/activity'
+import { mySignups, myActivities, activityMembers, handleMember as handleMemberApi } from '../../api/activity'
 
+const router = useRouter()
 const tab = ref('signup')
 const loading = ref(false)
 const signups = ref([])
@@ -68,6 +105,11 @@ const signupTotal = ref(0)
 const published = ref([])
 const pubPage = ref(1)
 const pubTotal = ref(0)
+
+const memberDialog = ref(false)
+const memberLoading = ref(false)
+const memberActivity = ref(null)
+const members = ref([])
 
 async function loadSignups() {
   loading.value = true
@@ -88,6 +130,35 @@ async function loadPublished() {
     pubTotal.value = res.total
   } finally {
     loading.value = false
+  }
+}
+
+function editActivity(row) {
+  router.push(`/activity/publish?id=${row.id}`)
+}
+
+async function openMembers(row) {
+  memberActivity.value = row
+  memberDialog.value = true
+  memberLoading.value = true
+  try {
+    const res = await activityMembers(row.id)
+    members.value = res
+  } finally {
+    memberLoading.value = false
+  }
+}
+
+async function handleMember(row, approve) {
+  try {
+    await handleMemberApi(row.id, approve)
+    ElMessage.success(approve ? '已同意报名' : '已拒绝报名')
+    if (memberActivity.value) {
+      const res = await activityMembers(memberActivity.value.id)
+      members.value = res
+    }
+  } catch (e) {
+    ElMessage.error(e.message || '操作失败')
   }
 }
 

@@ -1,5 +1,5 @@
 <template>
-  <WtPageHeader title="发布活动" subtitle="发起一场属于同学们的聚会" eyebrow="校园服务" />
+  <WtPageHeader :title="editId ? '编辑活动' : '发布活动'" :subtitle="editId ? '修改活动信息，保存后重新进入审核' : '发起一场属于同学们的聚会'" eyebrow="校园服务" />
 
   <div class="publish">
     <el-card>
@@ -46,20 +46,41 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import WtPageHeader from '../../components/wt/WtPageHeader.vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import UploadImg from '../../components/UploadImg.vue'
-import { publishActivity } from '../../api/activity'
+import { publishActivity, updateActivity, activityDetail } from '../../api/activity'
 
 const router = useRouter()
+const route = useRoute()
+const editId = route.query.id ? Number(route.query.id) : 0
 const categories = ['学习交流', '体育运动', '文艺娱乐', '志愿服务', '竞赛组队', '其他']
 const form = reactive({
   title: '', category: '', description: '', location: '',
   startTime: '', endTime: '', signupDeadline: '', maxMembers: 0, images: []
 })
 const submitting = ref(false)
+
+onMounted(async () => {
+  if (!editId) return
+  try {
+    const d = await activityDetail(editId)
+    form.title = d.title || ''
+    form.category = d.category || ''
+    form.description = d.description || ''
+    form.location = d.location || ''
+    form.startTime = (d.startTime || '').replace('T', ' ')
+    form.endTime = (d.endTime || '').replace('T', ' ')
+    form.signupDeadline = (d.signupDeadline || '').replace('T', ' ')
+    form.maxMembers = d.maxMembers || 0
+    form.images = d.imageList || []
+  } catch (e) {
+    ElMessage.error('加载活动信息失败')
+    router.back()
+  }
+})
 
 async function submit() {
   if (!form.title.trim()) {
@@ -68,9 +89,14 @@ async function submit() {
   }
   submitting.value = true
   try {
-    await publishActivity(form)
-    ElMessage.success('已提交，待管理员审核')
-    router.push('/activity')
+    if (editId) {
+      await updateActivity(editId, form)
+      ElMessage.success('已保存，重新进入审核')
+    } else {
+      await publishActivity(form)
+      ElMessage.success('已提交，待管理员审核')
+    }
+    router.push('/activity/my-signup')
   } finally {
     submitting.value = false
   }

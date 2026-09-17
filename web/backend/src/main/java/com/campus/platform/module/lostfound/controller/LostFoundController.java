@@ -1,13 +1,17 @@
 package com.campus.platform.module.lostfound.controller;
 
+import com.campus.platform.module.lostfound.dto.ClaimDTO;
+import com.campus.platform.module.lostfound.dto.ClaimHandleDTO;
 import com.campus.platform.module.lostfound.dto.LostFoundPublishDTO;
 import com.campus.platform.module.lostfound.service.LostFoundService;
+import com.campus.platform.module.lostfound.vo.ClaimVO;
 import com.campus.platform.module.lostfound.vo.LostFoundVO;
 import com.campus.platform.module.lostfound.entity.LostFound;
 
 import com.campus.platform.common.PageResult;
 import com.campus.platform.common.R;
 import com.campus.platform.common.UserContext;
+import java.util.List;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -46,9 +50,42 @@ public class LostFoundController {
         return R.ok(lostFoundService.detail(id, uid));
     }
 
+    @PutMapping("/{id}")
+    public R<LostFound> update(@PathVariable Long id, @Valid @RequestBody LostFoundPublishDTO dto) {
+        return R.ok(lostFoundService.update(UserContext.getUid(), id, dto));
+    }
+
     @PutMapping("/{id}/finish")
     public R<Void> finish(@PathVariable Long id) {
         lostFoundService.finish(UserContext.getUid(), id);
+        return R.ok();
+    }
+
+    @PostMapping("/{id}/claim")
+    public R<Void> claim(@PathVariable Long id, @Valid @RequestBody ClaimDTO dto) {
+        lostFoundService.claim(UserContext.getUid(), id, dto);
+        return R.ok();
+    }
+
+    @GetMapping("/{id}/my-claim")
+    public R<ClaimVO> myClaim(@PathVariable Long id) {
+        return R.ok(lostFoundService.myClaim(UserContext.getUid(), id));
+    }
+
+    @GetMapping("/{id}/claims")
+    public R<List<ClaimVO>> claims(@PathVariable Long id) {
+        return R.ok(lostFoundService.claims(UserContext.getUid(), id));
+    }
+
+    @PutMapping("/claim/{claimId}/handle")
+    public R<Void> handleClaim(@PathVariable Long claimId, @Valid @RequestBody ClaimHandleDTO dto) {
+        lostFoundService.handleClaim(UserContext.getUid(), claimId, dto.getAccept());
+        return R.ok();
+    }
+
+    @PutMapping("/claim/{claimId}/confirm")
+    public R<Void> confirmReturn(@PathVariable Long claimId) {
+        lostFoundService.confirmReturn(UserContext.getUid(), claimId);
         return R.ok();
     }
 }
