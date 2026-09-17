@@ -148,6 +148,8 @@ const navGroups = [
       { to: '/activity', label: '校园活动', icon: 'calendar' },
       { to: '/idle', label: '闲置互换', icon: 'bag' },
       { to: '/lostfound', label: '失物招领', icon: 'lost' },
+      { to: '/partner', label: '学习搭子', icon: 'spark' },
+      { to: '/qa', label: '互助问答', icon: 'chat' },
       { to: '/social', label: '动态广场', icon: 'chat' },
       { to: '/notice', label: '校园公告', icon: 'megaphone' },
       { to: '/message', label: '消息中心', icon: 'bell' },
