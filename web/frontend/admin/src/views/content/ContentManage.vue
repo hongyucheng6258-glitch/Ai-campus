@@ -88,6 +88,7 @@ import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { auditAll } from '../../api/audit'
 import { contentOff, contentOn, signinReport, exportMembers, exportSignins } from '../../api/content'
+import { formatTime } from '../../utils/date'
 
 const type = ref('activity')
 const list = ref([])
