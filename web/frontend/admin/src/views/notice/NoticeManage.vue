@@ -19,7 +19,9 @@
         </template>
       </el-table-column>
       <el-table-column prop="publishTime" label="发布时间" width="170" />
-      <el-table-column prop="createTime" label="创建时间" width="170" />
+      <el-table-column label="创建时间" width="170">
+        <template #default="{ row }">{{ formatTime(row.createTime) }}</template>
+      </el-table-column>
       <el-table-column label="操作" width="260" fixed="right">
         <template #default="{ row }">
           <el-button size="small" @click="$router.push(`/notice/edit/${row.id}`)">编辑</el-button>
@@ -36,6 +38,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
+import { formatTime } from '../../utils/date'
 import WtPageHeader from '../../components/wt/WtPageHeader.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { noticeList, publishNotice, offlineNotice, deleteNotice } from '../../api/notice'

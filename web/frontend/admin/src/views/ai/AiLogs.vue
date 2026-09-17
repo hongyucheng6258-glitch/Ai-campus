@@ -39,7 +39,9 @@
         </template>
       </el-table-column>
       <el-table-column prop="errorMsg" label="错误信息" min-width="140" show-overflow-tooltip />
-      <el-table-column prop="createTime" label="时间" width="170" />
+      <el-table-column label="时间" width="170">
+        <template #default="{ row }">{{ formatTime(row.createTime) }}</template>
+      </el-table-column>
     </el-table>
     <el-pagination v-model:current-page="pageNum" :total="total" :page-size="10"
                    layout="total, prev, pager, next" style="margin-top: 16px" @current-change="load" />
@@ -50,6 +52,7 @@
 import { onMounted, ref } from 'vue'
 import WtPageHeader from '../../components/wt/WtPageHeader.vue'
 import { aiLogs } from '../../api/aiConfig'
+import { formatTime } from '../../utils/date'
 
 const userId = ref(undefined)
 const scene = ref(undefined)

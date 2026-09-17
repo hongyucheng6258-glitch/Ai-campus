@@ -29,7 +29,9 @@
         <el-table-column label="状态" width="100">
           <template #default="{ row }">{{ statusText(row) }}</template>
         </el-table-column>
-        <el-table-column prop="createTime" label="发布时间" width="170" />
+        <el-table-column label="发布时间" width="170">
+        <template #default="{ row }">{{ formatTime(row.createTime) }}</template>
+      </el-table-column>
         <el-table-column label="操作" width="260" fixed="right">
           <template #default="{ row }">
             <template v-if="type === 'qa' || row.auditStatus === 1">
