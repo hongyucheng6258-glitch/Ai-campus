@@ -290,7 +290,14 @@ async function savePassword() {
   gap: var(--s-6);
   padding: var(--s-7);
   border-radius: var(--r-xl);
-  background: linear-gradient(120deg, var(--brand) 0%, var(--brand-strong) 70%, oklch(32% 0.11 168) 100%);
+  background:
+    linear-gradient(100deg,
+      oklch(38% 0.1 168 / .94) 0%,
+      oklch(44% 0.11 168 / .7) 42%,
+      oklch(55% 0.1 168 / .3) 68%,
+      oklch(62% 0.09 168 / .1) 84%,
+      transparent 96%),
+    url('/images/hero-bg.png') center/cover no-repeat;
   color: #fff;
   margin-bottom: var(--s-5);
   position: relative;
@@ -304,7 +311,7 @@ async function savePassword() {
   width: 260px;
   height: 260px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.14) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
 }
 .banner-avatar {
   border: 3px solid rgba(255, 255, 255, 0.35);
