@@ -159,6 +159,9 @@ const totalPending = computed(() =>
 
 function isActive(to) {
   if (to === '/dashboard') return route.path === '/dashboard'
+  // /system(管理员账号) 与 /system/config(系统配置) 是平级菜单：
+  // 前缀匹配会让 /system/config 时 /system 也高亮，这里精确匹配
+  if (to === '/system') return route.path === '/system'
   return route.path === to || route.path.startsWith(to + '/')
 }
 
