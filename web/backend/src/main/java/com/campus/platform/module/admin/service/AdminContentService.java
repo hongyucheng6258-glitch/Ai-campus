@@ -15,6 +15,10 @@ import com.campus.platform.module.idle.entity.IdleItem;
 import com.campus.platform.module.idle.mapper.IdleItemMapper;
 import com.campus.platform.module.lostfound.entity.LostFound;
 import com.campus.platform.module.lostfound.mapper.LostFoundMapper;
+import com.campus.platform.module.partner.entity.StudyPartner;
+import com.campus.platform.module.partner.mapper.StudyPartnerMapper;
+import com.campus.platform.module.qa.entity.CampusQuestion;
+import com.campus.platform.module.qa.mapper.CampusQuestionMapper;
 import com.campus.platform.module.user.entity.User;
 import com.campus.platform.module.user.mapper.UserMapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -36,11 +40,13 @@ public class AdminContentService {
     private final ActivityMapper activityMapper;
     private final IdleItemMapper idleItemMapper;
     private final LostFoundMapper lostFoundMapper;
+    private final StudyPartnerMapper studyPartnerMapper;
+    private final CampusQuestionMapper campusQuestionMapper;
     private final ActivityMemberMapper memberMapper;
     private final ActivitySigninMapper signinMapper;
     private final UserMapper userMapper;
 
-    /** 下架（type: activity/idle/lostfound） */
+    /** 下架（type: activity/idle/lostfound/partner/qa） */
     public void offline(String type, Long id) {
         switch (type) {
             case "activity":
@@ -51,6 +57,12 @@ public class AdminContentService {
                 break;
             case "lostfound":
                 setLfStatus(id, Constants.LF_OFF);
+                break;
+            case "partner":
+                setPartnerStatus(id, Constants.PARTNER_OFF);
+                break;
+            case "qa":
+                setQaStatus(id, Constants.QA_OFF);
                 break;
             default:
                 throw new BizException(ResultCode.BAD_REQUEST, "不支持的内容类型");
@@ -68,6 +80,12 @@ public class AdminContentService {
                 break;
             case "lostfound":
                 setLfStatus(id, Constants.LF_DOING);
+                break;
+            case "partner":
+                setPartnerStatus(id, Constants.PARTNER_MATCHING);
+                break;
+            case "qa":
+                setQaStatus(id, Constants.QA_OPEN);
                 break;
             default:
                 throw new BizException(ResultCode.BAD_REQUEST, "不支持的内容类型");
@@ -150,5 +168,26 @@ public class AdminContentService {
         }
         lf.setStatus(status);
         lostFoundMapper.updateById(lf);
+    }
+
+    private void setPartnerStatus(Long id, int status) {
+        StudyPartner p = studyPartnerMapper.selectById(id);
+        if (p == null) {
+            throw new BizException(ResultCode.NOT_FOUND, "学习搭子不存在");
+        }
+        if (p.getAuditStatus() != Constants.AUDIT_PASS) {
+            throw new BizException(ResultCode.AUDIT_PENDING, "内容未通过审核");
+        }
+        p.setStatus(status);
+        studyPartnerMapper.updateById(p);
+    }
+
+    private void setQaStatus(Long id, int status) {
+        CampusQuestion q = campusQuestionMapper.selectById(id);
+        if (q == null) {
+            throw new BizException(ResultCode.NOT_FOUND, "问题不存在");
+        }
+        q.setStatus(status);
+        campusQuestionMapper.updateById(q);
     }
 }

@@ -21,6 +21,10 @@ export function signupActivity(id, data) {
   return request.post(`/activity/${id}/signup`, data)
 }
 
+export function cancelActivitySignup(id) {
+  return request.delete(`/activity/${id}/signup`)
+}
+
 export function activityMembers(id) {
   return request.get(`/activity/${id}/members`)
 }

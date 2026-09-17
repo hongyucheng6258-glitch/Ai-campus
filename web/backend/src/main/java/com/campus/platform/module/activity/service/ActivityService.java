@@ -208,6 +208,39 @@ public class ActivityService {
                 Constants.BIZ_ACTIVITY, activityId);
     }
 
+    /** 取消报名（仅待审批/已通过可取消；已结束/已签到不可取消） */
+    public void cancelSignup(Long userId, Long activityId) {
+        Activity activity = activityMapper.selectById(activityId);
+        if (activity == null) {
+            throw new BizException(ResultCode.NOT_FOUND, "活动不存在");
+        }
+        if (activity.getStatus() != null && activity.getStatus() == Constants.ACTIVITY_ENDED) {
+            throw new BizException(ResultCode.BAD_REQUEST, "活动已结束，无法取消报名");
+        }
+        ActivityMember member = memberMapper.selectOne(new LambdaQueryWrapper<ActivityMember>()
+                .eq(ActivityMember::getActivityId, activityId)
+                .eq(ActivityMember::getUserId, userId));
+        if (member == null) {
+            throw new BizException(ResultCode.NOT_FOUND, "你尚未报名该活动");
+        }
+        boolean signed = signinMapper.selectCount(new LambdaQueryWrapper<ActivitySignin>()
+                .eq(ActivitySignin::getActivityId, activityId)
+                .eq(ActivitySignin::getUserId, userId)) > 0;
+        if (signed) {
+            throw new BizException(ResultCode.BAD_REQUEST, "你已签到，无法取消报名");
+        }
+        memberMapper.deleteById(member.getId());
+        // 人数回退：已报满 -> 恢复报名中
+        Activity target = activityMapper.selectById(activityId);
+        if (target != null && target.getStatus() != null && target.getStatus() == Constants.ACTIVITY_FULL) {
+            target.setStatus(Constants.ACTIVITY_SIGNING);
+            activityMapper.updateById(target);
+        }
+        messageService.send(activity.getUserId(), Constants.MSG_INTERACT,
+                "报名已取消",
+                String.format("有同学取消了活动「%s」的报名。", activity.getTitle()),
+                Constants.BIZ_ACTIVITY, activityId);
+    }
     /** 报名名单（仅发布者可见，含签到状态） */
     public List<MemberVO> members(Long userId, Long activityId) {
         checkPublisher(userId, activityId);

@@ -102,7 +102,8 @@ const auditTypes = [
   { key: 'activity', icon: 'calendar', to: '/audit/activity', label: '活动审核', countKey: 'activity' },
   { key: 'idle', icon: 'bag', to: '/audit/idle', label: '闲置审核', countKey: 'idle' },
   { key: 'lostfound', icon: 'lost', to: '/audit/lostfound', label: '失物招领审核', countKey: 'lostfound' },
-  { key: 'post', icon: 'chat', to: '/audit/post', label: '动态审核', countKey: 'post' }
+  { key: 'post', icon: 'chat', to: '/audit/post', label: '动态审核', countKey: 'post' },
+  { key: 'partner', icon: 'users', to: '/audit/partner', label: '搭子审核', countKey: 'partner' }
 ]
 
 const navGroups = computed(() => [
@@ -197,6 +198,7 @@ function goNotice() {
     { k: 'idle', to: '/admin/audit/idle' },
     { k: 'lostfound', to: '/admin/audit/lostfound' },
     { k: 'post', to: '/admin/audit/post' },
+    { k: 'partner', to: '/admin/audit/partner' },
     { k: 'ai', to: '/admin/ai/audit' },
   ]
   const top = order.reduce((best, it) =>

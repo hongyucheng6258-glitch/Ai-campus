@@ -9,19 +9,23 @@ import com.campus.platform.common.Constants;
 import com.campus.platform.common.PageResult;
 import com.campus.platform.common.ResultCode;
 import com.campus.platform.module.activity.entity.Activity;
-import com.campus.platform.module.idle.entity.IdleItem;
-import com.campus.platform.module.lostfound.entity.LostFound;
-import com.campus.platform.module.post.entity.Post;
 import com.campus.platform.module.activity.mapper.ActivityMapper;
+import com.campus.platform.module.idle.entity.IdleItem;
 import com.campus.platform.module.idle.mapper.IdleItemMapper;
+import com.campus.platform.module.lostfound.entity.LostFound;
 import com.campus.platform.module.lostfound.mapper.LostFoundMapper;
+import com.campus.platform.module.partner.entity.StudyPartner;
+import com.campus.platform.module.partner.mapper.StudyPartnerMapper;
+import com.campus.platform.module.post.entity.Post;
 import com.campus.platform.module.post.mapper.PostMapper;
+import com.campus.platform.module.qa.entity.CampusQuestion;
+import com.campus.platform.module.qa.mapper.CampusQuestionMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 /**
  * 通用审核服务（D2，架构设计 1.1 难点3）：
- * 四类 UGC（idle/activity/lostfound/post）统一 audit_status 状态机；
+ * UGC（idle/activity/lostfound/post/partner）统一 audit_status 状态机；
  * 通过/驳回后消息通知作者。
  */
 @Service
@@ -32,6 +36,8 @@ public class AuditService {
     private final ActivityMapper activityMapper;
     private final LostFoundMapper lostFoundMapper;
     private final PostMapper postMapper;
+    private final StudyPartnerMapper studyPartnerMapper;
+    private final CampusQuestionMapper questionMapper;
     private final MessageService messageService;
 
     /** 待审列表 */
@@ -57,6 +63,11 @@ public class AuditService {
                     new LambdaQueryWrapper<Post>()
                             .eq(Post::getAuditStatus, Constants.AUDIT_PENDING)
                             .orderByAsc(Post::getId)));
+            case Constants.BIZ_PARTNER -> PageResult.of(studyPartnerMapper.selectPage(
+                    new Page<>(pageNum, pageSize),
+                    new LambdaQueryWrapper<StudyPartner>()
+                            .eq(StudyPartner::getAuditStatus, Constants.AUDIT_PENDING)
+                            .orderByAsc(StudyPartner::getId)));
             default -> throw new BizException(ResultCode.BAD_REQUEST, "不支持的审核类型: " + type);
         };
     }
@@ -72,6 +83,10 @@ public class AuditService {
                     new Page<>(pageNum, pageSize), new LambdaQueryWrapper<LostFound>().orderByDesc(LostFound::getId)));
             case Constants.BIZ_POST -> PageResult.of(postMapper.selectPage(
                     new Page<>(pageNum, pageSize), new LambdaQueryWrapper<Post>().orderByDesc(Post::getId)));
+            case Constants.BIZ_PARTNER -> PageResult.of(studyPartnerMapper.selectPage(
+                    new Page<>(pageNum, pageSize), new LambdaQueryWrapper<StudyPartner>().orderByDesc(StudyPartner::getId)));
+            case Constants.BIZ_QA -> PageResult.of(questionMapper.selectPage(
+                    new Page<>(pageNum, pageSize), new LambdaQueryWrapper<CampusQuestion>().orderByDesc(CampusQuestion::getId)));
             default -> throw new BizException(ResultCode.BAD_REQUEST, "不支持的内容类型: " + type);
         };
     }
@@ -136,6 +151,16 @@ public class AuditService {
                 String preview = post.getContent().length() > 20
                         ? post.getContent().substring(0, 20) + "..." : post.getContent();
                 return new AuditedTarget(post.getUserId(), "动态「" + preview + "」");
+            }
+            case Constants.BIZ_PARTNER -> {
+                StudyPartner p = studyPartnerMapper.selectById(id);
+                if (p == null) {
+                    throw new BizException(ResultCode.NOT_FOUND, "内容不存在");
+                }
+                p.setAuditStatus(auditStatus);
+                p.setAuditReason(reason);
+                studyPartnerMapper.updateById(p);
+                return new AuditedTarget(p.getUserId(), "学习搭子「" + p.getSubject() + "」");
             }
             default -> throw new BizException(ResultCode.BAD_REQUEST, "不支持的审核类型: " + type);
         }

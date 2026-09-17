@@ -110,7 +110,8 @@ const CFG = {
   activity: { title: '活动审核', desc: '校园活动发布审核 · 内容安全与合规校验', icon: '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>' },
   idle: { title: '闲置审核', desc: '闲置物品发布审核 · 交易信息与违规校验', icon: '<path d="M3 7h18l-2 13H5z"/><path d="M8 11v6M12 11v6M16 11v6"/>' },
   lostfound: { title: '失物招领审核', desc: '失物招领信息审核 · 真实性校验', icon: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>' },
-  post: { title: '动态审核', desc: '校园动态发布审核 · 社区内容治理', icon: '<path d="M21 11.5a8.5 8.5 0 0 1-12.5 7.5L3 21l2-5.5A8.5 8.5 0 1 1 21 11.5z"/>' }
+  post: { title: '动态审核', desc: '校园动态发布审核 · 社区内容治理', icon: '<path d="M21 11.5a8.5 8.5 0 0 1-12.5 7.5L3 21l2-5.5A8.5 8.5 0 1 1 21 11.5z"/>' },
+  partner: { title: '搭子审核', desc: '学习搭子发布审核 · 信息真实性与合规校验', icon: '<circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M17 11l2 2 4-4"/>' }
 }
 const cfg = computed(() => CFG[props.type] || CFG.idle)
 const sourceText = { manual: '人工', ai: 'AI 自动', ai_manual: 'AI+人工' }

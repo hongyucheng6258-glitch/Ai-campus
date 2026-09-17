@@ -89,6 +89,12 @@ public class ActivityController {
         return R.ok();
     }
 
+    @DeleteMapping("/{id}/signup")
+    public R<Void> cancelSignup(@PathVariable Long id) {
+        activityService.cancelSignup(UserContext.getUid(), id);
+        return R.ok();
+    }
+
     @GetMapping("/{id}/members")
     public R<List<MemberVO>> members(@PathVariable Long id) {
         return R.ok(activityService.members(UserContext.getUid(), id));

@@ -46,6 +46,10 @@
                 已通过报名{{ act.signedIn ? '（已签到）' : '（活动现场请扫码签到）' }}
               </el-tag>
               <el-tag v-else type="danger" size="large">报名未通过</el-tag>
+              <el-button v-if="act.mySignupStatus === 0 || act.mySignupStatus === 1"
+                         plain size="large" :loading="canceling" :disabled="act.signedIn" @click="doCancelSignup">
+                {{ act.signedIn ? '已签到不可取消' : '取消报名' }}
+              </el-button>
               <el-button type="primary" plain @click="contactPublisher">私信发起人</el-button>
             </template>
             <el-button text type="warning" @click="reportVisible = true">举报</el-button>
@@ -129,8 +133,8 @@ import { onMounted, ref } from 'vue'
 import QRCode from 'qrcode'
 import WtPageHeader from '../../components/wt/WtPageHeader.vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { activityDetail, signupActivity, activityMembers, handleMember, signinQrcode } from '../../api/activity'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { activityDetail, signupActivity, cancelActivitySignup, activityMembers, handleMember, signinQrcode } from '../../api/activity'
 import { submitReport } from '../../api/report'
 import { favoriteStatus, favorite, unfavorite } from '../../api/favorite'
 import { formatTime } from '../../utils/date'
@@ -147,6 +151,7 @@ const loading = ref(false)
 const signupVisible = ref(false)
 const remark = ref('')
 const signing = ref(false)
+const canceling = ref(false)
 const membersVisible = ref(false)
 const members = ref([])
 const qrVisible = ref(false)
@@ -203,6 +208,22 @@ async function doSignup() {
     load()
   } finally {
     signing.value = false
+  }
+}
+
+async function doCancelSignup() {
+  try {
+    await ElMessageBox.confirm('确定取消该活动的报名吗？', '取消报名', { type: 'warning' })
+  } catch {
+    return
+  }
+  canceling.value = true
+  try {
+    await cancelActivitySignup(id)
+    ElMessage.success('已取消报名')
+    load()
+  } finally {
+    canceling.value = false
   }
 }
 

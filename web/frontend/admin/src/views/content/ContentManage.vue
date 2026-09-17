@@ -11,12 +11,17 @@
         <el-tab-pane label="活动" name="activity" />
         <el-tab-pane label="闲置" name="idle" />
         <el-tab-pane label="失物招领" name="lostfound" />
+        <el-tab-pane label="学习搭子" name="partner" />
+        <el-tab-pane label="互助问答" name="qa" />
       </el-tabs>
       <el-table :data="list" v-loading="loading">
-        <el-table-column prop="title" label="标题" min-width="200" show-overflow-tooltip />
+        <el-table-column label="标题" min-width="200" show-overflow-tooltip>
+          <template #default="{ row }">{{ titleOf(row) }}</template>
+        </el-table-column>
         <el-table-column label="审核" width="90">
           <template #default="{ row }">
-            <el-tag size="small" :type="['warning','success','danger'][row.auditStatus]">
+            <el-tag v-if="type === 'qa'" size="small" type="info">免审</el-tag>
+            <el-tag v-else size="small" :type="['warning','success','danger'][row.auditStatus]">
               {{ ['待审核','已通过','已驳回'][row.auditStatus] }}
             </el-tag>
           </template>
@@ -27,7 +32,7 @@
         <el-table-column prop="createTime" label="发布时间" width="170" />
         <el-table-column label="操作" width="260" fixed="right">
           <template #default="{ row }">
-            <template v-if="row.auditStatus === 1">
+            <template v-if="type === 'qa' || row.auditStatus === 1">
               <el-button v-if="!isOff(row)" size="small" type="danger" plain @click="doOff(row)">下架</el-button>
               <el-button v-else size="small" type="success" plain @click="doOn(row)">恢复上架</el-button>
               <el-button v-if="type === 'activity' && !isOff(row)" size="small" type="primary" plain @click="openReport(row)">签到报表</el-button>
@@ -112,11 +117,18 @@ async function doExport(kind) {
 const isOff = (row) => {
   if (type.value === 'activity') return row.status === 3
   if (type.value === 'idle') return row.status === 3
+  if (type.value === 'partner' || type.value === 'qa') return row.status === 9
   return row.status === 2
+}
+const titleOf = (row) => {
+  if (type.value === 'partner') return `${row.subject || ''}${row.goal ? ' · ' + row.goal : ''}`
+  return row.title || row.content || ''
 }
 const statusText = (row) => {
   if (type.value === 'activity') return ['报名中', '已报满', '已结束', '已下架'][row.status] ?? ''
   if (type.value === 'idle') return ['在架', '已预约', '已完成', '已下架'][row.status] ?? ''
+  if (type.value === 'partner') return ['匹配中', '已找到', '', '', '', '', '', '', '', '已下架'][row.status] ?? ''
+  if (type.value === 'qa') return ['待答', '已解决', '', '', '', '', '', '', '', '已下架'][row.status] ?? ''
   return ['进行中', '已完成', '已下架'][row.status] ?? ''
 }
 

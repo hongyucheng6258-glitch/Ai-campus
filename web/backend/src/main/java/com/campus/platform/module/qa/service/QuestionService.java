@@ -52,12 +52,13 @@ public class QuestionService {
         return q;
     }
 
-    /** 问题列表（公开） */
+    /** 问题列表（公开，不含已下架） */
     public PageResult<QuestionVO> list(String category, String keyword, Integer status, int pageNum, int pageSize) {
         Page<CampusQuestion> page = questionMapper.selectPage(new Page<>(pageNum, pageSize),
                 new LambdaQueryWrapper<CampusQuestion>()
                         .eq(StrUtil.isNotBlank(category), CampusQuestion::getCategory, category)
                         .eq(status != null, CampusQuestion::getStatus, status)
+                        .ne(CampusQuestion::getStatus, Constants.QA_OFF)
                         .and(StrUtil.isNotBlank(keyword), w -> w
                                 .like(CampusQuestion::getTitle, keyword)
                                 .or().like(CampusQuestion::getContent, keyword))
@@ -71,11 +72,14 @@ public class QuestionService {
         });
     }
 
-    /** 详情 + 回答列表（公开，浏览计数） */
+    /** 详情 + 回答列表（公开，浏览计数；已下架不可见） */
     public Map<String, Object> detail(Long id, Long currentUid) {
         CampusQuestion q = questionMapper.selectById(id);
         if (q == null) {
             throw new BizException(ResultCode.NOT_FOUND, "问题不存在");
+        }
+        if (q.getStatus() != null && q.getStatus() == Constants.QA_OFF) {
+            throw new BizException(ResultCode.NOT_FOUND, "该问题已下架");
         }
         // 浏览计数
         q.setViewCount(q.getViewCount() == null ? 1 : q.getViewCount() + 1);

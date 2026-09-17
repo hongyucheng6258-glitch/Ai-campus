@@ -59,6 +59,16 @@ public final class Constants {
     public static final int LF_DONE = 1;
     public static final int LF_OFF = 2;
 
+    /** 学习搭子状态：0匹配中 1已找到 9已下架 */
+    public static final int PARTNER_MATCHING = 0;
+    public static final int PARTNER_FOUND = 1;
+    public static final int PARTNER_OFF = 9;
+
+    /** 问答状态：0待答 1已解决 9已下架 */
+    public static final int QA_OPEN = 0;
+    public static final int QA_SOLVED = 1;
+    public static final int QA_OFF = 9;
+
     /** 公告状态 */
     public static final int NOTICE_DRAFT = 0;
     public static final int NOTICE_PUBLISHED = 1;
@@ -129,6 +139,8 @@ public final class Constants {
     public static final String BIZ_ACTIVITY = "activity";
     public static final String BIZ_LOSTFOUND = "lostfound";
     public static final String BIZ_POST = "post";
+    public static final String BIZ_PARTNER = "partner";
+    public static final String BIZ_QA = "qa";
     public static final String BIZ_USER = "user";
 
     /** Redis Key 前缀 */
