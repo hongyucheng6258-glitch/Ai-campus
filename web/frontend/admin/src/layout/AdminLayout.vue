@@ -72,6 +72,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAdminStore } from '../store/admin'
 import { auditList } from '../api/audit'
+import { reportList } from '../api/report'
 
 const router = useRouter()
 const route = useRoute()
@@ -79,6 +80,7 @@ const adminStore = useAdminStore()
 const keyword = ref('')
 const searchRef = ref()
 const counts = ref({})
+let countTimer = null
 
 const ICONS = {
   dashboard: '<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
@@ -220,7 +222,12 @@ async function loadCounts() {
       ai += (res.list || []).filter((r) => (r.aiRiskLevel ?? 0) >= 1).length
     }
     map.ai = ai
-    map.report = counts.value.report ?? 4
+    try {
+      const rr = await reportList({ status: 0, pageNum: 1, pageSize: 1 })
+      map.report = rr.total || 0
+    } catch (e) {
+      map.report = 0
+    }
     counts.value = map
   } catch (e) {
     // 统计失败不阻塞布局
@@ -232,8 +239,13 @@ onMounted(() => {
   if (saved) document.documentElement.dataset.theme = saved
   loadCounts()
   window.addEventListener('keydown', onKeydown)
+  // 待办数定时刷新（举报/审核处置后红点实时更新）
+  countTimer = window.setInterval(loadCounts, 30000)
 })
-onUnmounted(() => window.removeEventListener('keydown', onKeydown))
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
+  if (countTimer) window.clearInterval(countTimer)
+})
 </script>
 
 <style scoped>
