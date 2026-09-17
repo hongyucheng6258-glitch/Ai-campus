@@ -10,8 +10,8 @@
 import { useRouter } from 'vue-router'
 const props = defineProps({ conversation: Object })
 const router = useRouter()
-const labels = { idle: '闲置物品', lostfound: '失物招领', activity: '校园活动', post: '校园动态', user: '用户资料' }
-const paths = { idle: '/idle/detail/', lostfound: '/lostfound/detail/', activity: '/activity/detail/' }
+const labels = { idle: '闲置物品', lostfound: '失物招领', activity: '校园活动', post: '校园动态', profile: '用户主页' }
+const paths = { idle: '/idle/detail/', lostfound: '/lostfound/detail/', activity: '/activity/detail/', profile: '/user/' }
 function openContext() {
   const prefix = paths[props.conversation.contextType]
   if (prefix && props.conversation.contextId) router.push(prefix + props.conversation.contextId)
