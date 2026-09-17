@@ -21,6 +21,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public R<LoginVO> register(@Valid @RequestBody RegisterDTO dto) {
+        captchaService.validateAndConsume(dto.getCaptchaId(), dto.getCaptchaCode());
         return R.ok(authService.register(dto));
     }
 

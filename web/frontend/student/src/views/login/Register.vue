@@ -16,6 +16,16 @@
         <el-form-item prop="confirm">
           <el-input v-model="form.confirm" type="password" placeholder="确认密码" show-password :prefix-icon="Lock" />
         </el-form-item>
+        <el-form-item prop="captchaCode">
+          <div class="captcha-row">
+            <el-input v-model="form.captchaCode"
+                      :placeholder="captchaMode === 'math' ? '输入运算结果' : '4位验证码'"
+                      :maxlength="captchaMode === 'math' ? 3 : 4" @keyup.enter="submit" />
+            <img v-if="captchaMode !== 'math'" class="captcha-img" :src="captchaImage"
+                 title="看不清？点击刷新" @click="loadCaptcha" />
+            <div v-else class="captcha-math" title="换一题" @click="loadCaptcha">{{ captchaExpression }}</div>
+          </div>
+        </el-form-item>
         <el-button type="primary" class="submit" :loading="loading" @click="submit">注 册</el-button>
       </el-form>
       <div class="links">
@@ -26,18 +36,21 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { User, Lock, Avatar } from '@element-plus/icons-vue'
-import { register } from '../../api/auth'
+import { register, getCaptcha } from '../../api/auth'
 import { useUserStore } from '../../store/user'
 
 const router = useRouter()
 const userStore = useUserStore()
 const formRef = ref()
 const loading = ref(false)
-const form = reactive({ studentNo: '', nickname: '', password: '', confirm: '' })
+const captchaImage = ref('')
+const captchaMode = ref('image')
+const captchaExpression = ref('')
+const form = reactive({ studentNo: '', nickname: '', password: '', confirm: '', captchaId: '', captchaCode: '' })
 
 const rules = {
   studentNo: [
@@ -57,7 +70,17 @@ const rules = {
       },
       trigger: 'blur'
     }
-  ]
+  ],
+  captchaCode: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
+}
+
+async function loadCaptcha() {
+  const data = await getCaptcha()
+  form.captchaId = data.captchaId
+  captchaMode.value = data.mode || 'image'
+  captchaImage.value = data.image
+  captchaExpression.value = data.expression
+  form.captchaCode = ''
 }
 
 async function submit() {
@@ -67,15 +90,22 @@ async function submit() {
     const res = await register({
       studentNo: form.studentNo,
       nickname: form.nickname,
-      password: form.password
+      password: form.password,
+      captchaId: form.captchaId,
+      captchaCode: form.captchaCode
     })
     userStore.loginSuccess(res.token, res.userInfo)
     ElMessage.success('注册成功，已自动登录')
     router.push('/')
+  } catch (e) {
+    // 注册失败（验证码错误/过期/学号重复）自动刷新验证码
+    loadCaptcha()
   } finally {
     loading.value = false
   }
 }
+
+onMounted(loadCaptcha)
 </script>
 
 <style scoped>
@@ -101,6 +131,38 @@ async function submit() {
   color: var(--ink-3);
   font-size: 13px;
   margin: 8px 0 24px;
+}
+.captcha-row {
+  display: flex;
+  width: 100%;
+  gap: 10px;
+  align-items: center;
+}
+.captcha-img {
+  width: 120px;
+  height: 44px;
+  border: 1px solid var(--line, #dcdfe6);
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  background: #f5f7fa;
+  object-fit: cover;
+}
+.captcha-math {
+  width: 120px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line, #dcdfe6);
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, #eaf6f0, #f5f7fa);
+  color: #0d5c3f;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  user-select: none;
 }
 .submit {
   width: 100%;
