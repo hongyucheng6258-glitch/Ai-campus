@@ -20,7 +20,7 @@
 
     <!-- 审核卡片列表 -->
     <div v-loading="loading" class="review-list">
-      <div v-for="row in list" :key="row.id" class="review-card">
+      <div v-for="row in list" :key="row.id" class="review-card" :class="{ 'no-cover': props.type === 'partner' }">
         <!-- 封面（搭子无图片，不展示封面区） -->
         <div v-if="props.type !== 'partner'" class="review-cover">
           <el-image v-if="firstValidImage(row) && !imageErrors[row.id]" :src="firstValidImage(row)" fit="cover"
@@ -248,6 +248,8 @@ watch(() => props.type, resetAndLoad)
   transition: box-shadow .25s, border-color .25s;
 }
 .review-card:hover { box-shadow: var(--shadow-md); border-color: var(--brand-line); }
+/* 无封面类型（搭子）：去掉 148px 封面空列，主体顶格、按钮贴近内容 */
+.review-card.no-cover { grid-template-columns: 1fr auto; gap: var(--s-4); }
 .review-cover {
   width: 148px;
   height: 104px;
