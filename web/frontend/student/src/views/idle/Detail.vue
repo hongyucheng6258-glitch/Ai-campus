@@ -50,6 +50,9 @@
               <el-button v-else-if="item.reviewAppointmentId && item.reviewed" disabled>已评价</el-button>
             </template>
             <el-button text type="warning" @click="reportVisible = true">举报</el-button>
+            <el-button text :type="favorited ? 'warning' : 'default'" @click="toggleFavorite">
+              {{ favorited ? '★ 已收藏' : '☆ 收藏' }}
+            </el-button>
           </div>
         </div>
       </div>
@@ -119,6 +122,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { idleDetail, appoint, offlineIdle, reviewAppoint } from '../../api/idle'
 import { submitReport } from '../../api/report'
+import { favoriteStatus, favorite, unfavorite } from '../../api/favorite'
 import { useUserStore } from '../../store/user'
 import { startChat } from '../../utils/startChat'
 
@@ -136,6 +140,7 @@ const reportForm = reactive({ reasonType: '违规', reason: '' })
 const reviewVisible = ref(false)
 const reviewing = ref(false)
 const reviewForm = reactive({ score: 5, content: '' })
+const favorited = ref(false)
 
 const statusText = computed(() => ['在架', '已预约', '已完成', '已下架'][item.value?.status] ?? '')
 const statusType = computed(() => ['success', 'warning', 'info', 'danger'][item.value?.status] ?? 'info')
@@ -144,8 +149,27 @@ async function load() {
   loading.value = true
   try {
     item.value = await idleDetail(id)
+    if (userStore.isLoggedIn) {
+      favorited.value = await favoriteStatus('idle', id)
+    }
   } finally {
     loading.value = false
+  }
+}
+
+async function toggleFavorite() {
+  if (!userStore.isLoggedIn) {
+    router.push('/login')
+    return
+  }
+  if (favorited.value) {
+    await unfavorite('idle', id)
+    favorited.value = false
+    ElMessage.success('已取消收藏')
+  } else {
+    await favorite('idle', id)
+    favorited.value = true
+    ElMessage.success('收藏成功')
   }
 }
 

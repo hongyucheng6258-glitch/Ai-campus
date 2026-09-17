@@ -22,4 +22,7 @@ public class PostVO extends Post {
 
     /** 当前用户是否已点赞 */
     private Boolean liked;
+
+    /** 当前用户是否已收藏 */
+    private Boolean favorited;
 }

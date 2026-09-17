@@ -60,6 +60,32 @@
         <el-tab-pane label="错题本" name="wrong">
           <el-button text type="primary" @click="$router.push('/ai/wrong')">前往错题本 ›</el-button>
         </el-tab-pane>
+        <el-tab-pane label="我的收藏" name="favorite">
+          <div v-loading="favLoading" style="min-height: 80px">
+            <el-table :data="myFavList" size="small" v-if="myFavList.length">
+              <el-table-column label="类型" width="90">
+                <template #default="{ row }">
+                  <el-tag size="small">{{ { activity: '活动', idle: '闲置', lostfound: '失物', post: '动态' }[row.targetType] || row.targetType }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="title" label="标题" min-width="200" show-overflow-tooltip>
+                <template #default="{ row }">
+                  <router-link :to="`/${row.targetType === 'idle' ? 'idle' : row.targetType === 'activity' ? 'activity' : row.targetType === 'lostfound' ? 'lostfound' : 'social'}/${row.targetType === 'post' ? '?id=' : 'detail/'}${row.targetType === 'post' ? '' : row.targetId}`" v-if="row.title !== '内容已删除'">{{ row.title }}</router-link>
+                  <span v-else style="color: var(--ink-3)">{{ row.title }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="createTime" label="收藏时间" width="160">
+                <template #default="{ row }">{{ (row.createTime || '').replace('T', ' ').slice(0, 16) }}</template>
+              </el-table-column>
+              <el-table-column label="操作" width="90">
+                <template #default="{ row }">
+                  <el-button size="small" link type="danger" @click="removeFav(row)">取消收藏</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+            <EmptyBox v-else-if="!favLoading" description="还没有收藏内容，去逛逛吧" />
+          </div>
+        </el-tab-pane>
       </el-tabs>
     </el-card>
     </div>
@@ -141,6 +167,8 @@ import { myIdle as fetchMyIdle, offlineIdle as apiOfflineIdle, relistIdle as api
 import { useRouter } from 'vue-router'
 import { wrongStats } from '../../api/wrong'
 import { listConversations } from '../../api/chat'
+import { myFavorites, unfavorite } from '../../api/favorite'
+import EmptyBox from '../../components/EmptyBox.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -155,6 +183,30 @@ const saving = ref(false)
 const editForm = reactive({ nickname: '', gender: 0, phone: '', bio: '' })
 const avatarList = ref([])
 const pwdForm = reactive({ oldPassword: '', newPassword: '' })
+const myFavList = ref([])
+const favLoading = ref(false)
+
+import { watch } from 'vue'
+
+watch(tab, (v) => {
+  if (v === 'favorite') loadFavorites()
+})
+
+async function loadFavorites() {
+  favLoading.value = true
+  try {
+    const res = await myFavorites({ pageNum: 1, pageSize: 50 })
+    myFavList.value = res.list
+  } finally {
+    favLoading.value = false
+  }
+}
+
+async function removeFav(row) {
+  await unfavorite(row.targetType, row.targetId)
+  ElMessage.success('已取消收藏')
+  loadFavorites()
+}
 
 onMounted(async () => {
   await userStore.refresh()

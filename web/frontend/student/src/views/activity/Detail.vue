@@ -49,6 +49,9 @@
               <el-button type="primary" plain @click="contactPublisher">私信发起人</el-button>
             </template>
             <el-button text type="warning" @click="reportVisible = true">举报</el-button>
+            <el-button text :type="favorited ? 'warning' : 'default'" @click="toggleFavorite">
+              {{ favorited ? '★ 已收藏' : '☆ 收藏' }}
+            </el-button>
           </div>
         </div>
       </div>
@@ -129,6 +132,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { activityDetail, signupActivity, activityMembers, handleMember, signinQrcode } from '../../api/activity'
 import { submitReport } from '../../api/report'
+import { favoriteStatus, favorite, unfavorite } from '../../api/favorite'
 import { formatTime } from '../../utils/date'
 import { normalizeSigninQrContent } from '../../utils/signinQr.mjs'
 import { useUserStore } from '../../store/user'
@@ -156,13 +160,33 @@ function displayType(s) {
 }
 const reportReasonType = ref('违规')
 const reportReason = ref('')
+const favorited = ref(false)
 
 async function load() {
   loading.value = true
   try {
     act.value = await activityDetail(id)
+    if (userStore.isLoggedIn) {
+      favorited.value = await favoriteStatus('activity', id)
+    }
   } finally {
     loading.value = false
+  }
+}
+
+async function toggleFavorite() {
+  if (!userStore.isLoggedIn) {
+    router.push('/login')
+    return
+  }
+  if (favorited.value) {
+    await unfavorite('activity', id)
+    favorited.value = false
+    ElMessage.success('已取消收藏')
+  } else {
+    await favorite('activity', id)
+    favorited.value = true
+    ElMessage.success('收藏成功')
   }
 }
 

@@ -12,6 +12,8 @@ import com.campus.platform.module.post.vo.PostVO;
 import com.campus.platform.module.post.entity.Post;
 
 import com.campus.platform.module.ai.service.ContentAiAuditService;
+import com.campus.platform.module.favorite.entity.Favorite;
+import com.campus.platform.module.favorite.mapper.FavoriteMapper;
 import com.campus.platform.module.message.service.MessageService;
 import com.campus.platform.module.idle.service.IdleService;
 
@@ -47,6 +49,7 @@ public class PostService {
     private final UserMapper userMapper;
     private final SensitiveWordService sensitiveWordService;
     private final MessageService messageService;
+    private final FavoriteMapper favoriteMapper;
     private final ContentAiAuditService contentAiAuditService;
 
     /** 发动态（先审后发） */
@@ -84,6 +87,12 @@ public class PostService {
                         .eq(PostLike::getUserId, currentUid)
                         .in(PostLike::getPostId, records.stream().map(Post::getId).toList()))
                         .stream().collect(Collectors.toMap(PostLike::getPostId, l -> true));
+        Map<Long, Boolean> favoritedMap = (currentUid == null || records.isEmpty()) ? Map.of() :
+                favoriteMapper.selectList(new LambdaQueryWrapper<Favorite>()
+                        .eq(Favorite::getUserId, currentUid)
+                        .eq(Favorite::getTargetType, Constants.BIZ_POST)
+                        .in(Favorite::getTargetId, records.stream().map(Post::getId).toList()))
+                        .stream().collect(Collectors.toMap(Favorite::getTargetId, f -> true));
         return PageResult.of(page, p -> {
             PostVO vo = new PostVO();
             BeanUtil.copyProperties(p, vo);
@@ -92,6 +101,7 @@ public class PostService {
             vo.setNickname(u == null ? "" : u.getNickname());
             vo.setAvatar(u == null ? null : u.getAvatar());
             vo.setLiked(likedMap.getOrDefault(p.getId(), false));
+            vo.setFavorited(favoritedMap.getOrDefault(p.getId(), false));
             return vo;
         });
     }

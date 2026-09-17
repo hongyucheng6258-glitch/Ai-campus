@@ -42,6 +42,9 @@
             {{ p.liked ? '❤️' : '🤍' }} {{ p.likeCount }}
           </span>
           <span class="op" @click="toggleComments(p)">💬 {{ p.commentCount }}</span>
+          <span class="op" :class="{ liked: p.favorited }" @click="toggleFavorite(p)">
+            {{ p.favorited ? '★' : '☆' }} 收藏
+          </span>
           <span class="op" @click="sharePost(p)">🔗 分享</span>
         </div>
         <!-- 评论区 -->
@@ -108,6 +111,7 @@ import CommentList from '../../components/CommentList.vue'
 import EmptyBox from '../../components/EmptyBox.vue'
 import { listPost, publishPost, likePost, unlikePost, listComments } from '../../api/post'
 import { submitReport } from '../../api/report'
+import { favorite, unfavorite } from '../../api/favorite'
 import { useUserStore } from '../../store/user'
 import { fromNow } from '../../utils/date'
 import { startChat } from '../../utils/startChat'
@@ -202,6 +206,26 @@ async function publish() {
     newImages.value = []
   } finally {
     publishing.value = false
+  }
+}
+
+async function toggleFavorite(p) {
+  if (!userStore.isLoggedIn) {
+    router.push('/login')
+    return
+  }
+  try {
+    if (p.favorited) {
+      await unfavorite('post', p.id)
+      p.favorited = false
+      ElMessage.success('已取消收藏')
+    } else {
+      await favorite('post', p.id)
+      p.favorited = true
+      ElMessage.success('收藏成功')
+    }
+  } catch (e) {
+    ElMessage.error(e.message || '操作失败')
   }
 }
 

@@ -42,6 +42,13 @@
 
     <!-- 签到报表弹窗 -->
     <el-dialog v-model="reportVisible" title="签到报表" width="720px" destroy-on-close>
+      <template #header>
+        <span>签到报表</span>
+        <span style="float:right">
+          <el-button size="small" :loading="exporting" @click="doExport('members')">导出报名名单</el-button>
+          <el-button size="small" type="primary" :loading="exporting" @click="doExport('signins')">导出签到名单</el-button>
+        </span>
+      </template>
       <template v-if="report">
         <div class="report-summary">
           <div class="sum-item"><b>{{ report.joinedCount }}</b><span>已通过报名</span></div>
@@ -73,7 +80,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { auditAll } from '../../api/audit'
-import { contentOff, contentOn, signinReport } from '../../api/content'
+import { contentOff, contentOn, signinReport, exportMembers, exportSignins } from '../../api/content'
 
 const type = ref('activity')
 const list = ref([])
@@ -83,6 +90,24 @@ const loading = ref(false)
 
 const reportVisible = ref(false)
 const report = ref(null)
+const exporting = ref(false)
+
+async function doExport(kind) {
+  if (!report.value) return
+  exporting.value = true
+  try {
+    if (kind === 'members') {
+      await exportMembers(report.value.activityId)
+    } else {
+      await exportSignins(report.value.activityId)
+    }
+    ElMessage.success('导出成功，请查看下载文件')
+  } catch (e) {
+    ElMessage.error(e.message || '导出失败')
+  } finally {
+    exporting.value = false
+  }
+}
 
 const isOff = (row) => {
   if (type.value === 'activity') return row.status === 3

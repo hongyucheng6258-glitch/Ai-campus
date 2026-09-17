@@ -50,6 +50,9 @@
             <el-button v-if="!lf.isOwner && myClaim && myClaim.status === 1" type="success" @click="confirmReturn">确认已找回</el-button>
             <el-button v-if="!lf.isOwner" type="primary" plain @click="contactPublisher">私信发布者</el-button>
             <el-button v-if="!lf.isOwner" text type="warning" @click="reportVisible = true">举报</el-button>
+            <el-button text :type="favorited ? 'warning' : 'default'" @click="toggleFavorite">
+              {{ favorited ? '★ 已收藏' : '☆ 收藏' }}
+            </el-button>
           </div>
         </div>
       </div>
@@ -116,6 +119,7 @@ import { ElMessage } from 'element-plus'
 import { lostFoundDetail, finishLostFound, updateLostFound, claimLostFound,
          lostFoundClaims, myClaim as fetchMyClaim, handleClaim, confirmClaim } from '../../api/lostfound'
 import { submitReport } from '../../api/report'
+import { favoriteStatus, favorite, unfavorite } from '../../api/favorite'
 import { formatTime } from '../../utils/date'
 import { useUserStore } from '../../store/user'
 import { startChat } from '../../utils/startChat'
@@ -129,6 +133,7 @@ const loading = ref(false)
 const reportVisible = ref(false)
 const reasonType = ref('违规')
 const reason = ref('')
+const favorited = ref(false)
 
 const claimVisible = ref(false)
 const claiming = ref(false)
@@ -149,8 +154,27 @@ async function load() {
         myClaim.value = await fetchMyClaim(id)
       } catch { myClaim.value = null }
     }
+    if (userStore.isLoggedIn) {
+      favorited.value = await favoriteStatus('lostfound', id)
+    }
   } finally {
     loading.value = false
+  }
+}
+
+async function toggleFavorite() {
+  if (!userStore.isLoggedIn) {
+    router.push('/login')
+    return
+  }
+  if (favorited.value) {
+    await unfavorite('lostfound', id)
+    favorited.value = false
+    ElMessage.success('已取消收藏')
+  } else {
+    await favorite('lostfound', id)
+    favorited.value = true
+    ElMessage.success('收藏成功')
   }
 }
 
