@@ -43,3 +43,8 @@ export function finishLostFound(id) {
 export function myLostFound(params) {
   return request.get('/lostfound/my', { params })
 }
+
+/** 失物 AI 智能匹配：根据丢失物品信息匹配库中拾到记录 */
+export function lostMatch(data) {
+  return request.post('/lostfound/match', data, { silent: true, timeout: 120000 })
+}

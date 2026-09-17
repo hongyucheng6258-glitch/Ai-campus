@@ -91,6 +91,7 @@ public final class Constants {
     public static final String SCENE_ASSIST_COMPOSE = "assist_compose"; // AI辅助发布-生成草稿
     public static final String SCENE_ASSIST_POLISH = "assist_polish";   // AI辅助发布-润色/扩写/精简
     public static final String SCENE_CAMPUS_GUIDE = "campus_guide";     // AI校园向导-业务数据问答
+    public static final String SCENE_LOST_MATCH = "lost_match";         // 失物招领-AI智能匹配
 
     /** 错题掌握状态 */
     public static final int WQ_STATUS_PENDING = 0;      // 待复习

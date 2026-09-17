@@ -309,6 +309,14 @@ public class AiGatewayService {
             String campusData = params.getOrDefault("campus_data", "");
             userContent = "【当前实时检索到的校园数据】\n" + campusData
                     + "\n\n请严格基于以上数据回答学生的问题（数据中没有的就说暂时没有查到）：\n" + question;
+        } else if (Constants.SCENE_LOST_MATCH.equals(scene) && params != null) {
+            // 失物 AI 匹配：把候选拾到记录拼入用户消息
+            String candidates = params.getOrDefault("candidates", "");
+            userContent = "丢失物品：" + params.getOrDefault("lost_title", "")
+                    + "\n丢失描述：" + params.getOrDefault("lost_desc", "")
+                    + "\n\n【拾到记录候选】\n" + candidates
+                    + "\n\n请综合物品名称、特征、关键词、地点、时间判断哪些候选最可能匹配，只输出 JSON："
+                    + "{\"matches\":[{\"id\":数字,\"reason\":\"匹配理由（不超过30字）\"}]}，没有匹配输出 {\"matches\":[]}，最多选 3 条。";
         }
         messages.add(objectMapper.createObjectNode()
                 .put("role", "user")
@@ -344,6 +352,7 @@ public class AiGatewayService {
             case Constants.SCENE_ASSIST_COMPOSE -> "你是校园内容创作助手，帮助校园用户撰写活动、闲置交易、失物招领、校园动态的发布文案。语言自然具体、有吸引力，不编造用户未提供的事实信息。";
             case Constants.SCENE_ASSIST_POLISH -> "你是校园内容润色助手，帮助优化活动、闲置交易、失物招领、校园动态文案。保持原意与事实不变，使表达更清晰、更吸引人。";
             case Constants.SCENE_CAMPUS_GUIDE -> "你是「梧桐校园」的AI校园向导，基于下方实时检索的校园业务数据回答学生问题。\n\n【今日校园数据】\n{campus_data}\n\n回答要求：\n1. 只依据上面提供的校园数据回答，不要编造数据中没有的活动、物品或信息；\n2. 数据没有相关内容时，明确说暂时没有查到，并给出一个可行的建议；\n3. 涉及我的信息时按检索到的报名记录回答；\n4. 用简洁中文回答，条目多用短列表，语气亲切自然，像学长学姐一样。";
+            case Constants.SCENE_LOST_MATCH -> "你是校园失物智能匹配助手。学生丢失了物品，下方是拾到记录候选列表，请综合物品名称、特征、关键词、地点、时间判断哪些候选最可能匹配。\n\n【拾到记录候选】\n{candidates}\n\n只输出一个 JSON 对象，不要输出任何其他文字或代码块标记，格式：{\"matches\":[{\"id\":数字,\"reason\":\"匹配理由（不超过30字）\"}]}。没有匹配项时输出 {\"matches\":[]}，最多选 3 条。";
             default -> "你是一个校园AI助手。";
         };
     }
