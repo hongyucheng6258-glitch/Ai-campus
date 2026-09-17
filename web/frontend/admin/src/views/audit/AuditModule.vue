@@ -31,7 +31,7 @@
         <!-- 主体 -->
         <div class="review-body">
           <div class="review-title">
-            <span class="ellipsis">{{ row.title || row.content }}</span>
+            <span class="ellipsis">{{ displayTitle(row) }}</span>
             <span class="tag" :class="statusClass(row.auditStatus)">{{ statusText(row.auditStatus) }}</span>
             <span class="tag" :class="riskClass(row.aiRiskLevel)">{{ riskText(row.aiRiskLevel) }}</span>
           </div>
@@ -46,7 +46,7 @@
             </span>
             <span>#{{ row.id }}</span>
           </div>
-          <p v-if="row.description || row.content" class="review-desc">{{ row.description || row.content }}</p>
+          <p v-if="displayDesc(row)" class="review-desc">{{ displayDesc(row) }}</p>
 
           <!-- AI 预审建议 -->
           <div v-if="row.aiRiskLevel !== null && row.aiRiskLevel !== undefined && row.aiAuditReason" class="ai-pre">
@@ -141,6 +141,22 @@ function riskText(r) {
 function riskClass(r) {
   if (r === null || r === undefined) return 'tag-neutral'
   return ['tag-success', 'tag-warning', 'tag-error'][r] || 'tag-neutral'
+}
+
+function displayTitle(row) {
+  if (props.type === 'partner') return row.subject || '未填写科目'
+  return row.title || row.content || ''
+}
+function displayDesc(row) {
+  if (props.type === 'partner') {
+    const parts = []
+    if (row.goal) parts.push('目标：' + row.goal)
+    if (row.schedule) parts.push('时间：' + row.schedule)
+    if (row.intro) parts.push(row.intro)
+    if (row.contact) parts.push('联系：' + row.contact)
+    return parts.join(' ｜ ')
+  }
+  return row.description || row.content || ''
 }
 
 function handleViewChange() {
