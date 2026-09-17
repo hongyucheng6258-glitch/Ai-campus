@@ -76,7 +76,9 @@
               <el-tag size="small" :type="row.signed ? 'success' : 'info'">{{ row.signed ? '已签到' : '未签到' }}</el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="signTime" label="签到时间" width="170" />
+          <el-table-column label="签到时间" width="170">
+        <template #default="{ row }">{{ formatTime(row.signTime) }}</template>
+      </el-table-column>
         </el-table>
       </template>
     </el-dialog>

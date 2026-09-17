@@ -14,7 +14,9 @@
               </template>
             </el-table-column>
             <el-table-column prop="remark" label="报名说明" min-width="160" show-overflow-tooltip />
-            <el-table-column prop="createTime" label="报名时间" width="170" />
+            <el-table-column label="报名时间" width="170">
+        <template #default="{ row }">{{ formatTime(row.createTime) }}</template>
+      </el-table-column>
             <el-table-column label="状态" width="100">
               <template #default="{ row }">
                 <el-tag :type="['warning','success','danger'][row.status]">
@@ -45,7 +47,9 @@
             <el-table-column label="报名数" width="90">
               <template #default="{ row }">{{ row.memberCount }}</template>
             </el-table-column>
-            <el-table-column prop="createTime" label="发布时间" width="150" />
+            <el-table-column label="发布时间" width="150">
+        <template #default="{ row }">{{ formatTime(row.createTime) }}</template>
+      </el-table-column>
             <el-table-column label="操作" width="180" fixed="right">
               <template #default="{ row }">
                 <el-button size="small" :disabled="row.status === 2 || row.status === 3" @click="editActivity(row)">编辑</el-button>
@@ -67,7 +71,9 @@
         <el-table :data="members" v-loading="memberLoading" size="small">
           <el-table-column prop="nickname" label="报名人" width="110" />
           <el-table-column prop="remark" label="报名说明" min-width="140" show-overflow-tooltip />
-          <el-table-column prop="createTime" label="报名时间" width="150" />
+          <el-table-column label="报名时间" width="150">
+        <template #default="{ row }">{{ formatTime(row.createTime) }}</template>
+      </el-table-column>
           <el-table-column label="状态" width="90">
             <template #default="{ row }">
               <el-tag :type="['warning','success','danger'][row.status]">{{ ['待审批','已通过','已拒绝'][row.status] }}</el-tag>
@@ -95,6 +101,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import WtPageHeader from '../../components/wt/WtPageHeader.vue'
 import { mySignups, myActivities, activityMembers, handleMember as handleMemberApi } from '../../api/activity'
+import { formatTime } from '../../utils/date'
 
 const router = useRouter()
 const tab = ref('signup')

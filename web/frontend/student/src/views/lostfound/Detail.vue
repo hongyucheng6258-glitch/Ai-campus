@@ -75,7 +75,9 @@
         <el-table-column prop="claimNickname" label="申请人" width="100" />
         <el-table-column prop="message" label="认领说明" min-width="160" show-overflow-tooltip />
         <el-table-column prop="contact" label="联系方式" width="120" show-overflow-tooltip />
-        <el-table-column prop="createTime" label="申请时间" width="150" />
+        <el-table-column label="申请时间" width="150">
+        <template #default="{ row }">{{ formatTime(row.createTime) }}</template>
+      </el-table-column>
         <el-table-column label="状态" width="90">
           <template #default="{ row }">
             <el-tag :type="['warning','success','danger','info'][row.status]">{{ claimStatusText(row.status) }}</el-tag>
@@ -123,6 +125,7 @@ import { favoriteStatus, favorite, unfavorite } from '../../api/favorite'
 import { formatTime } from '../../utils/date'
 import { useUserStore } from '../../store/user'
 import { startChat } from '../../utils/startChat'
+import { formatTime } from '../../utils/date'
 
 const route = useRoute()
 const router = useRouter()

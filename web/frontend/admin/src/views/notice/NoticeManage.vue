@@ -18,7 +18,9 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="publishTime" label="发布时间" width="170" />
+      <el-table-column label="发布时间" width="170">
+        <template #default="{ row }">{{ formatTime(row.publishTime) }}</template>
+      </el-table-column>
       <el-table-column label="创建时间" width="170">
         <template #default="{ row }">{{ formatTime(row.createTime) }}</template>
       </el-table-column>
