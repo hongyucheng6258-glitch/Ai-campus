@@ -21,8 +21,8 @@
     <!-- 审核卡片列表 -->
     <div v-loading="loading" class="review-list">
       <div v-for="row in list" :key="row.id" class="review-card">
-        <!-- 封面 -->
-        <div class="review-cover">
+        <!-- 封面（搭子无图片，不展示封面区） -->
+        <div v-if="props.type !== 'partner'" class="review-cover">
           <el-image v-if="firstValidImage(row) && !imageErrors[row.id]" :src="firstValidImage(row)" fit="cover"
                     :preview-src-list="normalizeImages(row)" @error="imageErrors[row.id] = true" />
           <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="cfg.icon"></svg>
