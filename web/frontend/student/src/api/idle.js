@@ -48,3 +48,8 @@ export function reviewAppoint(id, data) {
 export function myAppointments(params) {
   return request.get('/idle/appoint/my', { params })
 }
+
+/** 闲置 AI 智能估价 */
+export function idleEstimate(data) {
+  return request.post('/idle/estimate', data, { silent: true, timeout: 120000 })
+}

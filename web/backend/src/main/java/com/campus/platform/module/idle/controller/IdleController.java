@@ -1,11 +1,14 @@
 package com.campus.platform.module.idle.controller;
 
 import com.campus.platform.module.idle.dto.AppointHandleDTO;
+import com.campus.platform.module.idle.dto.IdleEstimateDTO;
 import com.campus.platform.module.idle.entity.IdleAppointment;
 import com.campus.platform.module.idle.dto.IdlePublishDTO;
 import com.campus.platform.module.idle.vo.AppointmentVO;
 import com.campus.platform.module.idle.vo.IdleDetailVO;
 import com.campus.platform.module.idle.service.IdleService;
+import com.campus.platform.module.idle.service.IdleEstimateService;
+import com.campus.platform.module.idle.vo.IdleEstimateVO;
 import com.campus.platform.module.idle.dto.AppointDTO;
 import com.campus.platform.module.idle.vo.IdleItemVO;
 import com.campus.platform.module.idle.entity.IdleItem;
@@ -26,7 +29,15 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class IdleController {
     private final IdleService idleService;
+    private final IdleEstimateService idleEstimateService;
     private final SystemConfigHolder systemConfigHolder;
+
+    /** 闲置 AI 智能估价 */
+    @PostMapping("/estimate")
+    public R<IdleEstimateVO> estimate(@Valid @RequestBody IdleEstimateDTO dto) {
+        return R.ok(idleEstimateService.estimate(UserContext.getUid(),
+                dto.getTitle(), dto.getDescription(), dto.getCategory(), dto.getExpectItem()));
+    }
 
     @PostMapping
     public R<IdleItem> publish(@Valid @RequestBody IdlePublishDTO dto) {

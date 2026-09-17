@@ -317,6 +317,19 @@ public class AiGatewayService {
                     + "\n\n【拾到记录候选】\n" + candidates
                     + "\n\n请综合物品名称、特征、关键词、地点、时间判断哪些候选最可能匹配，只输出 JSON："
                     + "{\"matches\":[{\"id\":数字,\"reason\":\"匹配理由（不超过30字）\"}]}，没有匹配输出 {\"matches\":[]}，最多选 3 条。";
+        } else if (Constants.SCENE_IDLE_ESTIMATE.equals(scene) && params != null) {
+            // 闲置 AI 估价：商品信息拼入用户消息
+            String category = params.getOrDefault("category", "");
+            String expect = params.getOrDefault("expect_item", "");
+            StringBuilder sb = new StringBuilder();
+            sb.append("闲置物品估价请求：\n物品名称：").append(params.getOrDefault("item_title", ""))
+                    .append("\n分类：").append(StrUtil.isBlank(category) ? "未指定" : category)
+                    .append("\n物品描述：").append(params.getOrDefault("item_desc", ""))
+                    .append(StrUtil.isBlank(expect) ? "" : "\n期望换物：" + expect)
+                    .append("\n\n请基于校园二手市场行情与常见二手平台类似商品价格，输出 JSON："
+                            + "{\"priceMin\":最低价整数,\"priceMax\":最高价整数,\"reference\":\"行情参考说明(40字内)\","
+                            + "\"tip\":\"定价或换物建议(50字内)\",\"sellingPoints\":[\"卖点1\",\"卖点2\",\"卖点3\"]}");
+            userContent = sb.toString();
         }
         messages.add(objectMapper.createObjectNode()
                 .put("role", "user")
@@ -353,6 +366,7 @@ public class AiGatewayService {
             case Constants.SCENE_ASSIST_POLISH -> "你是校园内容润色助手，帮助优化活动、闲置交易、失物招领、校园动态文案。保持原意与事实不变，使表达更清晰、更吸引人。";
             case Constants.SCENE_CAMPUS_GUIDE -> "你是「梧桐校园」的AI校园向导，基于下方实时检索的校园业务数据回答学生问题。\n\n【今日校园数据】\n{campus_data}\n\n回答要求：\n1. 只依据上面提供的校园数据回答，不要编造数据中没有的活动、物品或信息；\n2. 数据没有相关内容时，明确说暂时没有查到，并给出一个可行的建议；\n3. 涉及我的信息时按检索到的报名记录回答；\n4. 用简洁中文回答，条目多用短列表，语气亲切自然，像学长学姐一样。";
             case Constants.SCENE_LOST_MATCH -> "你是校园失物智能匹配助手。学生丢失了物品，下方是拾到记录候选列表，请综合物品名称、特征、关键词、地点、时间判断哪些候选最可能匹配。\n\n【拾到记录候选】\n{candidates}\n\n只输出一个 JSON 对象，不要输出任何其他文字或代码块标记，格式：{\"matches\":[{\"id\":数字,\"reason\":\"匹配理由（不超过30字）\"}]}。没有匹配项时输出 {\"matches\":[]}，最多选 3 条。";
+            case Constants.SCENE_IDLE_ESTIMATE -> "你是校园闲置交易估价助手，熟悉二手市场行情。根据学生提供的闲置物品信息给出合理估价。\n要求：\n1. 只输出一个 JSON 对象，不要输出任何其他文字或代码块标记；\n2. priceMin/priceMax 为参考定价区间（元，整数，priceMax >= priceMin）；\n3. reference 简要说明行情依据（参考类似物品的二手成交价）；\n4. tip 给出定价或换物建议（结合学生描述的成色与瑕疵）；\n5. sellingPoints 给出 3 个发布卖点文案（突出物品优势，吸引同学）。";
             default -> "你是一个校园AI助手。";
         };
     }
