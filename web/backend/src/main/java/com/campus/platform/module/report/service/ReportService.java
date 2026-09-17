@@ -17,6 +17,7 @@ import com.campus.platform.module.idle.mapper.IdleItemMapper;
 import com.campus.platform.module.lostfound.mapper.LostFoundMapper;
 import com.campus.platform.module.post.mapper.PostCommentMapper;
 import com.campus.platform.module.post.mapper.PostMapper;
+import com.campus.platform.module.user.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +34,7 @@ public class ReportService {
     private final LostFoundMapper lostFoundMapper;
     private final PostMapper postMapper;
     private final PostCommentMapper postCommentMapper;
+    private final UserMapper userMapper;
 
     /** 发起举报 */
     public Report submit(Long userId, ReportDTO dto) {
@@ -55,6 +57,7 @@ public class ReportService {
             case Constants.BIZ_ACTIVITY -> activityMapper.selectById(targetId);
             case Constants.BIZ_LOSTFOUND -> lostFoundMapper.selectById(targetId);
             case Constants.BIZ_POST -> postMapper.selectById(targetId);
+            case Constants.BIZ_USER -> userMapper.selectById(targetId);
             case "comment" -> postCommentMapper.selectById(targetId);
             default -> null;
         };

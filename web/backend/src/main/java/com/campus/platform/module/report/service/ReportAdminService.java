@@ -68,9 +68,15 @@ public class ReportAdminService {
         if (report.getStatus() == Constants.REPORT_HANDLED) {
             throw new BizException(ResultCode.DUPLICATE_OPERATION, "该举报已处理");
         }
+        boolean isUserReport = Constants.BIZ_USER.equals(report.getTargetType());
         switch (dto.getAction()) {
-            case "offline" -> offlineTarget(report.getTargetType(), report.getTargetId());
-            case "warn" -> { /* 仅记录处置说明并通知，下方统一发消息 */ }
+            case "offline" -> {
+                if (isUserReport) {
+                    throw new BizException(ResultCode.BAD_REQUEST, "用户举报不支持下架操作");
+                }
+                offlineTarget(report.getTargetType(), report.getTargetId());
+            }
+            case "warn" -> warnTarget(report.getTargetType(), report.getTargetId(), dto.getHandleResult());
             case "ban" -> banAuthor(report.getTargetType(), report.getTargetId());
             case "ignore" -> { /* 举报不成立，仅关闭 */ }
             default -> throw new BizException(ResultCode.BAD_REQUEST, "不支持的处置动作");
@@ -83,7 +89,7 @@ public class ReportAdminService {
         // 通知举报人处置结果
         messageService.send(report.getReporterId(), Constants.MSG_AUDIT,
                 "举报处理结果",
-                "你举报的内容已处理完毕：" + dto.getHandleResult(),
+                (isUserReport ? "你举报的用户已处理完毕：" : "你举报的内容已处理完毕：") + dto.getHandleResult(),
                 "report", reportId);
     }
 
@@ -130,6 +136,19 @@ public class ReportAdminService {
         }
     }
 
+    /** 警告被举报方（内容举报=仅记录；用户举报=给该用户发警告通知） */
+    private void warnTarget(String type, Long targetId, String handleResult) {
+        if (!Constants.BIZ_USER.equals(type)) {
+            return;
+        }
+        User user = userMapper.selectById(targetId);
+        if (user != null) {
+            messageService.send(targetId, Constants.MSG_SYSTEM, "账号警告通知",
+                    "你因违反校园平台规范被举报并核实，本次予以警告：" + handleResult + " 请规范言行，多次违规将面临封禁。",
+                    null, null);
+        }
+    }
+
     /** 封禁目标内容的发布者 */
     private void banAuthor(String type, Long targetId) {
         Long authorId = switch (type) {
@@ -153,6 +172,7 @@ public class ReportAdminService {
                 PostComment comment = postCommentMapper.selectById(targetId);
                 yield comment == null ? null : comment.getUserId();
             }
+            case Constants.BIZ_USER -> targetId;
             default -> null;
         };
         if (authorId != null) {

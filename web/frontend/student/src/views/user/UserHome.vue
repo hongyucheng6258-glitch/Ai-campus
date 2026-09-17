@@ -23,8 +23,30 @@
         </div>
         <div class="banner-ops">
           <el-button v-if="!isSelf" type="primary" plain @click="sendMsg">💬 发私信</el-button>
+          <el-button v-if="!isSelf" type="danger" plain @click="reportVisible = true">举报</el-button>
           <el-button v-else @click="$router.push('/profile')">编辑我的资料 ›</el-button>
         </div>
+
+        <!-- 举报弹窗 -->
+        <el-dialog v-model="reportVisible" title="举报该用户" width="440px">
+          <el-form label-width="80px">
+            <el-form-item label="举报类型" required>
+              <el-select v-model="reportForm.reasonType" placeholder="请选择举报类型" style="width:100%">
+                <el-option label="言语辱骂/攻击" value="abuse" />
+                <el-option label="发布违规内容" value="illegal" />
+                <el-option label="骚扰/冒充" value="harass" />
+                <el-option label="其他" value="other" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="补充说明">
+              <el-input v-model="reportForm.reason" type="textarea" :rows="3" maxlength="200" placeholder="选填，最多200字" />
+            </el-form-item>
+          </el-form>
+          <template #footer>
+            <el-button @click="reportVisible = false">取消</el-button>
+            <el-button type="danger" :loading="reporting" @click="doReport">提交举报</el-button>
+          </template>
+        </el-dialog>
       </div>
 
       <!-- 统计条 -->
@@ -74,13 +96,14 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import WtPageHeader from '../../components/wt/WtPageHeader.vue'
 import EmptyBox from '../../components/EmptyBox.vue'
 import { useUserStore } from '../../store/user'
 import { userProfile, userIdles, userPosts, userActivities, userLostfounds, userReviews } from '../../api/user'
+import { submitReport as apiSubmitReport } from '../../api/report'
 import { startChat } from '../../utils/startChat'
 
 const route = useRoute()
@@ -92,6 +115,9 @@ const isSelf = computed(() => Number(userStore.userInfo?.id) === uid.value)
 
 const loading = ref(false)
 const profile = ref(null)
+const reportVisible = ref(false)
+const reporting = ref(false)
+const reportForm = reactive({ reasonType: '', reason: '' })
 const tab = ref('idle')
 const idles = ref([])
 const posts = ref([])
@@ -157,6 +183,30 @@ async function sendMsg() {
     await startChat(router, userStore, uid.value, { type: 'profile', id: uid.value, title: profile.value?.nickname })
   } catch (e) {
     ElMessage.error(e.message || '发起私信失败')
+  }
+}
+
+async function doReport() {
+  if (!reportForm.reasonType) {
+    ElMessage.warning('请选择举报类型')
+    return
+  }
+  reporting.value = true
+  try {
+    await apiSubmitReport({
+      targetType: 'user',
+      targetId: uid.value,
+      reasonType: reportForm.reasonType,
+      reason: reportForm.reason
+    })
+    ElMessage.success('举报已提交，管理员将尽快处理')
+    reportVisible.value = false
+    reportForm.reasonType = ''
+    reportForm.reason = ''
+  } catch (e) {
+    ElMessage.error(e.message || '提交失败')
+  } finally {
+    reporting.value = false
   }
 }
 

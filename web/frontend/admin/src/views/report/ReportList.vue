@@ -42,10 +42,17 @@
       <el-form label-width="90px">
         <el-form-item label="处置动作">
           <el-radio-group v-model="handleForm.action">
-            <el-radio value="offline">下架内容</el-radio>
-            <el-radio value="warn">警告发布者</el-radio>
-            <el-radio value="ban">封禁发布者</el-radio>
-            <el-radio value="ignore">举报不成立</el-radio>
+            <template v-if="currentRow?.targetType === 'user'">
+              <el-radio value="warn">警告用户</el-radio>
+              <el-radio value="ban">封禁用户</el-radio>
+              <el-radio value="ignore">举报不成立</el-radio>
+            </template>
+            <template v-else>
+              <el-radio value="offline">下架内容</el-radio>
+              <el-radio value="warn">警告发布者</el-radio>
+              <el-radio value="ban">封禁发布者</el-radio>
+              <el-radio value="ignore">举报不成立</el-radio>
+            </template>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="处置说明" required>
@@ -77,7 +84,7 @@ const handleVisible = ref(false)
 const currentRow = ref(null)
 const handleForm = reactive({ action: 'offline', handleResult: '' })
 
-const typeName = (t) => ({ idle: '闲置', activity: '活动', lostfound: '失物', post: '动态', comment: '评论' }[t] || t)
+const typeName = (t) => ({ idle: '闲置', activity: '活动', lostfound: '失物', post: '动态', comment: '评论', user: '用户' }[t] || t)
 
 function search() {
   pageNum.value = 1
@@ -97,7 +104,7 @@ async function load() {
 
 function openHandle(row) {
   currentRow.value = row
-  handleForm.action = 'offline'
+  handleForm.action = row.targetType === 'user' ? 'warn' : 'offline'
   handleForm.handleResult = ''
   handleVisible.value = true
 }

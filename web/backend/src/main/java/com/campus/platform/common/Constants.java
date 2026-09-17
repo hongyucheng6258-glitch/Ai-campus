@@ -121,6 +121,7 @@ public final class Constants {
     public static final String BIZ_ACTIVITY = "activity";
     public static final String BIZ_LOSTFOUND = "lostfound";
     public static final String BIZ_POST = "post";
+    public static final String BIZ_USER = "user";
 
     /** Redis Key 前缀 */
     public static final String REDIS_AI_RATE_LIMIT = "ai:rate:limit:";

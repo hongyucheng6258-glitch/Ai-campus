@@ -12,7 +12,7 @@ import lombok.Data;
 public class ReportDTO {
 
     @NotBlank(message = "举报对象类型不能为空")
-    @Pattern(regexp = "idle|activity|lostfound|post|comment", message = "举报类型无效")
+    @Pattern(regexp = "idle|activity|lostfound|post|comment|user", message = "举报类型无效")
     private String targetType;
 
     @NotNull(message = "举报对象ID不能为空")
