@@ -167,9 +167,9 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { auditAll, auditList, auditPass, auditReject } from '../../api/audit'
 import { formatTime } from '../../utils/date'
 
-const TYPES = ['activity', 'idle', 'lostfound', 'post']
-const TYPE_TEXT = { activity: '活动', idle: '闲置', lostfound: '失物', post: '动态' }
-const TYPE_TAG = { activity: 'tag-brand', idle: 'tag-gold', lostfound: 'tag-info', post: 'tag-accent' }
+const TYPES = ['activity', 'idle', 'lostfound', 'post', 'partner']
+const TYPE_TEXT = { activity: '活动', idle: '闲置', lostfound: '失物', post: '动态', partner: '搭子' }
+const TYPE_TAG = { activity: 'tag-brand', idle: 'tag-gold', lostfound: 'tag-info', post: 'tag-accent', partner: 'tag-brand' }
 
 const tab = ref('pending')
 const loading = ref(false)

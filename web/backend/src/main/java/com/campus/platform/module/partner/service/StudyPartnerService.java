@@ -8,6 +8,7 @@ import com.campus.platform.common.Constants;
 import com.campus.platform.common.PageResult;
 import com.campus.platform.common.ResultCode;
 import com.campus.platform.module.ai.gateway.AiGatewayService;
+import com.campus.platform.module.ai.service.ContentAiAuditService;
 import com.campus.platform.module.partner.dto.StudyPartnerDTO;
 import com.campus.platform.module.partner.entity.StudyPartner;
 import com.campus.platform.module.partner.mapper.StudyPartnerMapper;
@@ -29,6 +30,7 @@ public class StudyPartnerService {
     private final StudyPartnerMapper partnerMapper;
     private final UserMapper userMapper;
     private final AiGatewayService aiGatewayService;
+    private final ContentAiAuditService contentAiAuditService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /** 发布（待审核） */
@@ -43,7 +45,10 @@ public class StudyPartnerService {
         p.setStatus(Constants.LF_DOING); // 0 匹配中
         p.setAuditStatus(Constants.AUDIT_PENDING);
         partnerMapper.insert(p);
-        return p;
+        // AI 分级审核：低风险自动通过，中高风险转人工审核（与其他 UGC 一致）
+        contentAiAuditService.audit(Constants.BIZ_PARTNER, p, userId,
+                dto.getSubject(), StrUtil.nullToEmpty(dto.getIntro()));
+        return partnerMapper.selectById(p.getId());
     }
 
     /** 列表（公开，仅审核通过） */

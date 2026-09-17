@@ -25,10 +25,16 @@ public class StudyPartner {
     private String intro;
     /** 联系方式 */
     private String contact;
-    /** 0匹配中 1已找到 */
+    /** 0匹配中 1已找到 9已下架 */
     private Integer status;
     /** 0待审 1通过 2驳回 */
     private Integer auditStatus;
     private String auditReason;
+    /** AI 风险等级：0低 1中 2高 */
+    private Integer aiRiskLevel;
+    private String aiAuditReason;
+    private LocalDateTime aiAuditTime;
+    /** 审核来源：manual / ai / ai_manual */
+    private String auditSource;
     private LocalDateTime createTime;
 }

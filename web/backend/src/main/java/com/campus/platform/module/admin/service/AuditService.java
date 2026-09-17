@@ -159,6 +159,7 @@ public class AuditService {
                 }
                 p.setAuditStatus(auditStatus);
                 p.setAuditReason(reason);
+                p.setAuditSource(p.getAiRiskLevel() == null ? "manual" : "ai_manual");
                 studyPartnerMapper.updateById(p);
                 return new AuditedTarget(p.getUserId(), "学习搭子「" + p.getSubject() + "」");
             }

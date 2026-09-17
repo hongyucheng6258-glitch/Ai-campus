@@ -11,6 +11,8 @@ import com.campus.platform.module.activity.entity.Activity;
 import com.campus.platform.module.idle.entity.IdleItem;
 import com.campus.platform.module.lostfound.entity.LostFound;
 import com.campus.platform.module.post.entity.Post;
+import com.campus.platform.module.partner.entity.StudyPartner;
+import com.campus.platform.module.partner.mapper.StudyPartnerMapper;
 import com.campus.platform.module.activity.mapper.ActivityMapper;
 import com.campus.platform.module.idle.mapper.IdleItemMapper;
 import com.campus.platform.module.lostfound.mapper.LostFoundMapper;
@@ -35,6 +37,7 @@ public class ContentAiAuditService {
     private final IdleItemMapper idleItemMapper;
     private final ActivityMapper activityMapper;
     private final PostMapper postMapper;
+    private final StudyPartnerMapper studyPartnerMapper;
     private final AiGatewayService aiGatewayService;
     private final AiConfigHolder aiConfigHolder;
     private final SystemConfigHolder systemConfigHolder;
@@ -44,6 +47,7 @@ public class ContentAiAuditService {
                                  IdleItemMapper idleItemMapper,
                                  ActivityMapper activityMapper,
                                  PostMapper postMapper,
+                                 StudyPartnerMapper studyPartnerMapper,
                                  AiGatewayService aiGatewayService,
                                  AiConfigHolder aiConfigHolder,
                                  SystemConfigHolder systemConfigHolder) {
@@ -51,6 +55,7 @@ public class ContentAiAuditService {
         this.idleItemMapper = idleItemMapper;
         this.activityMapper = activityMapper;
         this.postMapper = postMapper;
+        this.studyPartnerMapper = studyPartnerMapper;
         this.aiGatewayService = aiGatewayService;
         this.aiConfigHolder = aiConfigHolder;
         this.systemConfigHolder = systemConfigHolder;
@@ -101,6 +106,11 @@ public class ContentAiAuditService {
                 Post post = (Post) content;
                 fill(post, riskLevel, reason, now, autoPass);
                 postMapper.updateById(post);
+            }
+            case Constants.BIZ_PARTNER -> {
+                StudyPartner partner = (StudyPartner) content;
+                fill(partner, riskLevel, reason, now, autoPass);
+                studyPartnerMapper.updateById(partner);
             }
             default -> throw new IllegalArgumentException("不支持的内容类型: " + type);
         }
@@ -171,6 +181,10 @@ public class ContentAiAuditService {
         if (pass && item.getAuditStatus() == Constants.AUDIT_PENDING) item.setAuditStatus(Constants.AUDIT_PASS);
     }
     private void fill(Post item, int risk, String reason, LocalDateTime time, boolean pass) {
+        item.setAiRiskLevel(risk); item.setAiAuditReason(reason); item.setAiAuditTime(time); item.setAuditSource("ai");
+        if (pass && item.getAuditStatus() == Constants.AUDIT_PENDING) item.setAuditStatus(Constants.AUDIT_PASS);
+    }
+    private void fill(StudyPartner item, int risk, String reason, LocalDateTime time, boolean pass) {
         item.setAiRiskLevel(risk); item.setAiAuditReason(reason); item.setAiAuditTime(time); item.setAuditSource("ai");
         if (pass && item.getAuditStatus() == Constants.AUDIT_PENDING) item.setAuditStatus(Constants.AUDIT_PASS);
     }
