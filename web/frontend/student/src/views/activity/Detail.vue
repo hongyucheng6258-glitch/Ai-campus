@@ -5,7 +5,7 @@
     <el-card v-if="act">
       <div class="layout">
         <div class="gallery">
-          <el-carousel v-if="act.imageList?.length" height="320px">
+          <el-carousel v-if="act.imageList?.length" height="320px" :arrow="act.imageList.length > 1 ? 'hover' : 'never'">
             <el-carousel-item v-for="img in act.imageList" :key="img">
               <el-image :src="img" fit="contain" style="width:100%;height:100%" :preview-src-list="act.imageList" />
             </el-carousel-item>

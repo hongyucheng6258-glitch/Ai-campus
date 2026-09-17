@@ -6,7 +6,7 @@
       <div class="layout">
         <!-- 图左 -->
         <div class="gallery">
-          <el-carousel v-if="item.imageList?.length" height="360px">
+          <el-carousel v-if="item.imageList?.length" height="360px" :arrow="item.imageList.length > 1 ? 'hover' : 'never'">
             <el-carousel-item v-for="img in item.imageList" :key="img">
               <el-image :src="img" fit="contain" style="width:100%;height:100%" :preview-src-list="item.imageList" />
             </el-carousel-item>
