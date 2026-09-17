@@ -11,7 +11,7 @@
     </div>
 
     <div class="grid" v-loading="loading">
-      <div v-for="p in list" :key="p.id" class="p-card">
+      <div v-for="p in list" :key="p.id" class="p-card" @click="goDetail(p)">
         <div class="p-card__head">
           <b>{{ p.subject }}</b>
           <span v-if="p.goal" class="goal">{{ p.goal }}</span>
@@ -75,6 +75,15 @@ function goPublish() {
     return
   }
   router.push('/partner/publish')
+}
+
+function goDetail(p) {
+  if (!p.userId) return
+  if (p.isOwner) {
+    router.push('/profile')
+    return
+  }
+  router.push(`/user/${p.userId}`)
 }
 
 load()
