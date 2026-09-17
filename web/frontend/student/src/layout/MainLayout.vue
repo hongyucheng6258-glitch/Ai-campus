@@ -74,8 +74,9 @@
         </form>
         <div class="top-actions">
           <WtThemeToggle />
-          <el-badge :value="messageStore.unread + chatStore.unreadTotal" :hidden="messageStore.unread + chatStore.unreadTotal === 0" class="bell-wrap">
-            <button class="icon-btn" aria-label="消息" @click="goMessage">
+          <el-badge :value="messageStore.unread + chatStore.unreadTotal" :hidden="messageStore.unread + chatStore.unreadTotal === 0"
+                   class="bell-wrap" @click="goMessage" title="消息中心">
+            <button class="icon-btn" aria-label="消息">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" />
               </svg>
@@ -359,7 +360,7 @@ onUnmounted(() => {
 .icon-btn:hover { background: var(--surface-2); color: var(--ink); transform: translateY(-1px); }
 .icon-btn svg { width: 20px; height: 20px; }
 .icon-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
-.bell-wrap { line-height: 0; }
+.bell-wrap { line-height: 0; cursor: pointer; }
 
 .content {
   padding: var(--s-6);
