@@ -25,9 +25,9 @@
           <div class="kv">⏰ 报名截止：{{ formatTime(act.signupDeadline) }}</div>
           <div class="kv">👥 已报名：{{ act.memberCount }}{{ act.maxMembers ? ' / ' + act.maxMembers : '' }} 人</div>
           <div class="desc">{{ act.description }}</div>
-          <div class="publisher">
+          <div class="publisher" style="cursor:pointer" @click="goUser(act.userId)">
             <el-avatar :size="36" :src="act.publisherAvatar">{{ act.publisherNickname?.charAt(0) }}</el-avatar>
-            <span>{{ act.publisherNickname }}</span>
+            <span style="color:#0d5c3f;font-weight:600">{{ act.publisherNickname }}</span>
           </div>
           <div class="actions">
             <!-- 发布者视角：名单管理 + 签到二维码 -->
@@ -232,6 +232,12 @@ async function showQrcode() {
     errorCorrectionLevel: 'M'
   })
   qrVisible.value = true
+}
+
+function goUser(id) {
+  if (!id) return
+  if (Number(id) === Number(userStore.userInfo?.id)) router.push('/profile')
+  else router.push(`/user/${id}`)
 }
 
 async function contactPublisher() {

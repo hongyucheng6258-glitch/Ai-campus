@@ -56,6 +56,7 @@ const routes = [
       { path: 'message', name: 'MessageCenter', component: () => import('../views/message/MessageCenter.vue') },
       { path: 'chat', name: 'ConversationList', component: () => import('../views/chat/ConversationList.vue') },
       { path: 'chat/:conversationId', name: 'ChatRoom', component: () => import('../views/chat/ChatRoom.vue') },
+      { path: 'user/:id', name: 'UserHome', component: () => import('../views/user/UserHome.vue') },
       { path: 'profile', name: 'Profile', component: () => import('../views/profile/Profile.vue') }
     ]
   },

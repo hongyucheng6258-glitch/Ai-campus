@@ -9,10 +9,10 @@
       </el-input>
     </div>
     <div v-for="c in comments" :key="c.id" class="comment-item">
-      <el-avatar :size="28" :src="c.avatar">{{ c.nickname?.charAt(0) }}</el-avatar>
+      <el-avatar :size="28" :src="c.avatar" style="cursor:pointer" @click="goUser(c.userId)">{{ c.nickname?.charAt(0) }}</el-avatar>
       <div class="c-body">
         <div class="c-head">
-          <span class="c-nick">{{ c.nickname }}</span>
+          <span class="c-nick" style="cursor:pointer;color:#0d5c3f" @click="goUser(c.userId)">{{ c.nickname }}</span>
           <span class="c-time">{{ fromNow(c.createTime) }}</span>
         </div>
         <div class="c-content">{{ c.content }}</div>
@@ -40,6 +40,12 @@ const userStore = useUserStore()
 const router = useRouter()
 const content = ref('')
 const submitting = ref(false)
+
+function goUser(id) {
+  if (!id) return
+  if (Number(id) === Number(userStore.userInfo?.id)) router.push('/profile')
+  else router.push(`/user/${id}`)
+}
 
 async function submit() {
   if (!userStore.isLoggedIn) {

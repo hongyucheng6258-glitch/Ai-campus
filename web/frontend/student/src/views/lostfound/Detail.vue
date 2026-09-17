@@ -26,9 +26,9 @@
           <div class="contact">
             <b>联系方式：</b>{{ lf.contact || '请通过消息联系发布者' }}
           </div>
-          <div class="publisher">
+          <div class="publisher" style="cursor:pointer" @click="goUser(lf.userId)">
             <el-avatar :size="36" :src="lf.publisherAvatar">{{ lf.publisherNickname?.charAt(0) }}</el-avatar>
-            <span>{{ lf.publisherNickname }}</span>
+            <span style="color:#0d5c3f;font-weight:600">{{ lf.publisherNickname }}</span>
           </div>
 
           <!-- 我的认领状态（非发布者） -->
@@ -225,6 +225,12 @@ async function confirmReturn() {
   await confirmClaim(myClaim.value.id)
   ElMessage.success('已确认找回，感谢发布者！')
   load()
+}
+
+function goUser(id) {
+  if (!id) return
+  if (Number(id) === Number(userStore.userInfo?.id)) router.push('/profile')
+  else router.push(`/user/${id}`)
 }
 
 async function contactPublisher() {

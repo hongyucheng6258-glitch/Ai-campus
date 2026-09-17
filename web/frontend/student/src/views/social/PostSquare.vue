@@ -22,9 +22,9 @@
     <div v-loading="loading">
       <el-card v-for="p in list" :key="p.id" class="post-card">
         <div class="post-head">
-          <el-avatar :size="40" :src="p.avatar">{{ p.nickname?.charAt(0) }}</el-avatar>
+          <el-avatar :size="40" :src="p.avatar" style="cursor:pointer" @click="goUser(p.userId)">{{ p.nickname?.charAt(0) }}</el-avatar>
           <div>
-            <div class="nick">{{ p.nickname }}</div>
+            <div class="nick" style="cursor:pointer" @click="goUser(p.userId)">{{ p.nickname }}</div>
             <div class="time">{{ fromNow(p.createTime) }}</div>
           </div>
           <div class="post-head-actions">
@@ -258,6 +258,12 @@ async function reloadComments(p) {
   const res = await listComments(p.id, { pageNum: 1, pageSize: 50 })
   commentMap.value = { ...commentMap.value, [p.id]: res.list }
   p.commentCount = res.total
+}
+
+function goUser(id) {
+  if (!id) return
+  if (Number(id) === Number(userStore.userInfo?.id)) router.push('/profile')
+  else router.push(`/user/${id}`)
 }
 
 async function contactAuthor(p) {

@@ -30,3 +30,28 @@ export function uploadFile(file) {
     headers: { 'Content-Type': 'multipart/form-data' }
   })
 }
+
+/* ---------- 他人主页（公开只读） ---------- */
+export function userProfile(id) {
+  return request.get(`/user/profile/${id}`)
+}
+
+export function userIdles(id) {
+  return request.get(`/user/${id}/idles`)
+}
+
+export function userPosts(id) {
+  return request.get(`/user/${id}/posts`)
+}
+
+export function userActivities(id) {
+  return request.get(`/user/${id}/activities`)
+}
+
+export function userLostfounds(id) {
+  return request.get(`/user/${id}/lostfounds`)
+}
+
+export function userReviews(id) {
+  return request.get(`/user/${id}/reviews`)
+}
