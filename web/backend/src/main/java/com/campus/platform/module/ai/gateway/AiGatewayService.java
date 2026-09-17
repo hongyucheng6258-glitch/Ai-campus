@@ -304,6 +304,11 @@ public class AiGatewayService {
             String q = params.getOrDefault("question", "");
             String answer = params.getOrDefault("answer", "");
             userContent = "科目: " + subject + "\n原题: " + q + "\n原答案: " + answer + "\n\n请生成一道类似的练习题。";
+        } else if (Constants.SCENE_CAMPUS_GUIDE.equals(scene) && params != null) {
+            // AI 校园向导：把实时检索的校园数据直接拼入用户消息，确保模型一定读取
+            String campusData = params.getOrDefault("campus_data", "");
+            userContent = "【当前实时检索到的校园数据】\n" + campusData
+                    + "\n\n请严格基于以上数据回答学生的问题（数据中没有的就说暂时没有查到）：\n" + question;
         }
         messages.add(objectMapper.createObjectNode()
                 .put("role", "user")
@@ -338,6 +343,7 @@ public class AiGatewayService {
             case Constants.SCENE_QUIZ -> "你是一个出题助手，请根据学生的错题生成一道类似的练习题，包含题目和参考答案。";
             case Constants.SCENE_ASSIST_COMPOSE -> "你是校园内容创作助手，帮助校园用户撰写活动、闲置交易、失物招领、校园动态的发布文案。语言自然具体、有吸引力，不编造用户未提供的事实信息。";
             case Constants.SCENE_ASSIST_POLISH -> "你是校园内容润色助手，帮助优化活动、闲置交易、失物招领、校园动态文案。保持原意与事实不变，使表达更清晰、更吸引人。";
+            case Constants.SCENE_CAMPUS_GUIDE -> "你是「梧桐校园」的AI校园向导，基于下方实时检索的校园业务数据回答学生问题。\n\n【今日校园数据】\n{campus_data}\n\n回答要求：\n1. 只依据上面提供的校园数据回答，不要编造数据中没有的活动、物品或信息；\n2. 数据没有相关内容时，明确说暂时没有查到，并给出一个可行的建议；\n3. 涉及我的信息时按检索到的报名记录回答；\n4. 用简洁中文回答，条目多用短列表，语气亲切自然，像学长学姐一样。";
             default -> "你是一个校园AI助手。";
         };
     }

@@ -39,8 +39,8 @@
             </svg>
           </div>
           <div class="ai-top__meta">
-            <b>{{ tab === 'pdf' ? 'PDF 问答' : 'AI 自由对话' }}</b>
-            <div class="section-sub" style="font-size: var(--fs-cap)">DeepSeek 驱动 · 上下文已记忆</div>
+            <b>{{ tab === 'pdf' ? 'PDF 问答' : (tab === 'guide' ? '🏫 AI 校园向导' : 'AI 自由对话') }}</b>
+            <div class="section-sub" style="font-size: var(--fs-cap)">{{ tab === 'guide' ? '实时校园数据驱动 · 活动 / 闲置 / 失物 / 公告' : 'DeepSeek 驱动 · 上下文已记忆' }}</div>
           </div>
           <div class="ai-top__tools">
             <WtTabs v-model="tab" :options="sceneTabs" />
@@ -80,7 +80,7 @@
           <input
             v-model="question"
             type="text"
-            :placeholder="tab === 'pdf' ? '针对PDF文档内容提问…' : '输入你的问题，回车发送，Shift+Enter 换行'"
+            :placeholder="tab === 'pdf' ? '针对PDF文档内容提问…' : (tab === 'guide' ? '问问校园：周末有什么活动 / 我报名的活动 / 有失物招领吗' : '输入你的问题，回车发送，Shift+Enter 换行')"
             @keydown.enter.exact.prevent="send"
           />
           <button class="send" :disabled="!question.trim() || asking" aria-label="发送" @click="send">
@@ -101,7 +101,7 @@
 </template>
 
 <script setup>
-import { nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { MoreFilled } from '@element-plus/icons-vue'
@@ -127,6 +127,7 @@ const pdfDoc = ref(null)
 
 const sceneTabs = [
   { value: 'chat', label: '💬 AI答疑' },
+  { value: 'guide', label: '🏫 校园向导' },
   { value: 'pdf', label: '📄 PDF问答' }
 ]
 
@@ -147,10 +148,14 @@ watch(tab, () => {
   currentSession.value = null
   messages.value = []
   pdfDoc.value = null
-  loadSessions()
+  if (tab.value !== 'guide') loadSessions()
 })
 
 async function loadSessions() {
+  if (tab.value === 'guide') {
+    sessions.value = []
+    return
+  }
   sessions.value = await aiApi.listSessions(sceneOf())
   if (sessions.value.length && !currentSession.value) {
     await switchSession(sessions.value[0])
@@ -211,13 +216,23 @@ async function onSessionCmd(cmd, s) {
 }
 
 /** 发送问题：chat/pdf 共用；chat 走 SSE 流式，pdf 走一次性返回 */
-const quickPrompts = [
-  '帮我梳理一下高数期末的复习重点',
-  '这道编程题为什么会报错？帮我看看',
-  '怎么规划一周的英语四六级备考？',
-  '帮我生成一份论文写作大纲',
-  '解释一下 TCP 三次握手的过程'
-]
+const quickPrompts = computed(() =>
+  tab.value === 'guide'
+    ? [
+        '周末有哪些活动？',
+        '我报名的活动有哪些？',
+        '最近有失物招领吗？',
+        '校园里有什么二手闲置？',
+        '食堂和图书馆几点开放？'
+      ]
+    : [
+        '帮我梳理一下高数期末的复习重点',
+        '这道编程题为什么会报错？帮我看看',
+        '怎么规划一周的英语四六级备考？',
+        '帮我生成一份论文写作大纲',
+        '解释一下 TCP 三次握手的过程'
+      ]
+)
 
 function askQuick(q) {
   question.value = q
@@ -269,6 +284,27 @@ async function send() {
       assistantMsg.streaming = false
       asking.value = false
     }
+  } else if (tab.value === 'guide') {
+    // 校园向导：实时业务数据问答（一次性返回，原生 fetch 避免 axios 封装干扰）
+    try {
+      const token = localStorage.getItem('token')
+      const resp = await fetch('/api/ai/guide/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ question: q })
+      })
+      const j = await resp.json()
+      assistantMsg.content = j.code === 200 ? (j.data || '') : ('⚠️ ' + (j.message || 'AI服务调用失败'))
+      if (!assistantMsg.content) assistantMsg.content = '⚠️ 暂时没有检索到相关内容'
+    } catch (e) {
+      onError(1002, e.message || 'AI服务调用失败')
+    } finally {
+      assistantMsg.streaming = false
+      asking.value = false
+      // 强制整体替换消息数组，触发响应式更新（reactive 数组内直接改原对象不生效）
+      messages.value = [...messages.value]
+    }
+    scrollBottom()
   } else {
     // PDF 一次性返回
     try {

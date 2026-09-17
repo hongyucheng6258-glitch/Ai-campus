@@ -11,7 +11,9 @@ import com.campus.platform.module.ai.dto.PdfAskDTO;
 import com.campus.platform.module.ai.dto.QuizDTO;
 import com.campus.platform.module.ai.dto.AssistComposeDTO;
 import com.campus.platform.module.ai.dto.AssistPolishDTO;
+import com.campus.platform.module.ai.dto.GuideAskDTO;
 import com.campus.platform.module.ai.service.AiAssistService;
+import com.campus.platform.module.ai.service.CampusGuideService;
 
 import com.campus.platform.common.PageResult;
 import com.campus.platform.common.R;
@@ -30,6 +32,7 @@ import java.util.Map;
 public class AiController {
     private final AiChatService aiChatService;
     private final AiAssistService aiAssistService;
+    private final CampusGuideService campusGuideService;
 
     @PostMapping("/session")
     public R<AiSession> createSession(@Valid @RequestBody SessionCreateDTO dto) {
@@ -113,5 +116,11 @@ public class AiController {
     @PostMapping("/assist/polish")
     public R<String> assistPolish(@Valid @RequestBody AssistPolishDTO dto) {
         return R.ok(aiAssistService.polish(UserContext.getUid(), dto));
+    }
+
+    /** AI 校园向导-业务数据问答（活动/闲置/失物/动态/公告） */
+    @PostMapping("/guide/ask")
+    public R<String> guideAsk(@Valid @RequestBody GuideAskDTO dto) {
+        return R.ok(campusGuideService.ask(UserContext.getUid(), dto.getQuestion()));
     }
 }

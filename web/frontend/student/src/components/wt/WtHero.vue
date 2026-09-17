@@ -30,7 +30,7 @@ function submit() {
       <div class="wt-hero__ai">
         <input
           v-model="q"
-          :placeholder="aiPlaceholder || '想用 AI 做什么？试试：整理高数错题 / 总结这份 PDF'"
+          :placeholder="aiPlaceholder || '问问 AI：周末有什么活动？整理高数错题 / 总结这份 PDF'"
           aria-label="AI 提问"
           @keyup.enter="submit"
         />

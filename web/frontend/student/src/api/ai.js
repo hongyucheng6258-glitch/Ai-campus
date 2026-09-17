@@ -72,6 +72,11 @@ export function aiAssistPolish(data) {
   return request.post('/ai/assist/polish', data, { silent: true, timeout: 120000 })
 }
 
+/** AI 校园向导：基于校园业务数据问答（活动/闲置/失物/动态/公告） */
+export function aiGuideAsk(question) {
+  return request.post('/ai/guide/ask', { question }, { silent: true, timeout: 120000 })
+}
+
 /**
  * Web 端 SSE 流式答疑（POST + fetch 流读取，EventSource 不支持 POST/自定义Header）。
  *
