@@ -114,7 +114,9 @@ onMounted(loadCaptcha)
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #2f9e8a 0%, #8fcfc0 100%);
+  background:
+    url('/images/register-bg.png') center/cover no-repeat fixed,
+    linear-gradient(135deg, #2f9e8a 0%, #8fcfc0 100%);
 }
 .register-card {
   width: 380px;
