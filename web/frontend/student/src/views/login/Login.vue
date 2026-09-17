@@ -36,8 +36,12 @@
           </el-form-item>
           <el-form-item prop="captchaCode">
             <div class="captcha-row">
-              <el-input v-model="form.captchaCode" placeholder="4位验证码" maxlength="4" @keyup.enter="submit" />
-              <img class="captcha-img" :src="captchaImage" title="看不清？点击刷新" @click="loadCaptcha" />
+              <el-input v-model="form.captchaCode"
+                        :placeholder="captchaMode === 'math' ? '输入运算结果' : '4位验证码'"
+                        :maxlength="captchaMode === 'math' ? 3 : 4" @keyup.enter="submit" />
+              <img v-if="captchaMode !== 'math'" class="captcha-img" :src="captchaImage"
+                   title="看不清？点击刷新" @click="loadCaptcha" />
+              <div v-else class="captcha-math" title="换一题" @click="loadCaptcha">{{ captchaExpression }}</div>
             </div>
           </el-form-item>
           <el-button type="primary" class="submit" :loading="loading" @click="submit">登 录</el-button>
@@ -64,6 +68,8 @@ const userStore = useUserStore()
 const formRef = ref()
 const loading = ref(false)
 const captchaImage = ref('')
+const captchaMode = ref('image')
+const captchaExpression = ref('')
 const form = reactive({ studentNo: '', password: '', captchaId: '', captchaCode: '' })
 const rules = {
   studentNo: [{ required: true, message: '请输入学号', trigger: 'blur' }],
@@ -74,7 +80,9 @@ const rules = {
 async function loadCaptcha() {
   const data = await getCaptcha()
   form.captchaId = data.captchaId
+  captchaMode.value = data.mode || 'image'
   captchaImage.value = data.image
+  captchaExpression.value = data.expression
   form.captchaCode = ''
 }
 
@@ -231,6 +239,22 @@ onMounted(loadCaptcha)
   flex-shrink: 0;
   background: var(--surface-3);
   object-fit: cover;
+}
+.captcha-math {
+  width: 120px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, var(--brand-soft), var(--surface-3));
+  color: var(--brand-strong);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: 0.02em;
+  user-select: none;
 }
 .submit {
   width: 100%;

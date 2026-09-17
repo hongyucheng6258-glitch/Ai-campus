@@ -11,8 +11,12 @@
         </el-form-item>
         <el-form-item>
           <div class="captcha-row">
-            <el-input v-model="form.captchaCode" placeholder="验证码" maxlength="4" @keyup.enter="submit" />
-            <img class="captcha-img" :src="captchaImage" title="看不清？点击刷新" @click="loadCaptcha" />
+            <el-input v-model="form.captchaCode"
+                      :placeholder="captchaMode === 'math' ? '输入运算结果' : '4位验证码'"
+                      :maxlength="captchaMode === 'math' ? 3 : 4" @keyup.enter="submit" />
+            <img v-if="captchaMode !== 'math'" class="captcha-img" :src="captchaImage"
+                 title="看不清？点击刷新" @click="loadCaptcha" />
+            <div v-else class="captcha-math" title="换一题" @click="loadCaptcha">{{ captchaExpression }}</div>
           </div>
         </el-form-item>
         <el-form-item>
@@ -40,13 +44,17 @@ const router = useRouter()
 const adminStore = useAdminStore()
 const loading = ref(false)
 const captchaImage = ref('')
+const captchaMode = ref('image')
+const captchaExpression = ref('')
 const remember = ref(false)
 const form = reactive({ username: '', password: '', captchaId: '', captchaCode: '' })
 
 async function loadCaptcha() {
   const data = await getCaptcha()
   form.captchaId = data.captchaId
+  captchaMode.value = data.mode || 'image'
   captchaImage.value = data.image
+  captchaExpression.value = data.expression
   form.captchaCode = ''
 }
 
@@ -125,6 +133,22 @@ onMounted(() => {
   cursor: pointer;
   flex-shrink: 0;
   background: #f5f7fa;
+}
+.captcha-math {
+  width: 110px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line, #dcdfe6);
+  border-radius: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+  background: var(--brand-soft, #eaf6f0);
+  color: var(--brand, #0d5c3f);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  user-select: none;
 }
 .login-row {
   display: flex;
