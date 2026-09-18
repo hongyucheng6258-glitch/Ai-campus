@@ -62,7 +62,8 @@
             class="item event-card"
             @click="go({ to: a.to, needLogin: a.needLogin })"
           >
-            <WtEventArt :item="a" />
+            <img v-if="normalizeImages(a)[0]" :src="normalizeImages(a)[0]" :alt="a.title" class="event-cover-img" />
+            <WtEventArt v-else :item="a" />
             <div class="item-body">
               <div class="event-title-row">
                 <span class="event-date">
@@ -110,7 +111,7 @@
             @click="go({ to: `/idle/detail/${i.id}` })"
           >
             <div class="cover">
-              <img v-if="normalizeImages(i)[0]" :src="normalizeImages(i)[0]" :alt="i.title" loading="lazy" />
+              <img v-if="normalizeImages(i)[0]" :src="normalizeImages(i)[0]" :alt="i.title" />
               <div v-else class="cover-fallback">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18l-2 13H5z"/><path d="M8 11v6M12 11v6M16 11v6"/></svg>
               </div>
@@ -287,6 +288,14 @@ function statusText(a) {
 function timeText(t) {
   return formatTime(t).slice(5) || '待定'
 }
+function dayOf(t) {
+  if (!t) return '新'
+  return String(t).slice(8, 10).replace(/^0/, '') || '新'
+}
+function monthOf(t) {
+  if (!t) return '校园'
+  return `${Number(String(t).slice(5, 7))} 月`
+}
 
 const feedList = computed(() => {
   const d = data.value
@@ -302,6 +311,8 @@ const feedList = computed(() => {
       day: '换',
       month: '好物',
       memberCount: i.viewCount ?? 0,
+      images: i.images,
+      imageList: i.imageList,
       to: `/idle/detail/${i.id}`
     }))
   }
@@ -317,6 +328,8 @@ const feedList = computed(() => {
       day: '寻',
       month: '牵挂',
       memberCount: l.viewCount ?? 0,
+      images: l.images,
+      imageList: l.imageList,
       to: `/lostfound/detail/${l.id}`
     }))
   }
@@ -328,9 +341,11 @@ const feedList = computed(() => {
     title: a.title,
     location: a.location,
     timeText: timeText(a.startTime),
-    day: heroEvent.value.day,
-    month: heroEvent.value.month,
+    day: dayOf(a.startTime),
+    month: monthOf(a.startTime),
     memberCount: a.memberCount || 0,
+    images: a.images,
+    imageList: a.imageList,
     to: `/activity/detail/${a.id}`
   }))
 })
@@ -549,6 +564,7 @@ onMounted(async () => {
 /* 闲置卡 */
 .cover { height: 175px; position: relative; overflow: hidden; background: var(--surface-2); }
 .cover img { width: 100%; height: 100%; object-fit: cover; }
+.event-cover-img { width: 100%; height: 178px; object-fit: cover; display: block; }
 .cover-fallback { width: 100%; height: 100%; display: grid; place-items: center; color: var(--ink-3); }
 .cover-fallback svg { width: 40px; height: 40px; }
 .cover .tag {

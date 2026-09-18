@@ -65,7 +65,8 @@
         class="item event-card"
         @click="$router.push(`/activity/detail/${a.id}`)"
       >
-        <WtEventArt :item="a" />
+        <img v-if="normalizeImages(a)[0]" :src="normalizeImages(a)[0]" :alt="a.title" class="event-cover-img" />
+        <WtEventArt v-else :item="a" />
         <div class="item-body">
           <div class="event-title-row">
             <span class="event-date">
@@ -113,6 +114,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import EmptyBox from '../../components/EmptyBox.vue'
 import WtEventArt from '../../components/wt/WtEventArt.vue'
+import { normalizeImages } from '../../utils/image'
 import { listActivity, recommendActivity } from '../../api/activity'
 import { useUserStore } from '../../store/user'
 
@@ -301,6 +303,7 @@ watch(
   transition: border-color .2s, box-shadow .2s;
 }
 .item:hover { border-color: var(--brand-line); box-shadow: 0 8px 26px oklch(25% 0.04 265 / .05); }
+.event-cover-img { width: 100%; height: 178px; object-fit: cover; display: block; }
 .item-body { padding: 18px; }
 .item-body h3 {
   font-size: 14px;

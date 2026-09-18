@@ -9,17 +9,7 @@ const props = defineProps({
   large: { type: Boolean, default: false },
 })
 
-// 原型 6 套预设视觉（文案与日期来自原型演示数据）
-const EVENT_VISUALS = {
-  1: { word: '把夜晚\n交给音乐', note: '草坪音乐节', day: '25', month: '9 月', cls: 'music' },
-  2: { word: '热爱上场\n就现在', note: '校园 3V3 篮球赛', day: '08', month: '10 月', cls: 'sport' },
-  3: { word: '小小善意\n大大温暖', note: '周末志愿行', day: '27', month: '9 月', cls: 'volunteer' },
-  4: { word: '在书页里\n遇见彼此', note: '校园共读计划', day: '28', month: '9 月', cls: 'reading' },
-  5: { word: '迎着晚风\n跑一小段', note: '晚风夜跑计划', day: '29', month: '9 月', cls: 'running' },
-  6: { word: '让好点子\n发生', note: '校园灵感工作坊', day: '30', month: '9 月', cls: 'ideas' },
-}
-
-// 分类关键词 → 视觉类型
+// 分类关键词 → 视觉类型（保留原型 6 套视觉）
 function clsByCategory(cat = '') {
   const c = String(cat)
   if (/音乐|文艺|娱乐|歌|晚会的?/.test(c)) return 'music'
@@ -30,15 +20,33 @@ function clsByCategory(cat = '') {
   return 'ideas'
 }
 
+// 各视觉类型的兜底文案（仅在无真实标题数据时使用）
+const PRESETS = {
+  music: { word: '把夜晚\n交给音乐', note: '校园音乐活动', day: '25', month: '9 月', cls: 'music' },
+  sport: { word: '热爱上场\n就现在', note: '校园体育赛事', day: '08', month: '10 月', cls: 'sport' },
+  volunteer: { word: '小小善意\n大大温暖', note: '校园志愿服务', day: '27', month: '9 月', cls: 'volunteer' },
+  reading: { word: '在书页里\n遇见彼此', note: '校园共读计划', day: '28', month: '9 月', cls: 'reading' },
+  running: { word: '迎着晚风\n跑一小段', note: '晚风夜跑计划', day: '29', month: '9 月', cls: 'running' },
+  ideas: { word: '让好点子\n发生', note: '校园灵感工作坊', day: '30', month: '9 月', cls: 'ideas' },
+}
 const FALLBACK = { word: '一起出发\n遇见同好', note: '校园活动', day: '新', month: '校园', cls: 'reading' }
 
+// 真实数据驱动：视觉按分类映射，文案/日期取活动的真实字段
 const v = computed(() => {
   const item = props.item || {}
-  const byId = EVENT_VISUALS[item.id]
-  if (byId) return byId
   const cls = clsByCategory(item.category)
-  const preset = Object.values(EVENT_VISUALS).find((x) => x.cls === cls)
-  return { ...(preset || FALLBACK), note: item.category || preset?.note || FALLBACK.note }
+  const preset = PRESETS[cls] || FALLBACK
+  const d = item.startTime ? new Date(String(item.startTime).replace(/-/g, '/')) : null
+  const title = item.title || item.note || preset.note
+  const cat = item.category || '校园活动'
+  return {
+    cls,
+    word: title || preset.word,
+    note: item.category ? cat : preset.note,
+    day: d ? String(d.getDate()).padStart(2, '0') : (item.day || preset.day),
+    month: d ? `${d.getMonth() + 1} 月` : (item.month || preset.month),
+    small: item.title ? '梧桐校园' : `梧桐校园 · ${cat}`,
+  }
 })
 
 const wordHtml = computed(() => v.value.word.replace('\n', '<br>'))
@@ -58,7 +66,7 @@ const GRAPHICS = {
     <div class="event-art-copy">
       <span>{{ v.note }}</span>
       <strong v-html="wordHtml"></strong>
-      <small>梧桐校园 · {{ item.category || '校园活动' }}</small>
+      <small>{{ v.small }}</small>
     </div>
     <svg class="event-graphic" viewBox="0 0 250 220" aria-hidden="true" v-html="GRAPHICS[v.cls]"></svg>
   </div>

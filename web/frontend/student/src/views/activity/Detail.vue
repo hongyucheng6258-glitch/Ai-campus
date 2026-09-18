@@ -12,7 +12,8 @@
         <!-- 左：封面 + 介绍 -->
         <article>
           <div class="event-detail-hero">
-            <WtEventArt :item="act" large />
+            <el-image v-if="normalizeImages(act)[0]" :src="normalizeImages(act)[0]" fit="cover" class="detail-cover-img" :preview-src-list="normalizeImages(act)" />
+            <WtEventArt v-else :item="act" large />
             <div class="event-detail-heading">
               <div class="head-tags">
                 <span v-if="act.category" class="tag">{{ act.category }}</span>
@@ -196,6 +197,7 @@ import { activityDetail, signupActivity, cancelActivitySignup, activityMembers, 
 import { submitReport } from '../../api/report'
 import { favoriteStatus, favorite, unfavorite } from '../../api/favorite'
 import { formatTime } from '../../utils/date'
+import { normalizeImages } from '../../utils/image'
 import { normalizeSigninQrContent } from '../../utils/signinQr.mjs'
 import { useUserStore } from '../../store/user'
 import { startChat } from '../../utils/startChat'
@@ -389,6 +391,7 @@ onMounted(load)
   border-radius: 20px;
   overflow: hidden;
 }
+.detail-cover-img { width: 100%; height: 290px; display: block; }
 .event-detail-heading { padding: 28px 33px 24px; }
 .head-tags { display: flex; gap: 8px; align-items: center; }
 .tag {

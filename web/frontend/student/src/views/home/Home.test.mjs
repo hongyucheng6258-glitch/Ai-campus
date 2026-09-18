@@ -30,9 +30,11 @@ test('首页双栏布局：活动/闲置/动态 + 学习区/公告/日程', () =
   assert.match(source, /class="community-banner"/)
 })
 
-test('活动区最多展示三条并使用 V2 EventArt 封面', () => {
+test('活动区最多展示三条并使用 V2 EventArt 封面（有图时优先真实图片）', () => {
   assert.match(source, /slice\(0,\s*3\)/)
-  assert.match(source, /<WtEventArt :item="a"\s*\/>/)
+  assert.match(source, /<WtEventArt v-else :item="a"\s*\/>/)
+  assert.match(source, /normalizeImages\(a\)\[0\]/)
+  assert.match(source, /class="event-cover-img"/)
 })
 
 test('登录态学习卡展示待复习错题数并跳转错题本', () => {
