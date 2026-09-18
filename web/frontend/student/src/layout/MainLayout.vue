@@ -528,28 +528,6 @@ onUnmounted(() => {
 .search-link { display: none; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
-.btn {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  gap: 7px;
-  min-height: 38px;
-  padding: 0 15px;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  background: var(--surface);
-  color: var(--ink);
-  font-size: 13px;
-  font-weight: 550;
-  white-space: nowrap;
-  line-height: 1.6;
-  cursor: pointer;
-  transition: border-color .18s, background-color .18s, color .18s;
-}
-.btn:hover { border-color: var(--brand-line); background: var(--brand-soft); }
-.btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
-.btn.primary:hover { background: var(--brand-strong); border-color: var(--brand-strong); }
-.btn.small { min-height: 34px; padding: 0 12px; font-size: 12px; }
 .header-publish { font-size: 13px; min-height: 36px; padding: 0 13px; border-radius: 9px; }
 .header-publish svg { width: 15px; height: 15px; }
 .header-login { min-height: 34px; }
@@ -580,20 +558,6 @@ onUnmounted(() => {
 .utility-path { display: flex; align-items: center; gap: 13px; }
 .utility-path b { font-weight: 500; color: var(--ink); }
 .utility-links { display: flex; gap: 25px; }
-.text-btn {
-  border: 0;
-  background: none;
-  color: var(--brand);
-  font-size: 13px;
-  padding: 3px 0;
-  display: inline-flex;
-  gap: 7px;
-  align-items: center;
-  cursor: pointer;
-  white-space: nowrap;
-  text-decoration: none;
-}
-.text-btn:hover { text-decoration: underline; text-underline-offset: 4px; }
 .utility-path .text-btn, .utility-links .text-btn { color: var(--ink-3); font-size: 12px; }
 .utility-links .text-btn:hover { color: var(--brand); }
 
@@ -743,4 +707,44 @@ onUnmounted(() => {
   .header-inner .brand-symbol { height: 26px; width: 26px; }
   .header-inner .top-actions { gap: 3px; }
 }
+</style>
+
+<!-- 全局工具类（供所有路由页面共享，勿加 scoped） -->
+<style>
+.btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 0 15px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 550;
+  white-space: nowrap;
+  line-height: 1.6;
+  cursor: pointer;
+  transition: border-color .18s, background-color .18s, color .18s;
+}
+.btn:hover { border-color: var(--brand-line); background: var(--brand-soft); }
+.btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+.btn.primary:hover { background: var(--brand-strong); border-color: var(--brand-strong); }
+.btn.small { min-height: 34px; padding: 0 12px; font-size: 12px; }
+.text-btn {
+  border: 0;
+  background: none;
+  color: var(--brand);
+  font-size: 13px;
+  padding: 3px 0;
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.text-btn:hover { text-decoration: underline; text-underline-offset: 4px; }
 </style>
