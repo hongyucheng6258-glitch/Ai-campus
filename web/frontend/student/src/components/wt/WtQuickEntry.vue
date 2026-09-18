@@ -1,39 +1,67 @@
 <script setup>
-// 快捷入口磁贴：图标(slot) + 标题 + 描述；variant 1-6 控制图标底色
-defineProps({
+// 快捷入口条（V2）：横向服务项 = 彩色图标块 + 标题 + 描述 + 箭头。
+// 对齐「前端UI-原型-HTML版」quick-strip 快捷服务。
+import { computed } from 'vue'
+
+const props = defineProps({
   title:   String,
   desc:    String,
-  variant: { type: Number, default: 1 }, // 1..6
+  variant: { type: Number, default: 1 }, // 1..6 兼容旧调用
+  color:   { type: String, default: '' }, // blue | peach | sage | lavender
 })
 const emit = defineEmits(['click'])
+
+const COLOR_MAP = { 1: 'blue', 2: 'peach', 3: 'sage', 4: 'lavender', 5: 'blue', 6: 'neutral' }
+const colorCls = computed(() => props.color || COLOR_MAP[Math.min(Math.max(props.variant, 1), 6)] || 'blue')
 </script>
 
 <template>
-  <button class="wt-quick" :class="`v${Math.min(Math.max(variant, 1), 6)}`" @click="emit('click')">
-    <span class="wt-quick__ico"><slot name="icon" /></span>
-    <b>{{ title }}</b>
-    <span class="wt-quick__desc">{{ desc }}</span>
+  <button type="button" class="quick-service" @click="emit('click')">
+    <span class="service-icon" :class="colorCls"><slot name="icon" /></span>
+    <span class="quick-service__text">
+      <b>{{ title }}</b>
+      <small>{{ desc }}</small>
+    </span>
+    <svg class="quick-service__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
   </button>
 </template>
 
 <style scoped>
-.wt-quick {
-  display: flex; flex-direction: column; gap: 8px; text-align: left;
-  padding: var(--s-4); border-radius: var(--r-md);
-  background: var(--surface); border: 1px solid var(--line); cursor: pointer;
+.quick-service {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 19px;
+  min-width: 0;
+  border: 0;
+  border-right: 1px solid var(--line);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
   font-family: var(--font-sans);
-  transition: transform .2s var(--ease-out), box-shadow .2s, border-color .2s;
+  transition: background-color .18s;
 }
-.wt-quick:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--brand-line); }
-.wt-quick:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
-.wt-quick__ico { width: 44px; height: 44px; border-radius: var(--r-sm); display: grid; place-items: center; background: var(--brand-soft); color: var(--brand-strong); }
-.wt-quick__ico :deep(svg) { width: 22px; height: 22px; }
-.wt-quick b { font-size: var(--fs-sm); font-weight: 600; color: var(--ink); }
-.wt-quick__desc { font-size: var(--fs-cap); color: var(--ink-3); }
+.quick-service:hover { background: var(--brand-soft); }
+.quick-service:last-child { border-right: 0; }
+.quick-service__text { min-width: 0; }
+.quick-service b { font-size: 14px; display: block; font-weight: 600; color: var(--ink); }
+.quick-service small { display: block; font-size: 11px; color: var(--ink-3); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.quick-service__arrow { width: 14px; height: 14px; margin-left: auto; color: var(--ink-3); flex: none; }
 
-.v2 .wt-quick__ico { background: var(--accent-soft);   color: var(--accent-strong); }
-.v3 .wt-quick__ico { background: var(--warning-soft);  color: var(--warning); }
-.v4 .wt-quick__ico { background: var(--success-soft);  color: var(--success); }
-.v5 .wt-quick__ico { background: linear-gradient(140deg, var(--brand-soft), var(--accent-soft)); color: var(--brand-strong); }
-.v6 .wt-quick__ico { background: var(--surface-3);     color: var(--ink-2); }
+.service-icon {
+  width: 43px;
+  height: 43px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+.service-icon.blue { background: var(--info-soft); color: var(--info-strong); }
+.service-icon.peach { background: var(--peach); color: var(--accent-strong); }
+.service-icon.sage { background: var(--sage); color: var(--success); }
+.service-icon.lavender { background: var(--purple-soft); color: var(--purple-strong); }
+.service-icon.neutral { background: var(--surface-3); color: var(--ink-2); }
+.service-icon :deep(svg) { width: 21px; height: 21px; }
 </style>

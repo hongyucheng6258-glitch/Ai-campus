@@ -1,8 +1,8 @@
 // 梧桐校园 · ECharts 配色（sRGB 近似 Token，canvas 不支持 OKLCH）
-// 与 src/styles/tokens.css 的梧桐绿/暖珊瑚语义一致，保证图表与大屏协调。
+// 与 src/styles/tokens.css 的校园蓝/杏色语义一致，保证图表与大屏协调。
 export const chartPalette = {
-  brand:  '#2f9e8a', // ≈ 梧桐绿 oklch(53% 0.12 168)
-  accent: '#e9784f', // ≈ 暖珊瑚 oklch(68% 0.17 48)
+  brand:  '#315cf5', // ≈ 校园蓝 oklch(56% 0.19 265)
+  accent: '#f2a15c', // ≈ 杏色 oklch(76% 0.06 60)
   success:'#4ca46a',
   warning:'#e0a93f',
   error:  '#d9543f',

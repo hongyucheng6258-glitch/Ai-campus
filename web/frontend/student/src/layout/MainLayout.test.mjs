@@ -13,7 +13,7 @@ test('顶部搜索提供分类选择和明确搜索按钮', () => {
   assert.match(layout, /v-model="searchType"/)
   assert.match(layout, /<option value="all">全部<\/option>/)
   assert.match(layout, /<option value="activity">活动<\/option>/)
-  assert.match(layout, /class="search-submit"/)
+  assert.match(layout, /class="[^"]*search-submit[^"]*"/)
   assert.doesNotMatch(layout, /搜索活动、闲置、失物、同学/)
 })
 

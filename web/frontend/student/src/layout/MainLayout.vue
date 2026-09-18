@@ -1,94 +1,166 @@
 <template>
   <div class="app">
-    <!-- ===================== 左侧栏 ===================== -->
-    <aside class="sidebar">
-      <div class="brand" @click="$router.push('/')">
-        <div class="brand-mark">梧</div>
-        <div>
-          <div class="brand-name">梧桐校园</div>
-          <div class="brand-sub">Campus AI</div>
-        </div>
+    <!-- ===================== 移动端抽屉导航 ===================== -->
+    <aside class="sidebar student-drawer" :class="{ open: drawerOpen }" aria-hidden="!drawerOpen">
+      <div class="drawer-brand">
+        <a class="brand" @click="go('/')">
+          <span class="brand-symbol" v-html="BRAND_MARK"></span>
+          <span><b>梧桐校园</b></span>
+        </a>
+        <button class="icon-btn mobile-menu" aria-label="关闭导航" @click="drawerOpen = false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
       </div>
-
-      <template v-for="group in navGroups" :key="group.label">
-        <div class="nav-label">{{ group.label }}</div>
-        <router-link
-          v-for="item in group.items"
-          :key="item.to"
-          :to="item.to"
-          class="nav-item"
-          :class="{ active: isActive(item.to) }"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="ICONS[item.icon]"></svg>
-          {{ item.label }}
+      <nav class="side-scroll" aria-label="全部功能">
+        <template v-for="group in navGroups" :key="group.label">
+          <div class="nav-group">{{ group.label }}</div>
+          <router-link
+            v-for="item in group.items"
+            :key="item.to"
+            :to="item.to"
+            class="nav-link"
+            :class="{ active: isActive(item.to) }"
+            @click="drawerOpen = false"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-html="ICONS[item.icon]"></svg>
+            {{ item.label }}
+          </router-link>
+        </template>
+      </nav>
+      <div class="sidebar-bottom">
+        <router-link class="user-chip" :to="userStore.isLoggedIn ? '/profile' : '/login'">
+          <WtAvatar :name="userStore.userInfo?.nickname || '梧'" :src="userStore.userInfo?.avatar" size="sm" />
+          <span>
+            <b>{{ userStore.isLoggedIn ? (userStore.userInfo?.nickname || '校园用户') : '未登录' }}</b>
+            <small>{{ userStore.isLoggedIn ? '个人中心' : '点击登录' }}</small>
+          </span>
         </router-link>
-      </template>
-
-      <!-- 侧栏底部：用户芯片 / 登录 -->
-      <div class="sidebar-foot">
-        <el-dropdown v-if="userStore.isLoggedIn" @command="onCommand">
-          <div class="user-chip">
-            <WtAvatar :name="userStore.userInfo?.nickname" :src="userStore.userInfo?.avatar" size="md" />
-            <div class="user-meta">
-              <b>{{ userStore.userInfo?.nickname }}</b>
-              <span>{{ userStore.userInfo?.studentNo || userStore.userInfo?.username || '校园用户' }}</span>
-            </div>
-          </div>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item command="profile">个人中心</el-dropdown-item>
-              <el-dropdown-item command="wrong">错题本</el-dropdown-item>
-              <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-        <WtButton v-else block @click="$router.push('/login')">登录</WtButton>
       </div>
     </aside>
+    <button v-if="drawerOpen" class="drawer-scrim" aria-label="收起导航" @click="drawerOpen = false"></button>
 
     <!-- ===================== 主区 ===================== -->
     <div class="main">
-      <header class="topbar">
-        <form class="search" role="search" @submit.prevent="onSearch">
-          <label class="sr-only" for="campus-search-type">搜索范围</label>
-          <select id="campus-search-type" v-model="searchType" aria-label="搜索范围">
-            <option value="all">全部</option>
-            <option value="activity">活动</option>
-            <option value="idle">闲置</option>
-            <option value="lost">失物</option>
-            <option value="post">动态</option>
-          </select>
-          <div class="search-input">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <circle cx="11" cy="11" r="7" />
-              <path d="m21 21-4.3-4.3" />
-            </svg>
-            <input
-              v-model="keyword"
-              type="search"
-              :placeholder="searchPlaceholder"
-              aria-label="搜索关键词"
-            />
-          </div>
-          <button class="search-submit" type="submit">搜索</button>
-        </form>
-        <div class="top-actions">
-          <WtThemeToggle />
-          <el-badge :value="messageStore.unread + chatStore.unreadTotal" :hidden="messageStore.unread + chatStore.unreadTotal === 0"
-                   class="bell-wrap" title="消息中心">
-            <button class="icon-btn" aria-label="消息">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" />
-              </svg>
+      <!-- V2 顶部导航（88px） -->
+      <header class="campus-header">
+        <div class="header-inner">
+          <button class="icon-btn mobile-menu" aria-label="切换导航" @click="drawerOpen = true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+
+          <a class="brand" @click="go('/')">
+            <span class="brand-symbol" v-html="BRAND_MARK"></span>
+            <span><b>梧桐校园</b></span>
+          </a>
+
+          <nav class="desktop-nav" aria-label="校园导航">
+            <router-link
+              v-for="item in desktopNav"
+              :key="item.to"
+              :to="item.to"
+              class="desktop-link"
+              :class="{ active: isActive(item.to) }"
+            >
+              {{ item.label }}
+              <span v-if="item.ai" class="nav-ai-dot" aria-hidden="true"></span>
+            </router-link>
+          </nav>
+
+          <div class="top-actions">
+            <!-- 搜索（桌面显示完整表单，窄屏收为图标） -->
+            <form class="header-search" role="search" @submit.prevent="onSearch">
+              <label class="sr-only" for="campus-search-type">搜索范围</label>
+              <select id="campus-search-type" v-model="searchType" aria-label="搜索范围">
+                <option value="all">全部</option>
+                <option value="activity">活动</option>
+                <option value="idle">闲置</option>
+                <option value="lost">失物</option>
+                <option value="post">动态</option>
+              </select>
+              <div class="header-search-input">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                <input v-model="keyword" type="search" :placeholder="searchPlaceholder" aria-label="搜索关键词" />
+              </div>
+              <button class="header-search-submit search-submit" type="submit" aria-label="搜索">搜索</button>
+            </form>
+            <button class="icon-btn search-link" aria-label="综合搜索" @click="go('/search')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
             </button>
-          </el-badge>
-          <WtButton v-if="!userStore.isLoggedIn" size="sm" @click="$router.push('/login')">登录</WtButton>
+
+            <WtThemeToggle />
+
+            <el-badge
+              :value="messageStore.unread + chatStore.unreadTotal"
+              :hidden="messageStore.unread + chatStore.unreadTotal === 0"
+              class="bell-wrap"
+            >
+              <button class="icon-btn" aria-label="消息中心" @click="goMessage">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+              </button>
+            </el-badge>
+
+            <el-dropdown v-if="userStore.isLoggedIn" trigger="click" @command="onPublishCommand">
+              <button class="btn primary header-publish">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                发布
+              </button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="activity">发布活动</el-dropdown-item>
+                  <el-dropdown-item command="idle">发布闲置</el-dropdown-item>
+                  <el-dropdown-item command="lostfound">发布失物信息</el-dropdown-item>
+                  <el-dropdown-item command="partner">发布搭子帖</el-dropdown-item>
+                  <el-dropdown-item command="qa">发布提问</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+            <el-dropdown v-if="userStore.isLoggedIn" trigger="click" @command="onCommand">
+              <button class="header-avatar" aria-label="个人中心">
+                <WtAvatar :name="userStore.userInfo?.nickname" :src="userStore.userInfo?.avatar" size="sm" />
+              </button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="profile">个人中心</el-dropdown-item>
+                  <el-dropdown-item command="wrong">错题本</el-dropdown-item>
+                  <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+            <button v-else class="btn small header-login" @click="go('/login')">登录</button>
+          </div>
         </div>
       </header>
 
-      <div class="content">
-        <router-view />
+      <!-- V2 工具条：面包屑 + 快捷链接 -->
+      <div class="utility-bar">
+        <div class="utility-path">
+          <a class="text-btn" @click="go('/')">我的校园</a>
+          <span>/</span>
+          <b>{{ pageTitle }}</b>
+        </div>
+        <div class="utility-links">
+          <a class="text-btn" @click="go('/notice')">校园公告</a>
+          <a class="text-btn" @click="go('/chat')">私信</a>
+          <a class="text-btn" @click="go('/ai/wrong')">我的错题</a>
+          <a class="text-btn" @click="go('/profile')">我的主页</a>
+        </div>
       </div>
+
+      <main class="content">
+        <router-view />
+      </main>
+
+      <footer class="footer">
+        <div class="footer-brand">
+          <span class="brand-symbol" v-html="BRAND_MARK"></span>
+          <span>梧桐校园 <small>让校园生活更有连接</small></span>
+        </div>
+        <div class="footer-links">
+          <span>AI Campus · 毕业设计项目</span>
+          <a class="text-btn" @click="go('/maintenance')">页面导航</a>
+          <a class="text-btn" @click="go('/maintenance')">帮助与反馈</a>
+        </div>
+      </footer>
     </div>
   </div>
 </template>
@@ -102,13 +174,13 @@ import { useMessageStore } from '../store/message'
 import { useChatStore } from '../store/chat'
 import WtThemeToggle from '../components/wt/WtThemeToggle.vue'
 import WtAvatar from '../components/wt/WtAvatar.vue'
-import WtButton from '../components/wt/WtButton.vue'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 const messageStore = useMessageStore()
 const chatStore = useChatStore()
+const drawerOpen = ref(false)
 const keyword = ref('')
 const searchType = ref('all')
 const searchRoutes = {
@@ -127,6 +199,8 @@ const searchLabels = {
 }
 const searchPlaceholder = computed(() => `搜索${searchLabels[searchType.value]}`)
 
+const BRAND_MARK = '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M4 5h13a3 3 0 0 1 3 3v12H8a4 4 0 0 1-4-4Z"/><path d="M23 4h13v12a4 4 0 0 1-4 4H23Z" opacity=".65"/><path d="M4 23h16v13H8a4 4 0 0 1-4-4Z" opacity=".65"/><path d="M23 23h13v13H23Z" opacity=".3"/></svg>'
+
 const ICONS = {
   home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/>',
   calendar: '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>',
@@ -139,6 +213,15 @@ const ICONS = {
   book: '<path d="M4 19V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM17 3v16"/>',
   bell: '<path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>'
 }
+
+const desktopNav = [
+  { to: '/', label: '首页' },
+  { to: '/activity', label: '校园活动' },
+  { to: '/idle', label: '闲置互换' },
+  { to: '/lostfound', label: '失物招领' },
+  { to: '/social', label: '校园动态' },
+  { to: '/ai/chat', label: 'AI 学习', ai: true }
+]
 
 const navGroups = [
   {
@@ -166,9 +249,41 @@ const navGroups = [
   }
 ]
 
+const PAGE_TITLES = {
+  '/': '综合门户',
+  '/search': '搜索结果',
+  '/activity': '校园活动',
+  '/activity/publish': '发布活动',
+  '/idle': '闲置互换',
+  '/idle/publish': '发布闲置',
+  '/lostfound': '失物招领',
+  '/lostfound/publish': '发布失物信息',
+  '/partner': '学习搭子',
+  '/partner/publish': '发布搭子帖',
+  '/qa': '互助问答',
+  '/qa/publish': '发布提问',
+  '/social': '动态广场',
+  '/notice': '校园公告',
+  '/message': '消息中心',
+  '/chat': '私信',
+  '/ai/chat': 'AI 答疑',
+  '/ai/code': '代码纠错',
+  '/ai/wrong': '错题本',
+  '/profile': '个人中心'
+}
+const pageTitle = computed(() => {
+  const p = route.path
+  const matched = Object.keys(PAGE_TITLES).find((k) => p === k || p.startsWith(k + '/'))
+  return (matched && PAGE_TITLES[matched]) || route.meta?.title || '梧桐校园'
+})
+
 function isActive(to) {
   if (to === '/') return route.path === '/'
   return route.path === to || route.path.startsWith(to + '/')
+}
+
+function go(path) {
+  router.push(path)
 }
 
 function onSearch() {
@@ -195,6 +310,17 @@ function onBellDocClick(e) {
 }
 onMounted(() => document.addEventListener('click', onBellDocClick))
 onUnmounted(() => document.removeEventListener('click', onBellDocClick))
+
+function onPublishCommand(cmd) {
+  const map = {
+    activity: '/activity/publish',
+    idle: '/idle/publish',
+    lostfound: '/lostfound/publish',
+    partner: '/partner/publish',
+    qa: '/qa/publish'
+  }
+  router.push(map[cmd])
+}
 
 function onCommand(cmd) {
   if (cmd === 'profile') router.push('/profile')
@@ -228,168 +354,393 @@ watch(
 window.addEventListener('auth-expired', handleAuthExpired)
 onUnmounted(() => {
   window.removeEventListener('auth-expired', handleAuthExpired)
+  window.removeEventListener('click', onBellDocClick)
   messageStore.stopPolling()
   chatStore.destroy()
 })
 </script>
 
 <style scoped>
-.app {
-  display: grid;
-  grid-template-columns: 248px 1fr;
-  min-height: 100vh;
-}
-.sidebar {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 24px 16px;
+.app { min-height: 100vh; }
+.main { min-width: 0; }
+
+/* ===================== V2 顶部导航 ===================== */
+.campus-header {
+  height: 88px;
   background: var(--surface);
-  border-right: 1px solid var(--line);
-  overflow-y: auto;
+  border-bottom: 1px solid var(--line);
+  position: relative;
+  z-index: 15;
+}
+.header-inner {
+  height: 100%;
+  max-width: 1440px;
+  padding: 0 40px;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  gap: 30px;
 }
 .brand {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px;
-  margin-bottom: 16px;
+  gap: 10px;
+  flex-shrink: 0;
   cursor: pointer;
 }
-.brand-mark {
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
-  flex: none;
-  display: grid;
-  place-items: center;
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 1.25rem;
-  color: var(--brand-ink);
-  background: linear-gradient(140deg, var(--brand), var(--brand-strong));
-  box-shadow: var(--shadow-sm);
+.brand-symbol {
+  width: 38px;
+  height: 38px;
+  color: var(--brand);
+  display: inline-flex;
 }
-.brand-name {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 1.15rem;
-  line-height: 1.1;
+.brand-symbol :deep(svg) {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
 }
-.brand-sub {
-  font-size: var(--fs-cap);
-  color: var(--ink-3);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+.brand b {
+  font-size: 23px;
+  letter-spacing: .5px;
+  font-weight: 750;
+  white-space: nowrap;
+  color: var(--ink);
 }
-.nav-label {
-  font-size: var(--fs-cap);
-  color: var(--ink-3);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 16px 12px 4px;
-}
-.nav-item {
+.desktop-nav {
   display: flex;
   align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 12px;
-  border-radius: 10px;
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  color: var(--ink-2);
-  text-decoration: none;
-  font-family: var(--font-sans);
-  transition: background 0.2s var(--ease-out), color 0.2s var(--ease-out);
+  gap: 28px;
+  margin-left: 28px;
+  height: 100%;
 }
-.nav-item svg { width: 20px; height: 20px; flex: none; }
-.nav-item:hover { background: var(--surface-2); color: var(--ink); }
-.nav-item.active { background: var(--brand-soft); color: var(--brand-strong); font-weight: 600; }
-.nav-item.active svg { color: var(--brand); }
-.nav-item:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.desktop-link {
+  font-size: 14px;
+  white-space: nowrap;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  position: relative;
+  color: var(--ink-3);
+  font-weight: 500;
+  text-decoration: none;
+}
+.desktop-link.active { color: var(--brand); font-weight: 650; }
+.desktop-link.active::after {
+  content: "";
+  position: absolute;
+  height: 3px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--brand);
+  border-radius: 4px;
+}
+.nav-ai-dot {
+  background: var(--brand);
+  width: 5px;
+  height: 5px;
+  position: absolute;
+  right: -8px;
+  top: 28px;
+  border-radius: 50%;
+}
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+.icon-btn {
+  border: 0;
+  background: transparent;
+  color: var(--ink-3);
+  padding: 9px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 10px;
+  min-width: 38px;
+  min-height: 38px;
+  cursor: pointer;
+}
+.icon-btn:hover { color: var(--brand); background: var(--brand-soft); }
+.icon-btn svg { width: 20px; height: 20px; }
 
-.sidebar-foot { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+/* 顶栏搜索 */
+.header-search {
+  display: grid;
+  grid-template-columns: 80px minmax(140px, 220px) auto;
+  align-items: center;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-2);
+  overflow: hidden;
+  transition: border-color .2s var(--ease-out), box-shadow .2s var(--ease-out), background .2s;
+}
+.header-search:focus-within {
+  border-color: var(--brand);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--brand-soft);
+}
+.header-search select {
+  min-width: 0;
+  padding: 0 10px;
+  border: 0;
+  border-right: 1px solid var(--line);
+  outline: none;
+  background: transparent;
+  color: var(--ink-2);
+  font: 600 var(--fs-cap)/1 var(--font-sans);
+  cursor: pointer;
+  height: 100%;
+}
+.header-search-input { position: relative; min-width: 0; display: flex; align-items: center; }
+.header-search-input svg {
+  position: absolute;
+  left: 11px;
+  width: 15px;
+  height: 15px;
+  color: var(--ink-3);
+  pointer-events: none;
+}
+.header-search input {
+  width: 100%;
+  height: 36px;
+  padding: 0 8px 0 32px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--ink);
+  font: var(--fs-xs)/1 var(--font-sans);
+}
+.header-search input::placeholder { color: var(--ink-3); }
+.header-search-submit {
+  height: 100%;
+  padding: 0 12px;
+  border: 0;
+  background: var(--brand);
+  color: var(--brand-ink);
+  font: 600 var(--fs-cap)/1 var(--font-sans);
+  cursor: pointer;
+  transition: background-color .18s ease;
+}
+.header-search-submit:hover { background: var(--brand-strong); }
+.search-link { display: none; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+.btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 0 15px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 550;
+  white-space: nowrap;
+  line-height: 1.6;
+  cursor: pointer;
+  transition: border-color .18s, background-color .18s, color .18s;
+}
+.btn:hover { border-color: var(--brand-line); background: var(--brand-soft); }
+.btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+.btn.primary:hover { background: var(--brand-strong); border-color: var(--brand-strong); }
+.btn.small { min-height: 34px; padding: 0 12px; font-size: 12px; }
+.header-publish { font-size: 13px; min-height: 36px; padding: 0 13px; border-radius: 9px; }
+.header-publish svg { width: 15px; height: 15px; }
+.header-login { min-height: 34px; }
+.header-avatar {
+  padding-left: 9px;
+  border-left: 1px solid var(--line);
+  display: flex;
+  background: none;
+  border-right: 0;
+  border-top: 0;
+  border-bottom: 0;
+  cursor: pointer;
+  align-items: center;
+}
+.bell-wrap { line-height: 0; cursor: pointer; }
+.bell-wrap :deep(.el-badge__content) { transform: translate(18%, -18%); }
+
+/* ===================== 工具条 ===================== */
+.utility-bar {
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  color: var(--ink-3);
+  font-size: 12px;
+}
+.utility-path { display: flex; align-items: center; gap: 13px; }
+.utility-path b { font-weight: 500; color: var(--ink); }
+.utility-links { display: flex; gap: 25px; }
+.text-btn {
+  border: 0;
+  background: none;
+  color: var(--brand);
+  font-size: 13px;
+  padding: 3px 0;
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.text-btn:hover { text-decoration: underline; text-underline-offset: 4px; }
+.utility-path .text-btn, .utility-links .text-btn { color: var(--ink-3); font-size: 12px; }
+.utility-links .text-btn:hover { color: var(--brand); }
+
+/* ===================== 内容与页脚 ===================== */
+.content {
+  max-width: 1376px;
+  margin: 0 auto;
+  padding: 0 40px 25px;
+  min-height: calc(100vh - 260px);
+}
+.footer {
+  margin-top: 54px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 25px;
+  align-items: center;
+  font-size: 11px;
+  color: var(--ink-3);
+}
+.footer-brand { display: flex; gap: 10px; align-items: center; color: var(--ink); }
+.footer-brand .brand-symbol { width: 30px; height: 30px; fill: var(--brand); }
+.footer-brand > span { font-size: 14px; font-weight: 600; }
+.footer-brand small { display: block; font-size: 10px; color: var(--ink-3); font-weight: 400; margin-top: 2px; }
+.footer-links { display: flex; align-items: center; gap: 19px; font-size: 11px; flex-wrap: wrap; }
+.footer-links .text-btn { font-size: 11px; color: var(--ink-3); }
+.footer-links a:hover { color: var(--brand); }
+
+/* ===================== 移动端抽屉 ===================== */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 252px;
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+  padding: 28px 16px 18px;
+  display: flex;
+  flex-direction: column;
+  z-index: 40;
+  transform: translateX(-100%);
+  transition: transform .2s var(--ease-out);
+  box-shadow: 15px 0 50px oklch(25% 0.04 265 / .12);
+}
+.student-drawer { display: flex; }
+.sidebar.open { transform: translateX(0); }
+.drawer-brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px 22px;
+}
+.drawer-brand .brand b { font-size: 20px; }
+.drawer-brand .brand-symbol { width: 31px; height: 31px; }
+.side-scroll { overflow-y: auto; scrollbar-width: thin; min-height: 0; }
+.nav-group { font-size: 10px; color: var(--ink-3); margin: 20px 14px 10px; letter-spacing: .08em; }
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 13px;
+  font-size: 13px;
+  color: var(--ink-3);
+  border-radius: 9px;
+  margin: 3px 0;
+  text-decoration: none;
+  transition: background .18s, color .18s;
+}
+.nav-link svg { width: 17px; height: 17px; flex: none; }
+.nav-link.active { background: var(--brand-soft); color: var(--brand); font-weight: 600; }
+.nav-link:hover { background: var(--surface-2); color: var(--ink); }
+.sidebar-bottom { margin-top: auto; border-top: 1px solid var(--line); padding-top: 14px; }
 .user-chip {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px;
-  border-radius: 14px;
-  border: 1px solid var(--line);
-  cursor: pointer;
-  outline: none;
+  gap: 11px;
+  padding: 4px 7px;
+  text-decoration: none;
+  color: var(--ink);
 }
-.user-chip:hover { background: var(--surface-2); }
-.user-meta { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
-.user-meta b { font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-meta span { font-size: var(--fs-cap); color: var(--ink-3); }
+.user-chip b { font-size: 12px; display: block; }
+.user-chip small { font-size: 10px; color: var(--ink-3); display: block; margin-top: 3px; }
+.drawer-scrim {
+  position: fixed;
+  inset: 0;
+  background: oklch(20% 0.04 265 / .45);
+  border: 0;
+  z-index: 35;
+  backdrop-filter: blur(3px);
+}
+.mobile-menu { display: none; }
 
-.main { display: flex; flex-direction: column; min-width: 0; }
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 32px;
-  background: color-mix(in srgb, var(--paper) 82%, transparent);
-  backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--line);
+/* ===================== 响应式 ===================== */
+@media (min-width: 1600px) {
+  .header-inner { max-width: 1540px; padding: 0 50px; }
+  .content { max-width: 1480px; padding-left: 50px; padding-right: 50px; }
 }
-.search { display: grid; grid-template-columns: 94px minmax(180px, 1fr) auto; flex: 1; max-width: 560px; height: 42px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--surface-2); transition: border-color .2s var(--ease-out), box-shadow .2s var(--ease-out), background .2s; }
-.search:focus-within { border-color: var(--brand); background: var(--surface); box-shadow: 0 0 0 4px var(--brand-soft); }
-.search select { min-width: 0; padding: 0 12px 0 16px; border: 0; border-right: 1px solid var(--line); border-radius: var(--r-pill) 0 0 var(--r-pill); outline: none; background: transparent; color: var(--ink-2); font: 600 var(--fs-xs)/1 var(--font-sans); cursor: pointer; }
-.search-input { position: relative; min-width: 0; }
-.search-input svg { position: absolute; left: 13px; top: 50%; width: 18px; height: 18px; transform: translateY(-50%); color: var(--ink-3); pointer-events: none; }
-.search input { width: 100%; height: 40px; padding: 0 10px 0 40px; border: 0; outline: none; background: transparent; color: var(--ink); font: var(--fs-sm)/1 var(--font-sans); }
-.search input::placeholder { color: var(--ink-3); }
-.search-submit { min-width: 68px; margin: 3px; border: 0; border-radius: var(--r-pill); background: var(--brand); color: var(--brand-ink); font: 600 var(--fs-xs)/1 var(--font-sans); cursor: pointer; transition: background-color .18s ease, transform .18s ease; }
-.search-submit:hover { background: var(--brand-strong); transform: translateY(-1px); }
-.search-submit:focus-visible { outline: 2px solid var(--brand-strong); outline-offset: 2px; }
-.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-
-.top-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
-.icon-btn {
-  position: relative;
-  width: 42px;
-  height: 42px;
-  border-radius: var(--r-pill);
-  display: grid;
-  place-items: center;
-  color: var(--ink-2);
-  border: 1px solid var(--line);
-  background: var(--surface);
-  cursor: pointer;
-  transition: background 0.2s var(--ease-out), color 0.2s, transform 0.15s var(--ease-out);
+@media (max-width: 1250px) {
+  .header-inner { gap: 20px; padding: 0 28px; }
+  .desktop-nav { gap: 20px; margin-left: 14px; }
+  .desktop-link { font-size: 13px; }
+  .top-actions { gap: 7px; }
+  .content { padding-left: 30px; padding-right: 30px; }
+  .header-search { grid-template-columns: 70px minmax(110px, 170px) auto; }
 }
-.icon-btn:hover { background: var(--surface-2); color: var(--ink); transform: translateY(-1px); }
-.icon-btn svg { width: 20px; height: 20px; }
-.icon-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
-.bell-wrap { position: relative; line-height: 0; cursor: pointer; }
-/* 角标内缩进按钮范围：默认 translate(50%,-50%) 悬在按钮右上角外，点击角标不落回按钮 */
-.bell-wrap :deep(.el-badge__content) {
-  transform: translate(18%, -18%);
-}
-
-.content {
-  padding: var(--s-6);
-  max-width: 1280px;
-  width: 100%;
-  margin: 0 auto;
-}
-
 @media (max-width: 1080px) {
-  .content { padding: var(--s-5); }
+  .brand b { font-size: 20px; }
+  .brand-symbol { height: 33px; width: 33px; }
+  .desktop-nav { gap: 18px; margin-left: 4px; }
+  .header-inner { gap: 12px; padding: 0 22px; }
+  .top-actions { gap: 5px; }
+  .header-search { display: none; }
+  .search-link { display: inline-grid; }
+  .footer { align-items: flex-start; }
+  .footer-links { gap: 13px; }
+  .footer-links > span { width: 100%; }
 }
-@media (max-width: 820px) {
-  .app { grid-template-columns: 1fr; }
-  .sidebar { display: none; }
-  .topbar { padding: 12px 16px; }
-  .content { padding: 16px; }
+@media (max-width: 760px) {
+  .mobile-menu { display: inline-grid; }
+  .campus-header { height: 72px; }
+  .header-inner { padding: 0 17px; gap: 9px; }
+  .header-inner > .brand { gap: 7px; }
+  .header-inner .brand-symbol { height: 29px; width: 29px; }
+  .header-inner .brand b { font-size: 20px; }
+  .desktop-nav { display: none; }
+  .header-inner > .mobile-menu { min-width: 25px; padding: 4px; margin-right: 2px; }
+  .top-actions { gap: 6px; }
+  .header-publish { min-height: 34px; font-size: 12px; padding: 0 11px; }
+  .header-publish svg { width: 15px; }
+  .top-actions .icon-btn { min-width: 30px; min-height: 32px; }
+  .top-actions > .icon-btn:nth-child(2) { display: none; }
+  .content { padding: 0 20px 24px; }
+  .utility-bar { height: 54px; }
+  .utility-links { gap: 15px; }
+  .utility-links a:first-child, .utility-links a:last-child { display: none; }
+  .utility-bar .text-btn { font-size: 11px; }
+  .utility-path { font-size: 11px; gap: 10px; }
+  .footer { flex-direction: column; gap: 21px; }
+  .footer-links { font-size: 11px; gap: 14px; width: 100%; }
+  .footer-links > span { font-size: 10px; }
+}
+@media (max-width: 370px) {
+  .header-inner { padding: 0 12px; gap: 7px; }
+  .header-inner .brand b { font-size: 18px; }
+  .header-inner .brand-symbol { height: 26px; width: 26px; }
+  .header-inner .top-actions { gap: 3px; }
 }
 </style>

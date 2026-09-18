@@ -250,7 +250,7 @@ const ContentList = {
               [item.statusText ? item.statusText + ' · ' : '', item.extra || ''].join('')),
             h('div', { style: 'font-size:12px;color:#9db5a9;margin-top:2px;' }, (item.createTime || '').replace('T', ' ').slice(0, 16))
           ]),
-          h('span', { style: 'color:#0d5c3f;font-size:14px;flex:none;' }, '›')
+          h('span', { style: 'color:var(--brand-strong);font-size:14px;flex:none;' }, '›')
         ]))
       )
     }
@@ -271,7 +271,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 20px;
-  background: linear-gradient(135deg, #0d5c3f, #157a54);
+  background: linear-gradient(135deg, var(--brand-deep), var(--brand));
   border-radius: 16px;
   color: #fff;
   padding: 28px;
@@ -295,10 +295,10 @@ export default {
 .banner-ops :deep(.el-button--primary) {
   --el-button-bg-color: #fff;
   --el-button-border-color: #fff;
-  --el-button-text-color: #0d5c3f;
+  --el-button-text-color: var(--brand-strong);
   --el-button-hover-bg-color: #eaf5ef;
   --el-button-hover-border-color: #fff;
-  --el-button-hover-text-color: #0d5c3f;
+  --el-button-hover-text-color: var(--brand-strong);
 }
 .stat-row {
   display: grid;
@@ -313,7 +313,7 @@ export default {
   padding: 16px 10px;
   text-align: center;
 }
-.stat-item b { display: block; font-size: 22px; color: #0d5c3f; }
+.stat-item b { display: block; font-size: 22px; color: var(--brand-strong); }
 .stat-item span { font-size: 12px; color: #7a8b82; }
 .tab-card { border-radius: 12px; }
 .review-list { display: flex; flex-direction: column; gap: 12px; }
@@ -327,7 +327,7 @@ export default {
 }
 .review-main { flex: 1; min-width: 0; }
 .review-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.review-name { font-weight: 600; color: #0d5c3f; font-size: 14px; }
+.review-name { font-weight: 600; color: var(--brand-strong); font-size: 14px; }
 .stars { color: #f5a623; font-size: 13px; letter-spacing: 1px; }
 .stars i { color: #d8e2dc; font-style: normal; }
 .review-item-title { color: #7a8b82; font-size: 12px; }

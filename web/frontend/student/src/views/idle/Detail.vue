@@ -26,7 +26,7 @@
           <div class="publisher" style="cursor:pointer" @click="goUser(item.userId)">
             <el-avatar :size="36" :src="item.publisherAvatar">{{ item.publisherNickname?.charAt(0) }}</el-avatar>
             <div>
-              <div style="color:#0d5c3f;font-weight:600">{{ item.publisherNickname }}</div>
+              <div style="color:var(--brand-strong);font-weight:600">{{ item.publisherNickname }}</div>
               <div class="score" v-if="item.sellerAvgScore">历史评分 ⭐ {{ item.sellerAvgScore.toFixed(1) }}</div>
             </div>
           </div>

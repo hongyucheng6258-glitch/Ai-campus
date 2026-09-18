@@ -1,15 +1,15 @@
 /* ============================================================
    梧桐校园 · Element Plus 主题覆盖
-   把现成的 el-* 组件统一换肤成梧桐绿体系，无需改业务代码。
+   把现成的 el-* 组件统一换肤成校园蓝体系，无需改业务代码。
    必须在 `element-plus/dist/index.css` 之后引入（main.js 已保证）。
    暗色主题随 <html data-theme="dark"> 自动生效。
    ============================================================ */
 :root {
   --el-color-primary: var(--brand);
-  --el-color-primary-light-3: oklch(63% 0.11 168);
-  --el-color-primary-light-5: oklch(71% 0.10 168);
-  --el-color-primary-light-7: oklch(82% 0.08 168);
-  --el-color-primary-light-8: oklch(88% 0.07 168);
+  --el-color-primary-light-3: oklch(63% 0.12 265);
+  --el-color-primary-light-5: oklch(71% 0.11 265);
+  --el-color-primary-light-7: oklch(82% 0.09 265);
+  --el-color-primary-light-8: oklch(88% 0.08 265);
   --el-color-primary-light-9: var(--brand-soft);
   --el-color-primary-dark-2: var(--brand-strong);
 
@@ -49,10 +49,10 @@
 
 :root[data-theme="dark"] {
   --el-color-primary: var(--brand);
-  --el-color-primary-light-3: oklch(66% 0.12 168);
-  --el-color-primary-light-5: oklch(60% 0.12 168);
-  --el-color-primary-light-7: oklch(50% 0.11 168);
-  --el-color-primary-light-8: oklch(44% 0.10 168);
+  --el-color-primary-light-3: oklch(66% 0.12 265);
+  --el-color-primary-light-5: oklch(60% 0.12 265);
+  --el-color-primary-light-7: oklch(50% 0.11 265);
+  --el-color-primary-light-8: oklch(44% 0.10 265);
   --el-color-primary-light-9: var(--brand-soft);
   --el-color-primary-dark-2: var(--brand-strong);
 

@@ -22,7 +22,7 @@ onMounted(async () => {
 <style>
 /* 全局基线：统一指向梧桐校园设计系统 tokens.css 的 --brand */
 :root {
-  /* 兼容旧引用：梧桐绿品牌色（与 tokens.css --brand 对齐） */
+  /* 兼容旧引用：校园蓝品牌色（与 tokens.css --brand 对齐） */
   --campus-primary: var(--brand);
 }
 * {

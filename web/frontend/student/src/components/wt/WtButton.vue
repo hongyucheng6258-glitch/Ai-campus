@@ -1,5 +1,5 @@
 <script setup>
-// 品牌按钮：primary(梧桐绿) / accent(暖珊瑚) / soft / ghost
+// 品牌按钮：primary(校园蓝) / accent(杏色) / soft / ghost
 const props = defineProps({
   type:   { type: String, default: 'primary' }, // primary | accent | soft | ghost
   size:   { type: String, default: 'md' },       // md | sm

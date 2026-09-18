@@ -1,32 +1,31 @@
 <template>
   <div class="login-page">
-    <!-- 左：品牌视觉区 -->
-    <div class="login-visual">
-      <div class="login-visual-content">
-        <div class="login-visual-brand">
-          <div class="brand-mark">梧</div>
-          <div>
-            <div class="brand-name">梧桐校园</div>
-            <div class="brand-sub">Campus AI</div>
-          </div>
-        </div>
-        <div class="login-visual-tagline">
-          <h2>一个平台，装下整个校园生活</h2>
-          <p>找活动、淘闲置、拾金不昧，还有随时在线的 AI 学习搭子。DeepSeek 已接入，多轮上下文记忆，让你的每一次提问都被认真对待。</p>
-        </div>
-        <div class="login-visual-stats">
-          <div><b>12k+</b><span>在校学生</span></div>
-          <div><b>340+</b><span>本月活动</span></div>
-          <div><b>98%</b><span>失物找回率</span></div>
-        </div>
+    <!-- 左：V2 故事区（校园蓝 + 校园摄影） -->
+    <div class="auth-story">
+      <div class="auth-brand">
+        <span class="brand-symbol" v-html="BRAND_MARK"></span>
+        <span><b>梧桐校园</b><small>Campus AI</small></span>
+      </div>
+      <div class="auth-story-copy">
+        <p class="hello">你好呀，梧桐校园见。</p>
+        <h2>新朋友很多，<br>好的校园生活不止一种。</h2>
+        <p class="auth-story-more">想参加活动、淘好物、找搭子？<br>这里都可以帮你</p>
+      </div>
+      <div class="auth-photo">
+        <img src="/images/campus-v2.png" alt="阳光下的大学校园" />
+        <span class="auth-photo-note">秋日校园 · 2026</span>
+        <span class="auth-photo-caption">桐荫下，遇见</span>
       </div>
     </div>
 
     <!-- 右：登录表单 -->
     <div class="login-form-wrap">
       <div class="login-card">
-        <h1>欢迎回来</h1>
-        <div class="sub">学生端 · 学号密码登录</div>
+        <div class="auth-form-head">
+          <p>欢迎回来</p>
+          <h1>登录梧桐校园</h1>
+          <span class="muted">学生端 · 学号密码登录</span>
+        </div>
         <el-form ref="formRef" :model="form" :rules="rules" size="large" @keyup.enter="submit">
           <el-form-item prop="studentNo">
             <el-input v-model="form.studentNo" placeholder="请输入学号" :prefix-icon="User" />
@@ -77,6 +76,8 @@ const rules = {
   captchaCode: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
 }
 
+const BRAND_MARK = '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M4 5h13a3 3 0 0 1 3 3v12H8a4 4 0 0 1-4-4Z"/><path d="M23 4h13v12a4 4 0 0 1-4 4H23Z" opacity=".65"/><path d="M4 23h16v13H8a4 4 0 0 1-4-4Z" opacity=".65"/><path d="M23 23h13v13H23Z" opacity=".3"/></svg>'
+
 async function loadCaptcha() {
   const data = await getCaptcha()
   form.captchaId = data.captchaId
@@ -112,93 +113,60 @@ onMounted(loadCaptcha)
   grid-template-columns: 1fr 1fr;
 }
 
-/* —— 左视觉区 —— */
-.login-visual {
+/* —— 左：故事区（V2 校园蓝） —— */
+.auth-story {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, oklch(45% 0.12 168) 0%, oklch(60% 0.1 168) 100%);
-}
-.login-visual::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: url('/images/login-bg.jpg') center/cover;
-  opacity: 0.55;
-  mix-blend-mode: overlay;
-}
-.login-visual-content {
-  position: relative;
-  z-index: 1;
-  height: 100%;
-  padding: var(--s-8);
+  background: linear-gradient(160deg, oklch(34% 0.14 265) 0%, oklch(46% 0.15 268) 100%);
   color: #fff;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  padding: 48px 54px 42px;
 }
-.login-visual-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.auth-brand { display: flex; align-items: center; gap: 11px; }
+.auth-brand .brand-symbol { width: 40px; height: 40px; fill: #fff; display: inline-flex; }
+.auth-brand .brand-symbol :deep(svg) { width: 100%; height: 100%; }
+.auth-brand b { font-size: 20px; display: block; letter-spacing: .5px; }
+.auth-brand small { font-size: 9px; color: oklch(95% 0.01 250 / .7); letter-spacing: .12em; text-transform: uppercase; }
+.auth-story-copy { margin-top: 68px; position: relative; z-index: 2; }
+.auth-story-copy .hello { color: oklch(95% 0.01 250 / .8); font-size: 14px; }
+.auth-story-copy h2 {
+  font-size: 38px;
+  line-height: 1.5;
+  font-weight: 700;
+  margin: 16px 0 20px;
+  letter-spacing: -1px;
 }
-.login-visual-brand .brand-mark {
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 1.25rem;
-  background: rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+.auth-story-more { font-size: 14px; line-height: 1.9; color: oklch(95% 0.01 250 / .75); }
+.auth-photo {
+  margin-top: auto;
+  position: relative;
+  height: 200px;
+  border-radius: 17px;
+  overflow: hidden;
+  box-shadow: 0 16px 38px oklch(15% 0.05 265 / .3);
 }
-.login-visual-brand .brand-name {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 1.15rem;
-  line-height: 1.1;
+.auth-photo > img { width: 100%; height: 100%; object-fit: cover; object-position: 55% 45%; }
+.auth-photo-note {
+  position: absolute;
+  top: 13px;
+  right: 13px;
+  border: 1px solid oklch(100% 0 0 / .5);
+  background: oklch(100% 0 0 / .82);
+  backdrop-filter: blur(5px);
+  color: var(--ink-2);
+  border-radius: 50px;
+  padding: 4px 11px;
+  font-size: 10px;
+}
+.auth-photo-caption {
+  position: absolute;
+  left: 16px;
+  bottom: 13px;
+  font-size: 13px;
   color: #fff;
-}
-.login-visual-brand .brand-sub {
-  font-size: var(--fs-cap);
-  color: rgba(255, 255, 255, 0.75);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-.login-visual-tagline {
-  max-width: 460px;
-}
-.login-visual-tagline h2 {
-  font-family: var(--font-display);
-  font-size: 2.2rem;
-  font-weight: 600;
-  line-height: 1.15;
-  margin-bottom: var(--s-3);
-}
-.login-visual-tagline p {
-  font-size: var(--fs-body);
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.85);
-}
-.login-visual-stats {
-  display: flex;
-  gap: var(--s-6);
-  padding-top: var(--s-5);
-  border-top: 1px solid rgba(255, 255, 255, 0.18);
-}
-.login-visual-stats div b {
-  font-family: var(--font-display);
-  font-size: 1.6rem;
-  font-weight: 600;
-  display: block;
-}
-.login-visual-stats div span {
-  font-size: var(--fs-cap);
-  color: rgba(255, 255, 255, 0.7);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  text-shadow: 0 1px 6px oklch(10% 0.05 265 / .45);
+  font-weight: 550;
 }
 
 /* —— 右表单区 —— */
@@ -208,28 +176,12 @@ onMounted(loadCaptcha)
   padding: var(--s-7);
   background: var(--paper);
 }
-.login-card {
-  width: 100%;
-  max-width: 400px;
-}
-.login-card h1 {
-  font-family: var(--font-display);
-  font-size: var(--fs-h1);
-  font-weight: 600;
-  margin-bottom: var(--s-2);
-  color: var(--ink);
-}
-.login-card .sub {
-  color: var(--ink-3);
-  font-size: var(--fs-sm);
-  margin-bottom: var(--s-6);
-}
-.captcha-row {
-  display: flex;
-  width: 100%;
-  gap: var(--s-3);
-  align-items: center;
-}
+.login-card { width: 100%; max-width: 400px; }
+.auth-form-head { margin-bottom: 27px; }
+.auth-form-head p { color: var(--ink-3); font-size: 13px; }
+.auth-form-head h1 { font-size: 25px; font-weight: 700; margin: 7px 0 5px; color: var(--ink); letter-spacing: -.4px; }
+.auth-form-head .muted { color: var(--ink-3); font-size: 12px; }
+.captcha-row { display: flex; width: 100%; gap: var(--s-3); align-items: center; }
 .captcha-img {
   width: 120px;
   height: 44px;
@@ -256,29 +208,11 @@ onMounted(loadCaptcha)
   letter-spacing: 0.02em;
   user-select: none;
 }
-.submit {
-  width: 100%;
-  height: 44px;
-  margin-top: 8px;
-  border-radius: var(--r-pill);
-  font-weight: 600;
-}
-.login-foot {
-  text-align: center;
-  margin-top: var(--s-5);
-  font-size: var(--fs-sm);
-  color: var(--ink-3);
-}
-.login-foot a {
-  color: var(--brand-strong);
-  font-weight: 600;
-  text-decoration: none;
-}
+.submit { width: 100%; height: 44px; margin-top: 8px; border-radius: var(--r-pill); font-weight: 600; }
+.login-foot { text-align: center; margin-top: var(--s-5); font-size: var(--fs-sm); color: var(--ink-3); }
+.login-foot a { color: var(--brand-strong); font-weight: 600; text-decoration: none; }
 
-/* el-form-item 圆角对齐 token */
-.login-card :deep(.el-input__wrapper) {
-  border-radius: var(--r-md);
-}
+.login-card :deep(.el-input__wrapper) { border-radius: var(--r-md); }
 .login-card :deep(.el-button--primary) {
   --el-button-bg-color: var(--brand);
   --el-button-border-color: var(--brand);
@@ -288,15 +222,15 @@ onMounted(loadCaptcha)
   --el-button-active-border-color: var(--brand-strong);
 }
 
+@media (max-width: 960px) {
+  .auth-story { padding: 34px 34px 30px; }
+  .auth-story-copy { margin-top: 48px; }
+  .auth-story-copy h2 { font-size: 31px; }
+  .auth-photo { height: 165px; }
+}
 @media (max-width: 820px) {
-  .login-page {
-    grid-template-columns: 1fr;
-  }
-  .login-visual {
-    display: none;
-  }
-  .login-form-wrap {
-    padding: var(--s-5);
-  }
+  .login-page { grid-template-columns: 1fr; }
+  .auth-story { display: none; }
+  .login-form-wrap { padding: var(--s-5); min-height: 100vh; }
 }
 </style>

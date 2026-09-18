@@ -28,7 +28,7 @@
           </div>
           <div class="publisher" style="cursor:pointer" @click="goUser(lf.userId)">
             <el-avatar :size="36" :src="lf.publisherAvatar">{{ lf.publisherNickname?.charAt(0) }}</el-avatar>
-            <span style="color:#0d5c3f;font-weight:600">{{ lf.publisherNickname }}</span>
+            <span style="color:var(--brand-strong);font-weight:600">{{ lf.publisherNickname }}</span>
           </div>
 
           <!-- 我的认领状态（非发布者） -->
@@ -125,7 +125,6 @@ import { favoriteStatus, favorite, unfavorite } from '../../api/favorite'
 import { formatTime } from '../../utils/date'
 import { useUserStore } from '../../store/user'
 import { startChat } from '../../utils/startChat'
-import { formatTime } from '../../utils/date'
 
 const route = useRoute()
 const router = useRouter()
