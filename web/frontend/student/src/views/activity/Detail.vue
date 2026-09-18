@@ -391,7 +391,7 @@ onMounted(load)
   border-radius: 20px;
   overflow: hidden;
 }
-.detail-cover-img { width: 100%; height: 290px; display: block; }
+.detail-cover-img { width: 100%; aspect-ratio: 16 / 9; display: block; }
 .event-detail-heading { padding: 28px 33px 24px; }
 .head-tags { display: flex; gap: 8px; align-items: center; }
 .tag {
