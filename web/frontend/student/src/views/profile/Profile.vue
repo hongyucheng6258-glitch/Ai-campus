@@ -292,10 +292,10 @@ async function savePassword() {
   border-radius: var(--r-xl);
   background:
     linear-gradient(100deg,
-      oklch(38% 0.1 168 / .94) 0%,
-      oklch(44% 0.11 168 / .7) 42%,
-      oklch(55% 0.1 168 / .3) 68%,
-      oklch(62% 0.09 168 / .1) 84%,
+      oklch(38% 0.1 265 / .94) 0%,
+      oklch(44% 0.11 265 / .7) 42%,
+      oklch(55% 0.1 265 / .3) 68%,
+      oklch(62% 0.09 265 / .1) 84%,
       transparent 96%),
     url('/images/hero-bg.png') center/cover no-repeat;
   color: #fff;
