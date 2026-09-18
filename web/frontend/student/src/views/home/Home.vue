@@ -110,7 +110,7 @@
             @click="go({ to: `/idle/detail/${i.id}` })"
           >
             <div class="cover">
-              <img v-if="i.imageList?.[0]" :src="i.imageList[0]" :alt="i.title" loading="lazy" />
+              <img v-if="normalizeImages(i)[0]" :src="normalizeImages(i)[0]" :alt="i.title" loading="lazy" />
               <div v-else class="cover-fallback">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18l-2 13H5z"/><path d="M8 11v6M12 11v6M16 11v6"/></svg>
               </div>
@@ -222,6 +222,7 @@ import { listPost } from '../../api/post'
 import { listMessage } from '../../api/message'
 import { wrongStats } from '../../api/wrong'
 import { formatTime } from '../../utils/date'
+import { normalizeImages } from '../../utils/image'
 import { useUserStore } from '../../store/user'
 import { useMessageStore } from '../../store/message'
 import WtHero from '../../components/wt/WtHero.vue'
