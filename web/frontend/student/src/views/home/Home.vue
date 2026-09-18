@@ -564,7 +564,7 @@ onMounted(async () => {
 /* 闲置卡 */
 .cover { height: 175px; position: relative; overflow: hidden; background: var(--surface-2); }
 .cover img { width: 100%; height: 100%; object-fit: cover; }
-.event-cover-img { width: 100%; height: 178px; object-fit: cover; display: block; }
+.event-cover-img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; }
 .cover-fallback { width: 100%; height: 100%; display: grid; place-items: center; color: var(--ink-3); }
 .cover-fallback svg { width: 40px; height: 40px; }
 .cover .tag {

@@ -303,7 +303,7 @@ watch(
   transition: border-color .2s, box-shadow .2s;
 }
 .item:hover { border-color: var(--brand-line); box-shadow: 0 8px 26px oklch(25% 0.04 265 / .05); }
-.event-cover-img { width: 100%; height: 178px; object-fit: cover; display: block; }
+.event-cover-img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; }
 .item-body { padding: 18px; }
 .item-body h3 {
   font-size: 14px;
