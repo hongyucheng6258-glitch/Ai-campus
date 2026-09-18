@@ -27,10 +27,26 @@ function parseImageValue(value) {
   return cleanImages(text.split(','))
 }
 
+/**
+ * 将站内相对路径图片（如 /images/a.jpg）解析为当前应用 base 下的完整路径。
+ * 管理端 base 为 /admin/，数据库返回的 /images/... 若不补前缀将 404。
+ * base 为 / 时（如单测环境）恒等返回，不影响其他场景。
+ */
+export function resolveAssetUrl(url) {
+  if (typeof url !== 'string') return url
+  const value = url.trim()
+  if (!value.startsWith('/') || value.startsWith('//')) return value
+  let base = (import.meta.env && import.meta.env.BASE_URL) || '/'
+  if (!base.endsWith('/')) base += '/'
+  if (value.startsWith(base)) return value
+  return base + value.replace(/^\//, '')
+}
+
 export function normalizeImages(item) {
   if (!item || typeof item !== 'object') return []
   const imageList = parseImageValue(item.imageList)
-  return imageList.length ? imageList : parseImageValue(item.images)
+  const list = imageList.length ? imageList : parseImageValue(item.images)
+  return list.map(resolveAssetUrl)
 }
 
 export function firstValidImage(item) {
